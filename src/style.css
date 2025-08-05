@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom reading styles */
+@layer base {
+  body {
+    @apply bg-secondary-50 text-secondary-900;
+  }
+}
+
+@layer components {
+  .paragraph-hover {
+    @apply hover:bg-primary-50 hover:border-primary-200 transition-colors duration-200;
+  }
+  
+  .glossary-highlight {
+    @apply bg-accent-100 border-b-2 border-accent-500 cursor-pointer;
+  }
+  
+  .sidebar-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .reading-text {
+    @apply font-reading leading-relaxed text-base;
+  }
+}
