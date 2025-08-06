@@ -1,13 +1,13 @@
 <template>
-  <div class="w-80 bg-white border-r border-secondary-200 flex flex-col h-full">
+  <div class="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
     <!-- Header -->
-    <div class="p-4 border-b border-secondary-200">
-      <h1 class="text-xl font-bold text-secondary-900 mb-2">Translation Tool</h1>
-      <p class="text-sm text-secondary-600">Upload and manage your novel chapters</p>
+    <div class="p-4 border-b border-gray-200">
+      <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
+      <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
     </div>
 
     <!-- Upload Section -->
-    <div class="p-4 border-b border-secondary-200">
+    <div class="p-4 border-b border-gray-200">
       <div class="relative">
         <input
           ref="fileInput"
@@ -17,19 +17,19 @@
           @change="handleFileUpload"
           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
-        <div class="border-2 border-dashed border-secondary-300 rounded-lg p-6 text-center hover:border-primary-400 hover:bg-primary-50 transition-colors">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
           <div class="text-3xl mb-2">📚</div>
-          <p class="text-sm font-medium text-secondary-900 mb-1">Upload Chapters</p>
-          <p class="text-xs text-secondary-500">PDF, DOCX, or TXT files</p>
+          <p class="text-sm font-medium text-gray-900 mb-1">Upload Chapters</p>
+          <p class="text-xs text-gray-500">PDF, DOCX, or TXT files</p>
         </div>
       </div>
       
       <!-- Upload Progress -->
       <div v-if="isUploading" class="mt-3">
-        <div class="bg-secondary-200 rounded-full h-2">
-          <div class="bg-primary-600 h-2 rounded-full transition-all duration-300 w-1/2"></div>
+        <div class="bg-gray-200 rounded-full h-2">
+          <div class="bg-blue-600 h-2 rounded-full transition-all duration-300 w-1/2"></div>
         </div>
-        <p class="text-xs text-secondary-500 mt-1">Processing files...</p>
+        <p class="text-xs text-gray-500 mt-1">Processing files...</p>
       </div>
     </div>
 
@@ -37,13 +37,13 @@
     <div class="flex-1 overflow-y-auto">
       <div class="p-4">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-secondary-900">Chapters</h3>
-          <span class="text-xs text-secondary-500">{{ chapters.length }}</span>
+          <h3 class="text-sm font-semibold text-gray-900">Chapters</h3>
+          <span class="text-xs text-gray-500">{{ chapters.length }}</span>
         </div>
         
         <div v-if="chapters.length === 0" class="text-center py-8">
           <div class="text-4xl mb-3">📖</div>
-          <p class="text-sm text-secondary-500">No chapters uploaded yet</p>
+          <p class="text-sm text-gray-500">No chapters uploaded yet</p>
         </div>
         
         <div v-else class="space-y-2">
@@ -51,9 +51,9 @@
             v-for="chapter in chapters"
             :key="chapter.id"
             @click="selectChapter(chapter.id)"
-            class="group relative p-3 rounded-lg border border-secondary-200 cursor-pointer transition-all hover:border-primary-300 hover:bg-primary-50"
+            class="group relative p-3 rounded-lg border border-gray-200 cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50"
             :class="{
-              'border-primary-500 bg-primary-50': currentChapterId === chapter.id,
+              'border-blue-500 bg-blue-50': currentChapterId === chapter.id,
               'hover:shadow-sm': currentChapterId !== chapter.id
             }"
           >
@@ -61,14 +61,14 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2 mb-1">
                   <span class="text-lg">{{ getFileIcon(chapter.title) }}</span>
-                  <h4 class="text-sm font-medium text-secondary-900 truncate">
+                  <h4 class="text-sm font-medium text-gray-900 truncate">
                     {{ chapter.title }}
                   </h4>
                 </div>
-                <p class="text-xs text-secondary-500">
+                <p class="text-xs text-gray-500">
                   {{ chapter.paragraphs.length }} paragraphs
                 </p>
-                <div class="mt-2 flex items-center space-x-4 text-xs text-secondary-400">
+                <div class="mt-2 flex items-center space-x-4 text-xs text-gray-400">
                   <span>{{ getTranslationProgress(chapter) }}% translated</span>
                   <span>{{ formatFileSize(chapter.content.length) }}</span>
                 </div>
@@ -76,7 +76,7 @@
               
               <button
                 @click.stop="removeChapter(chapter.id)"
-                class="opacity-0 group-hover:opacity-100 p-1 text-secondary-400 hover:text-red-500 transition-all"
+                class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
                 title="Remove chapter"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,9 +87,9 @@
             
             <!-- Progress Bar -->
             <div class="mt-2">
-              <div class="bg-secondary-200 rounded-full h-1">
+              <div class="bg-gray-200 rounded-full h-1">
                 <div 
-                  class="bg-primary-500 h-1 rounded-full transition-all duration-300"
+                  class="bg-blue-500 h-1 rounded-full transition-all duration-300"
                   :style="{ width: `${getTranslationProgress(chapter)}%` }"
                 ></div>
               </div>
@@ -100,10 +100,10 @@
     </div>
 
     <!-- Footer Actions -->
-    <div class="p-4 border-t border-secondary-200">
+    <div class="p-4 border-t border-gray-200">
       <button
         @click="toggleGlossaryVisibility"
-        class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors text-sm font-medium"
+        class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -112,7 +112,7 @@
       </button>
       
       <div class="mt-3 text-center">
-        <p class="text-xs text-secondary-500">
+        <p class="text-xs text-gray-500">
           {{ getTotalStats() }}
         </p>
       </div>

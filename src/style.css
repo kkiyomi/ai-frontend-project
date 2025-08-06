@@ -1,21 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Custom reading styles */
 @layer base {
   body {
-    @apply bg-secondary-50 text-secondary-900;
+    @apply bg-gray-50 text-gray-900;
   }
 }
 
 @layer components {
   .paragraph-hover {
-    @apply hover:bg-primary-50 hover:border-primary-200 transition-colors duration-200;
+    @apply hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200;
   }
   
   .glossary-highlight {
-    @apply bg-accent-100 border-b-2 border-accent-500 cursor-pointer;
+    @apply bg-green-100 border-b-2 border-green-500 cursor-pointer;
   }
   
   .sidebar-transition {
@@ -23,6 +21,6 @@
   }
   
   .reading-text {
-    @apply font-reading leading-relaxed text-base;
+    @apply font-serif leading-relaxed text-base;
   }
 }

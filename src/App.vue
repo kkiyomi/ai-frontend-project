@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex bg-secondary-50">
+  <div class="h-screen flex bg-gray-50">
     <!-- Sidebar -->
     <Sidebar />
 
@@ -11,7 +11,7 @@
       </div>
       
       <!-- Glossary Panel -->
-      <div v-if="isGlossaryVisible" class="w-80 border-l border-secondary-200">
+      <div v-if="isGlossaryVisible" class="w-80 border-l border-gray-200">
         <GlossaryPanel />
       </div>
     </div>
