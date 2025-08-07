@@ -5,17 +5,24 @@
 
     <!-- Main Content -->
     <div class="flex-1 relative overflow-hidden">
-      <!-- Translation View (full width when glossary is hidden) -->
-      <div :class="isGlossaryVisible ? 'pr-80' : ''" class="h-full">
+      <!-- Translation View (always full width) -->
+      <div class="h-full">
         <TranslationView />
       </div>
       
-      <!-- Glossary Panel (positioned absolutely on top) -->
+      <!-- Glossary Panel Overlay -->
       <div 
         v-if="isGlossaryVisible" 
-        class="absolute top-0 right-0 w-80 h-full bg-white border-l border-gray-200 shadow-lg z-10"
+        class="absolute inset-0 bg-black bg-opacity-50 z-30 flex justify-end"
+        @click="closeGlossaryIfClickedOutside"
       >
-        <GlossaryPanel />
+        <!-- Glossary Panel -->
+        <div 
+          class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
+          @click.stop
+        >
+          <GlossaryPanel />
+        </div>
       </div>
     </div>
   </div>
@@ -27,5 +34,11 @@ import TranslationView from './components/TranslationView.vue';
 import GlossaryPanel from './components/GlossaryPanel.vue';
 import { useGlossary } from './composables/useGlossary';
 
-const { isGlossaryVisible } = useGlossary();
+const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
+
+const closeGlossaryIfClickedOutside = (event: Event) => {
+  if (event.target === event.currentTarget) {
+    toggleGlossaryVisibility();
+  }
+};
 </script>
