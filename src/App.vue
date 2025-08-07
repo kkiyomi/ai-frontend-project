@@ -13,7 +13,7 @@
       <!-- Glossary Panel Overlay -->
       <div 
         v-if="isGlossaryVisible" 
-        class="absolute inset-0 bg-black bg-opacity-50 z-30 flex justify-end"
+        class="absolute inset-0 bg-black/50 z-30 flex justify-end"
         @click="closeGlossaryIfClickedOutside"
       >
         <!-- Glossary Panel -->
