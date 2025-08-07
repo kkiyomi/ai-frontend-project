@@ -1,5 +1,49 @@
 <template>
-  <div class="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+  <div 
+    class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20"
+    :class="isExpanded ? 'w-80' : 'w-12'"
+    @mouseenter="isExpanded = true"
+    @mouseleave="isExpanded = false"
+  >
+    <!-- Minimized State Icons -->
+    <div v-if="!isExpanded" class="flex flex-col items-center py-4 space-y-4">
+      <!-- Main Icon -->
+      <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+      </div>
+      
+      <!-- Upload Icon -->
+      <button 
+        class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors"
+        title="Upload files"
+      >
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+      </button>
+      
+      <!-- Chapter Count Badge -->
+      <div v-if="chapters.length > 0" class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
+        {{ chapters.length }}
+      </div>
+      
+      <!-- Glossary Toggle Icon -->
+      <button 
+        @click="toggleGlossaryVisibility"
+        class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center hover:bg-green-200 transition-colors"
+        :class="{ 'bg-green-200': isGlossaryVisible }"
+        title="Toggle glossary"
+      >
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Expanded Content -->
+    <div v-if="isExpanded" class="flex flex-col h-full">
     <!-- Header --> 
     <div class="p-4 border-b border-gray-200">
       <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
@@ -117,6 +161,7 @@
         </p>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -139,6 +184,7 @@ const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
+const isExpanded = ref(false);
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;

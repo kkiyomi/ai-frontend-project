@@ -4,7 +4,7 @@
     <Sidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 relative">
+    <div class="flex-1 relative overflow-hidden">
       <!-- Translation View (full width when glossary is hidden) -->
       <div :class="isGlossaryVisible ? 'pr-80' : ''" class="h-full">
         <TranslationView />
