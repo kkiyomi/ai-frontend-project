@@ -4,14 +4,17 @@
     <Sidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 flex">
-      <!-- Translation View -->
-      <div class="flex-1">
+    <div class="flex-1 relative">
+      <!-- Translation View (full width when glossary is hidden) -->
+      <div :class="isGlossaryVisible ? 'pr-80' : ''" class="h-full">
         <TranslationView />
       </div>
       
-      <!-- Glossary Panel -->
-      <div v-if="isGlossaryVisible" class="w-80 border-l border-gray-200">
+      <!-- Glossary Panel (positioned absolutely on top) -->
+      <div 
+        v-if="isGlossaryVisible" 
+        class="absolute top-0 right-0 w-80 h-full bg-white border-l border-gray-200 shadow-lg z-10"
+      >
         <GlossaryPanel />
       </div>
     </div>
