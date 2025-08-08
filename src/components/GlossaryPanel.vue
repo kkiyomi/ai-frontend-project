@@ -237,6 +237,7 @@ const newTerm = ref({
 const suggestions = ref<string[]>([]);
 const isGeneratingSuggestions = ref(false);
 const editingTerms = ref<Set<string>>(new Set());
+const showAddForm = ref(false);
 
 const handleAddTerm = () => {
   if (!newTerm.value.term.trim() || !newTerm.value.translation.trim()) return;
@@ -257,6 +258,9 @@ const handleAddTerm = () => {
     category: 'character',
     isUserDefined: true,
   };
+  
+  // Hide form after adding
+  showAddForm.value = false;
 };
 
 const startEditingTerm = (term: GlossaryTerm) => {
