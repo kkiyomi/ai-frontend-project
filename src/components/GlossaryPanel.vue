@@ -18,7 +18,7 @@
     </div>
 
     <!-- Add Term Form -->
-    <div class="p-4 border-b border-gray-200 bg-gray-50">
+    <div v-if="showAddForm" class="p-4 border-b border-gray-200 bg-gray-50">
       <form @submit.prevent="handleAddTerm" class="space-y-3">
         <div>
           <input
