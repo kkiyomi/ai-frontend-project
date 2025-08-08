@@ -15,10 +15,34 @@
         </button>
       </div>
       <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
+      
+      <!-- Add Term Button -->
+      <div class="mt-3">
+        <button
+          v-if="!showAddForm"
+          @click="showAddForm = true"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>Add New Term</span>
+        </button>
+      </div>
     </div>
 
     <!-- Add Term Form -->
     <div v-if="showAddForm" class="p-4 border-b border-gray-200 bg-gray-50">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-900">Add New Term</h3>
+        <button
+          @click="cancelAddForm"
+          class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+      
       <form @submit.prevent="handleAddTerm" class="space-y-3">
         <div>
           <input
@@ -263,6 +287,19 @@ const handleAddTerm = () => {
   showAddForm.value = false;
 };
 
+const cancelAddForm = () => {
+  // Reset form
+  newTerm.value = {
+    term: '',
+    translation: '',
+    definition: '',
+    category: 'character',
+    isUserDefined: true,
+  };
+  
+  // Hide form
+  showAddForm.value = false;
+};
 const startEditingTerm = (term: GlossaryTerm) => {
   updateTerm(term.id, { isEditing: true });
   editingTerms.value.add(term.id);
