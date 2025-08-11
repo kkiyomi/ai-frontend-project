@@ -14,6 +14,16 @@
         </svg>
       </div>
       
+      <!-- Web Scraper Icon -->
+      <button 
+        class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center hover:bg-purple-200 transition-colors"
+        title="Web scraper"
+      >
+        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+        </svg>
+      </button>
+      
       <!-- Upload Icon -->
       <button 
         class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors"
@@ -44,14 +54,15 @@
 
     <!-- Expanded Content -->
     <div v-if="isExpanded" class="flex flex-col h-full">
-    <!-- Header --> 
-    <div class="p-4 border-b border-gray-200">
-      <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
-      <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
-    </div>
+      <!-- Header --> 
+      <div class="p-4 border-b border-gray-200">
+        <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
+        <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
+      </div>
 
-    <!-- Upload Section -->
-    <div class="p-4 border-b border-gray-200">
+      <!-- URL Scraper Component -->
+      <UrlScraper />
+
       <div class="relative">
         <input
           ref="fileInput"
@@ -167,6 +178,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import UrlScraper from './UrlScraper.vue';
 import { useChapters } from '../composables/useChapters';
 import { useGlossary } from '../composables/useGlossary';
 import { getFileIcon } from '../utils/fileParser';

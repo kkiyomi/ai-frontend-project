@@ -13,20 +13,30 @@ export function useChapters() {
   const addChapter = async (file: File): Promise<void> => {
     try {
       const content = await parseFileContent(file);
+      await addChapterFromText(content, file.name.replace(/\.[^/.]+$/, ''), file);
+    } catch (error) {
+      console.error('Error processing file:', error);
+      throw new Error('Failed to process file');
+    }
+  };
+
+  const addChapterFromText = async (content: string, title: string, originalFile?: File): Promise<void> => {
+    try {
+      const chapterId = originalFile ? originalFile.name : `scraped-${Date.now()}`;
       const paragraphs = content.split('\n\n').filter(p => p.trim()).map((text, index) => ({
-        id: `${file.name}-p${index}`,
+        id: `${chapterId}-p${index}`,
         originalText: text.trim(),
         translatedText: '',
         isEditing: false,
-        chapterId: file.name,
+        chapterId,
       }));
 
       const chapter: Chapter = {
-        id: file.name,
-        title: file.name.replace(/\.[^/.]+$/, ''),
+        id: chapterId,
+        title,
         content,
         paragraphs,
-        originalFile: file,
+        originalFile,
       };
 
       chapters.value.push(chapter);
@@ -35,8 +45,8 @@ export function useChapters() {
         currentChapterId.value = chapter.id;
       }
     } catch (error) {
-      console.error('Error processing file:', error);
-      throw new Error('Failed to process file');
+      console.error('Error creating chapter from text:', error);
+      throw new Error('Failed to create chapter');
     }
   };
 
@@ -82,6 +92,7 @@ export function useChapters() {
     currentChapter,
     currentChapterId,
     addChapter,
+    addChapterFromText,
     selectChapter,
     removeChapter,
     updateParagraphTranslation,
