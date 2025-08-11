@@ -1,12 +1,12 @@
 <template>
   <div 
-    class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20"
+    class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'"
     @mouseenter="isExpanded = true"
     @mouseleave="isExpanded = false"
   >
     <!-- Minimized State Icons -->
-    <div v-if="!isExpanded" class="flex flex-col items-center py-4 space-y-4">
+    <div v-if="!isExpanded" class="flex flex-col items-center py-4 space-y-4 flex-shrink-0">
       <!-- Main Icon -->
       <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,9 +53,9 @@
     </div>
 
     <!-- Expanded Content -->
-    <div v-if="isExpanded" class="flex flex-col h-full">
+    <div v-if="isExpanded" class="flex flex-col h-full overflow-hidden">
       <!-- Header --> 
-      <div class="p-4 border-b border-gray-200">
+      <div class="p-4 border-b border-gray-200 flex-shrink-0">
         <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
         <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
       </div>
@@ -63,33 +63,36 @@
       <!-- URL Scraper Component -->
       <UrlScraper />
 
-      <div class="relative">
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".txt,.pdf,.docx,.doc"
-          multiple
-          @change="handleFileUpload"
-          class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
-          <div class="text-3xl mb-2">📚</div>
-          <p class="text-sm font-medium text-gray-900 mb-1">Upload Chapters</p>
-          <p class="text-xs text-gray-500">PDF, DOCX, or TXT files</p>
+      <!-- File Upload Area -->
+      <div class="p-4 flex-shrink-0">
+        <div class="relative">
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".txt,.pdf,.docx,.doc"
+            multiple
+            @change="handleFileUpload"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          />
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <div class="text-3xl mb-2">📚</div>
+            <p class="text-sm font-medium text-gray-900 mb-1">Upload Chapters</p>
+            <p class="text-xs text-gray-500">PDF, DOCX, or TXT files</p>
+          </div>
         </div>
-      </div>
-      
-      <!-- Upload Progress -->
-      <div v-if="isUploading" class="mt-3">
-        <div class="bg-gray-200 rounded-full h-2">
-          <div class="bg-blue-600 h-2 rounded-full transition-all duration-300 w-1/2"></div>
+        
+        <!-- Upload Progress -->
+        <div v-if="isUploading" class="mt-3">
+          <div class="bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300 w-1/2"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Processing files...</p>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Processing files...</p>
       </div>
     </div>
 
-    <!-- Chapters List -->
-    <div class="flex-1 overflow-y-auto">
+    <!-- Chapters List (always visible when expanded) -->
+    <div v-if="isExpanded" class="flex-1 overflow-y-auto min-h-0">
       <div class="p-4">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-semibold text-gray-900">Chapters</h3>
@@ -154,8 +157,8 @@
       </div>
     </div>
 
-    <!-- Footer Actions -->
-    <div class="p-4 border-t border-gray-200">
+    <!-- Footer Actions (always visible when expanded) -->
+    <div v-if="isExpanded" class="p-4 border-t border-gray-200 flex-shrink-0">
       <button
         @click="toggleGlossaryVisibility"
         class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
