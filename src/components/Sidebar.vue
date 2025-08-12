@@ -64,6 +64,7 @@
       <div class="flex-1 overflow-y-auto min-h-0 pb-4">
         <!-- URL Scraper Component -->
         <UrlScraper />
+        <NovelScraper />
 
         <!-- File Upload Area -->
         <div class="p-4 flex-shrink-0">
@@ -179,8 +180,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import UrlScraper from './UrlScraper.vue';
+import NovelScraper from './NovelScraper.vue';
 import { useChapters } from '../composables/useChapters';
 import { useGlossary } from '../composables/useGlossary';
 import { getFileIcon } from '../utils/fileParser';
