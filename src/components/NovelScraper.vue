@@ -63,7 +63,7 @@ const {
   isValidUrl 
 } = useNovelScraper();
 
-const url = ref('');
+const url = ref('https://tw.zhswx.com/read/66761_26599601.html');
 
 const statusType = computed(() => {
   if (isLoading.value) return 'loading';

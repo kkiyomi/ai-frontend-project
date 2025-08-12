@@ -1,5 +1,8 @@
 import { Ref, reactive, computed } from "vue";
 import type { ScrapingOptions, ScrapingState } from "../types/scraper";
+import { useChapters } from "./useChapters";
+
+const { addChapterFromText } = useChapters();
 
 export const useNovelScraper = () => {
   const state = reactive<ScrapingState>({
@@ -128,6 +131,19 @@ export const useNovelScraper = () => {
           for (const element of elements) {
             const text = element.textContent?.trim();
             if (text && text.length > 50) {
+              // Split by <br> if present
+              const rawHtml = element.innerHTML;
+              if (rawHtml.includes("<br") || rawHtml.includes("<br/>")) {
+                const parts = rawHtml
+                  .split(/<br\s*\/?>/i)
+                  .map((part) => part.replace(/<[^>]*>/g, "").trim())
+                  .filter((t) => t && t.length > 10);
+
+                if (parts.length > 0) {
+                  return parts.join("\n\n");
+                }
+              }
+
               return text;
             }
           }
@@ -140,9 +156,6 @@ export const useNovelScraper = () => {
 
   const cleanText = (text: string): string => {
     return text
-      .replace(/\s+/g, " ")
-      .replace(/\n\s*\n\s*\n/g, "\n\n")
-      .trim()
       .replace(/â€™/g, "'")
       .replace(/â€œ/g, '"')
       .replace(/â€\x9D/g, '"')
@@ -285,6 +298,7 @@ export const useNovelScraper = () => {
       await scrapeChapter(url, options, vueRefs);
 
       if (state.result?.success) {
+        addChapterFromText(state.result.content, state.result.title);
         return;
       }
 
