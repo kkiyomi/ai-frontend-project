@@ -12,7 +12,7 @@ export const useNovelScraper = () => {
   const defaultOptions: ScrapingOptions = {
     titleSelector: "h1, .chapter-title, .title, .entry-title, .post-title",
     contentSelector:
-      ".chapter-content, .entry-content, .content, .post-content, .story-text, main p, article p, #form1 > table:nth-child(7) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > div:nth-child(7)",
+      ".chapter-content, .entry-content, .content, .post-content, .story-text, main p, article p",
     removeSelectors: [
       ".ads",
       ".advertisement",
