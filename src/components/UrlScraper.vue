@@ -11,7 +11,7 @@
       </button>
     </div>
     
-    <div v-if="showScraper" class="space-y-3 max-h-80 overflow-y-auto">
+    <div v-if="showScraper" class="space-y-3">
       <div class="relative">
         <input
           v-model="url"
