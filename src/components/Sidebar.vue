@@ -3,7 +3,7 @@
     class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'"
     @mouseenter="isExpanded = true"
-    @mouseleave="isExpanded = false"
+    @click="closeTranslationViewIfClickedOutside"
   >
     <!-- Minimized State Icons -->
     <div v-if="!isExpanded" class="flex flex-col items-center py-4 space-y-4 flex-shrink-0">
@@ -199,6 +199,12 @@ const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
 const isExpanded = ref(false);
+
+const closeTranslationViewIfClickedOutside = (event: Event) => {
+  if (event.target === event.currentTarget) {
+    isExpanded.value = false;
+  }
+};
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
