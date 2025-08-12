@@ -1,5 +1,6 @@
 <template>
   <div  
+    ref="sidebar"
     class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'"
     @mouseenter="isExpanded = true"
@@ -198,26 +199,20 @@ const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
 const isExpanded = ref(false);
-const sidebar = ref(null)
+const sidebar = ref<HTMLElement | null>(null)
 
-const closeTranslationViewIfClickedOutside = (event: Event) => {
-  if (event.target !== event.currentTarget) {
-    isExpanded.value = false;
-  }
-};
-
-function handleClickOutside(event) {
-  if (sidebar.value && !sidebar.value.contains(event.target)) {
-    isExpanded.value = false;
+const closeSidebarIfClickedOutside = (event: MouseEvent) => {
+  if (sidebar.value && !sidebar.value.contains(event.target as Node)) {
+    isExpanded.value = false
   }
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', closeSidebarIfClickedOutside)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', closeSidebarIfClickedOutside)
 })
   
 const handleFileUpload = async (event: Event) => {
