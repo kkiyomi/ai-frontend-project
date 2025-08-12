@@ -198,6 +198,7 @@ const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
 const isExpanded = ref(false);
+const sidebar = ref(null)
 
 const closeTranslationViewIfClickedOutside = (event: Event) => {
   if (event.target !== event.currentTarget) {
