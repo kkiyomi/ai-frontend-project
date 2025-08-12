@@ -1,5 +1,6 @@
 <template>
-  <div class="p-4 border-b border-gray-200 bg-blue-50">
+  <div class="flex-shrink-0 border-b border-gray-200 bg-blue-50">
+    <div class="p-4">
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-sm font-semibold text-gray-900">Web Scraper</h3>
       <button
@@ -10,7 +11,7 @@
       </button>
     </div>
     
-    <div v-if="showScraper" class="space-y-3">
+    <div v-if="showScraper" class="space-y-3 max-h-80 overflow-y-auto">
       <div class="relative">
         <input
           v-model="url"
@@ -86,6 +87,7 @@
           Create Chapter
         </button>
       </div>
+    </div>
     </div>
   </div>
 </template>
