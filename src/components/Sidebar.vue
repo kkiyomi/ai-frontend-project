@@ -201,7 +201,7 @@ const isUploading = ref(false);
 const isExpanded = ref(false);
 
 const closeTranslationViewIfClickedOutside = (event: Event) => {
-  if (event.target === event.currentTarget) {
+  if (event.target !== event.currentTarget) {
     isExpanded.value = false;
   }
 };
