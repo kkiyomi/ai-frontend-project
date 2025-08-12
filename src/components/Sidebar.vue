@@ -3,7 +3,6 @@
     class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'"
     @mouseenter="isExpanded = true"
-    @click="closeTranslationViewIfClickedOutside"
   >
     <!-- Minimized State Icons -->
     <div v-if="!isExpanded" class="flex flex-col items-center py-4 space-y-4 flex-shrink-0">
@@ -179,7 +178,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import UrlScraper from './UrlScraper.vue';
 import { useChapters } from '../composables/useChapters';
 import { useGlossary } from '../composables/useGlossary';
@@ -206,6 +205,20 @@ const closeTranslationViewIfClickedOutside = (event: Event) => {
   }
 };
 
+function handleClickOutside(event) {
+  if (sidebar.value && !sidebar.value.contains(event.target)) {
+    isExpanded.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+  
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const files = target.files;
