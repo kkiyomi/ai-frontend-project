@@ -23,9 +23,9 @@ export function useChapters() {
   const addChapterFromText = async (content: string, title: string, originalFile?: File): Promise<void> => {
     try {
       const chapterId = originalFile ? originalFile.name : `scraped-${Date.now()}`;
-      const paragraphs = content.split('\n\n').filter(p => p.trim()).map((text, index) => ({
+      const paragraphs = content.split('\n').map(p => p.trim()).filter(p => p.length > 0).map((text, index) => ({
         id: `${chapterId}-p${index}`,
-        originalText: text.trim(),
+        originalText: text,
         translatedText: '',
         isEditing: false,
         chapterId,
