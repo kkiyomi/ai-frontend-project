@@ -214,14 +214,13 @@ const getFullTranslatedText = (): string => {
   if (!currentChapter.value) return '';
   const translations = currentChapter.value.paragraphs
     .map(p => p.translatedText)
-    .filter(text => text.trim())
-    .join('<br><br>');
+    .filter(text => text.trim());
   
   if (translations.length === 0) return '';
   
   return currentChapter.value.paragraphs
     .map(p => p.translatedText || '[Not translated yet]')
-    .join('\n\n');
+    .join('<br><br>');
 };
 
 const translateSingleParagraph = async (paragraphId: string, originalText: string) => {
