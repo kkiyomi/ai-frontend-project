@@ -17,7 +17,7 @@
           <button
             @click="translateAllParagraphs"
             :disabled="isTranslating"
-            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
           >
             {{ isTranslating ? 'Translating...' : 'Translate All' }}
           </button>
@@ -26,13 +26,13 @@
       
       <!-- Progress Bar -->
       <div v-if="isTranslating" class="mt-3">
-        <div class="bg-secondary-200 rounded-full h-2">
+        <div class="bg-gray-200 rounded-full h-3">
           <div 
-            class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+            class="bg-blue-600 h-3 rounded-full transition-all duration-300 shadow-sm"
             :style="{ width: `${translationProgress}%` }"
           ></div>
         </div>
-        <p class="text-xs text-secondary-500 mt-1">{{ Math.round(translationProgress) }}% complete</p>
+        <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
       </div>
     </div>
 
