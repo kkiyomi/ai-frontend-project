@@ -207,7 +207,7 @@ const getFullOriginalText = (): string => {
   if (!currentChapter.value) return '';
   return currentChapter.value.paragraphs
     .map(p => p.originalText)
-    .join('\n\n');
+    .join('<br><br>');
 };
 
 const getFullTranslatedText = (): string => {
