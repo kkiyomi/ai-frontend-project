@@ -214,7 +214,8 @@ const getFullTranslatedText = (): string => {
   if (!currentChapter.value) return '';
   const translations = currentChapter.value.paragraphs
     .map(p => p.translatedText)
-    .filter(text => text.trim());
+    .filter(text => text.trim())
+    .join('<br><br>');
   
   if (translations.length === 0) return '';
   
