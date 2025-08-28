@@ -15,6 +15,12 @@
         
         <div v-if="currentChapter" class="flex items-center space-x-2">
           <button
+            @click="toggleViewMode"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+          >
+            {{ viewMode === 'split' ? 'Full Text View' : 'Split View' }}
+          </button>
+          <button
             @click="translateAllParagraphs"
             :disabled="isTranslating"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
@@ -46,8 +52,8 @@
     </div>
 
     <div v-else class="flex-1 overflow-hidden">
-      <!-- Two Column Layout -->
-      <div class="h-full flex">
+      <!-- Split Paragraph View -->
+      <div v-if="viewMode === 'split'" class="h-full flex">
         <!-- Original Text Column -->
         <div class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
@@ -129,11 +135,47 @@
           </div>
         </div>
       </div>
+
+      <!-- Full Text View -->
+      <div v-else class="h-full flex">
+        <!-- Original Text Column -->
+        <div class="flex-1 border-r border-secondary-200">
+          <div class="p-4 bg-secondary-50 border-b border-secondary-200">
+            <h3 class="font-medium text-secondary-900">Original Text</h3>
+          </div>
+          <div class="p-4 overflow-y-auto h-full pb-20">
+            <div class="max-w-4xl">
+              <div 
+                class="reading-text text-secondary-900 leading-relaxed space-y-4"
+                v-html="highlightTermsInText(getFullOriginalText())"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Translated Text Column -->
+        <div class="flex-1">
+          <div class="p-4 bg-accent-50 border-b border-secondary-200">
+            <h3 class="font-medium text-secondary-900">Translation</h3>
+          </div>
+          <div class="p-4 overflow-y-auto h-full pb-20">
+            <div class="max-w-4xl">
+              <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
+                <div v-html="highlightTermsInText(getFullTranslatedText())"></div>
+              </div>
+              <div v-else class="text-secondary-400 italic">
+                No translations yet. Use "Translate All" or translate individual paragraphs first.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
@@ -154,6 +196,32 @@ const {
 } = useTranslation();
 
 const { highlightTermsInText, glossaryTerms } = useGlossary();
+
+const viewMode = ref<'split' | 'full'>('split');
+
+const toggleViewMode = () => {
+  viewMode.value = viewMode.value === 'split' ? 'full' : 'split';
+};
+
+const getFullOriginalText = (): string => {
+  if (!currentChapter.value) return '';
+  return currentChapter.value.paragraphs
+    .map(p => p.originalText)
+    .join('\n\n');
+};
+
+const getFullTranslatedText = (): string => {
+  if (!currentChapter.value) return '';
+  const translations = currentChapter.value.paragraphs
+    .map(p => p.translatedText)
+    .filter(text => text.trim());
+  
+  if (translations.length === 0) return '';
+  
+  return currentChapter.value.paragraphs
+    .map(p => p.translatedText || '[Not translated yet]')
+    .join('\n\n');
+};
 
 const translateSingleParagraph = async (paragraphId: string, originalText: string) => {
   const glossaryContext = glossaryTerms.value.map(term => term.term);
