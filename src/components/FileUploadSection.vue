@@ -1,5 +1,16 @@
 <template>
     <div class="p-4 flex-shrink-0">
+        <!-- Series Selection for Upload -->
+        <div v-if="series.length > 0" class="mb-4">
+            <label class="block text-xs font-medium text-gray-700 mb-2">Upload to Series:</label>
+            <select v-model="selectedSeriesForUpload"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option v-for="seriesItem in series" :key="seriesItem.id" :value="seriesItem.id">
+                    {{ seriesItem.name }} ({{ seriesItem.chapters.length }} chapters)
+                </option>
+            </select>
+        </div>
+
         <div class="relative">
             <input ref="fileInput" type="file" accept=".txt,.pdf,.docx,.doc" multiple @change="handleFileUpload"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
@@ -7,7 +18,12 @@
                 class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
                 <div class="text-3xl mb-2">📚</div>
                 <p class="text-sm font-medium text-gray-900 mb-1">Upload Chapters</p>
-                <p class="text-xs text-gray-500">PDF, DOCX, or TXT files</p>
+                <p class="text-xs text-gray-500">
+                    PDF, DOCX, or TXT files
+                    <span v-if="selectedSeriesForUpload && series.length > 0" class="block mt-1 text-blue-600">
+                        → {{ getSelectedSeriesName() }}
+                    </span>
+                </p>
             </div>
         </div>
 
@@ -25,10 +41,21 @@
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
 
-const { addChapter } = useChapters();
+const { series, currentSeriesId, addChapter } = useChapters();
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
+const selectedSeriesForUpload = ref<string | null>(null);
+
+// Auto-select current series for upload
+if (currentSeriesId.value) {
+    selectedSeriesForUpload.value = currentSeriesId.value;
+}
+
+const getSelectedSeriesName = (): string => {
+    const selectedSeries = series.value.find(s => s.id === selectedSeriesForUpload.value);
+    return selectedSeries?.name || '';
+};
 
 const handleFileUpload = async (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -40,7 +67,7 @@ const handleFileUpload = async (event: Event) => {
 
     try {
         for (const file of Array.from(files)) {
-            await addChapter(file);
+            await addChapter(file, selectedSeriesForUpload.value || undefined);
         }
     } catch (error) {
         console.error('Error uploading files:', error);

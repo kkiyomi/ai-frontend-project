@@ -44,20 +44,22 @@ defineEmits<{
     'toggle-glossary': [];
 }>();
 
-const { chapters } = useChapters();
+const { series } = useChapters();
 
 const getTotalStats = (): string => {
-    const totalParagraphs = chapters.value.reduce(
-        (sum, chapter) => sum + chapter.paragraphs.length,
+    const totalParagraphs = series.value.reduce(
+        (sum, s) => sum + s.chapters.reduce((chSum, chapter) => chSum + chapter.paragraphs.length, 0),
         0
     );
-    const translatedParagraphs = chapters.value.reduce(
-        (sum, chapter) =>
-            sum + chapter.paragraphs.filter((p) => p.translatedText.trim()).length,
+    const translatedParagraphs = series.value.reduce(
+        (sum, s) => sum + s.chapters.reduce(
+            (chSum, chapter) => chSum + chapter.paragraphs.filter((p) => p.translatedText.trim()).length,
+            0
+        ),
         0
     );
 
     if (totalParagraphs === 0) return "No content yet";
-    return `${translatedParagraphs}/${totalParagraphs} paragraphs translated`;
+    return `${series.value.length} series • ${translatedParagraphs}/${totalParagraphs} paragraphs translated`;
 };
 </script>
