@@ -1,0 +1,54 @@
+<template>
+    <div class="p-4 flex-shrink-0">
+        <div class="relative">
+            <input ref="fileInput" type="file" accept=".txt,.pdf,.docx,.doc" multiple @change="handleFileUpload"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+            <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                <div class="text-3xl mb-2">📚</div>
+                <p class="text-sm font-medium text-gray-900 mb-1">Upload Chapters</p>
+                <p class="text-xs text-gray-500">PDF, DOCX, or TXT files</p>
+            </div>
+        </div>
+
+        <!-- Upload Progress -->
+        <div v-if="isUploading" class="mt-3">
+            <div class="bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300 w-1/2"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Processing files...</p>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useChapters } from '../composables/useChapters';
+
+const { addChapter } = useChapters();
+
+const fileInput = ref<HTMLInputElement>();
+const isUploading = ref(false);
+
+const handleFileUpload = async (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    if (!files || files.length === 0) return;
+
+    isUploading.value = true;
+
+    try {
+        for (const file of Array.from(files)) {
+            await addChapter(file);
+        }
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        // In a real app, you'd show a toast notification here
+    } finally {
+        isUploading.value = false;
+        // Clear the input so the same file can be uploaded again
+        if (target) target.value = '';
+    }
+};
+</script>

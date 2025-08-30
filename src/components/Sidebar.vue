@@ -263,8 +263,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import UrlScraper from "./UrlScraper.vue";
-import NovelScraper from "./NovelScraper.vue";
 import { useChapters } from "../composables/useChapters";
 import { useGlossary } from "../composables/useGlossary";
 import { getFileIcon } from "../utils/fileParser";
