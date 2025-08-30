@@ -1,8 +1,17 @@
+export interface Series {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: Date;
+  chapters: Chapter[];
+}
+
 export interface Chapter {
   id: string;
   title: string;
   content: string;
   paragraphs: Paragraph[];
+  seriesId: string;
   originalFile?: File;
 }
 

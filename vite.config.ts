@@ -5,6 +5,6 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   plugins: [vue()],
   server: {
-    allowedHosts: ["n8g7wt-5173.csb.app"], // Add the host that's being blocked
+    allowedHosts: ["fjkvlz-5173.csb.app"], // Add the host that's being blocked
   },
 });
