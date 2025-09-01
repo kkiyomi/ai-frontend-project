@@ -15,17 +15,10 @@
                 <input v-model="newSeriesName" type="text" placeholder="Series name"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     @keyup.enter="handleCreateSeries" />
-                <input v-model="newSeriesDescription" type="text" placeholder="Description (optional)"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    @keyup.enter="handleCreateSeries" />
                 <div class="flex space-x-2">
                     <button @click="handleCreateSeries" :disabled="!newSeriesName.trim()"
                         class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                        Create
-                    </button>
-                    <button @click="cancelAddSeries"
-                        class="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400 transition-colors">
-                        Cancel
+                        Save
                     </button>
                 </div>
             </div>
