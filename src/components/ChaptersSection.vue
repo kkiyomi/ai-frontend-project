@@ -3,10 +3,10 @@
         <!-- Series Management Header -->
         <div class="p-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-900">Series & Chapters</h3>
+                <h3 class="text-sm font-semibold text-gray-900">Series</h3>
                 <button @click="showAddSeriesForm = !showAddSeriesForm"
                     class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
-                    {{ showAddSeriesForm ? 'Cancel' : '+ New Series' }}
+                    {{ showAddSeriesForm ? 'Cancel' : '+ New' }}
                 </button>
             </div>
 
@@ -66,6 +66,7 @@
                                             d="M9 5l7 7-7 7" />
                                     </svg>
                                 </button>
+                                <BulkChapterUpload :seriesId="seriesItem.id" />
                                 <button @click="removeSeries(seriesItem.id)"
                                     class="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                     title="Remove series">
@@ -140,6 +141,7 @@
 </template>
 
 <script setup lang="ts">
+import BulkChapterUpload from './BulkChapterUpload.vue';
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
 import { getFileIcon } from '../utils/fileParser';

@@ -187,10 +187,16 @@ export function useChapters() {
       const targetSeries = series.value.find(s => s.id === seriesId);
       if (targetSeries) {
         targetSeries.chapters.push(chapter);
+        targetSeries.chapters = [...targetSeries.chapters];
       }
       
       if (!currentChapterId.value) {
         currentChapterId.value = chapter.id;
+      }
+      
+      if (currentSeriesId.value !== chapter.seriesId) {
+        currentChapterId.value = chapter.id;
+        currentSeriesId.value = chapter.seriesId;
       }
     } catch (error) {
       console.error('Error creating chapter from text:', error);
