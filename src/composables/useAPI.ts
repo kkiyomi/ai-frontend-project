@@ -1,19 +1,12 @@
 import type { APIResponse } from '../types';
+import { apiService } from '../services/apiService';
 
-// Placeholder API functions - replace with actual API calls later
 export function useAPI() {
   const translateText = async (
     text: string, 
     glossaryContext?: string[]
   ): Promise<APIResponse<string>> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
-    // Mock translation response
-    return {
-      success: true,
-      data: `[AI Translation] ${text} (Context: ${glossaryContext?.join(', ') || 'none'})`,
-    };
+    return apiService.translateText(text, glossaryContext);
   };
 
   const retranslateWithGlossary = async (
@@ -21,28 +14,78 @@ export function useAPI() {
     currentTranslation: string,
     glossaryTerms: string[]
   ): Promise<APIResponse<string>> => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return {
-      success: true,
-      data: `[Retranslated with glossary] ${originalText} (Terms: ${glossaryTerms.join(', ')})`,
-    };
+    return apiService.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
   };
 
   const suggestGlossaryTerms = async (text: string): Promise<APIResponse<string[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Mock suggestions based on common patterns
-    const mockSuggestions = ['character_name', 'cultural_term', 'idiom_phrase'];
-    return {
-      success: true,
-      data: mockSuggestions,
-    };
+    return apiService.suggestGlossaryTerms(text);
   };
 
   return {
     translateText,
     retranslateWithGlossary,
     suggestGlossaryTerms,
+  };
+}
+
+// Additional API functions for data management
+export function useDataAPI() {
+  // Series operations
+  const getSeries = async () => {
+    return apiService.getSeries();
+  };
+
+  const createSeries = async (name: string, description?: string) => {
+    return apiService.createSeries(name, description);
+  };
+
+  const deleteSeries = async (seriesId: string) => {
+    return apiService.deleteSeries(seriesId);
+  };
+
+  // Chapter operations
+  const getChapters = async (seriesId?: string) => {
+    return apiService.getChapters(seriesId);
+  };
+
+  const createChapter = async (title: string, content: string, seriesId: string) => {
+    return apiService.createChapter(title, content, seriesId);
+  };
+
+  const deleteChapter = async (chapterId: string) => {
+    return apiService.deleteChapter(chapterId);
+  };
+
+  // Glossary operations
+  const getGlossaryTerms = async () => {
+    return apiService.getGlossaryTerms();
+  };
+
+  const createGlossaryTerm = async (term: Omit<import('../types').GlossaryTerm, 'id' | 'frequency'>) => {
+    return apiService.createGlossaryTerm(term);
+  };
+
+  const updateGlossaryTerm = async (termId: string, updates: Partial<import('../types').GlossaryTerm>) => {
+    return apiService.updateGlossaryTerm(termId, updates);
+  };
+
+  const deleteGlossaryTerm = async (termId: string) => {
+    return apiService.deleteGlossaryTerm(termId);
+  };
+
+  return {
+    // Series
+    getSeries,
+    createSeries,
+    deleteSeries,
+    // Chapters
+    getChapters,
+    createChapter,
+    deleteChapter,
+    // Glossary
+    getGlossaryTerms,
+    createGlossaryTerm,
+    updateGlossaryTerm,
+    deleteGlossaryTerm,
   };
 }
