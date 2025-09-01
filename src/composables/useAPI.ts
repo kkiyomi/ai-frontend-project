@@ -1,4 +1,4 @@
-import type { APIResponse } from '../types';
+import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
 import { apiService } from '../services/apiService';
 
 export function useAPI() {
@@ -39,6 +39,10 @@ export function useDataAPI() {
     return apiService.createSeries(name, description);
   };
 
+  const updateSeries = async (seriesId: string, updates: Partial<Series>) => {
+    return apiService.updateSeries(seriesId, updates);
+  };
+
   const deleteSeries = async (seriesId: string) => {
     return apiService.deleteSeries(seriesId);
   };
@@ -52,6 +56,10 @@ export function useDataAPI() {
     return apiService.createChapter(title, content, seriesId);
   };
 
+  const updateChapter = async (chapterId: string, updates: Partial<Chapter>) => {
+    return apiService.updateChapter(chapterId, updates);
+  };
+
   const deleteChapter = async (chapterId: string) => {
     return apiService.deleteChapter(chapterId);
   };
@@ -61,11 +69,11 @@ export function useDataAPI() {
     return apiService.getGlossaryTerms();
   };
 
-  const createGlossaryTerm = async (term: Omit<import('../types').GlossaryTerm, 'id' | 'frequency'>) => {
+  const createGlossaryTerm = async (term: Omit<GlossaryTerm, 'id' | 'frequency'>) => {
     return apiService.createGlossaryTerm(term);
   };
 
-  const updateGlossaryTerm = async (termId: string, updates: Partial<import('../types').GlossaryTerm>) => {
+  const updateGlossaryTerm = async (termId: string, updates: Partial<GlossaryTerm>) => {
     return apiService.updateGlossaryTerm(termId, updates);
   };
 
@@ -77,10 +85,12 @@ export function useDataAPI() {
     // Series
     getSeries,
     createSeries,
+    updateSeries,
     deleteSeries,
     // Chapters
     getChapters,
     createChapter,
+    updateChapter,
     deleteChapter,
     // Glossary
     getGlossaryTerms,

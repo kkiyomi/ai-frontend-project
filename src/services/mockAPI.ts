@@ -1,4 +1,4 @@
-import type { APIResponse, GlossaryTerm } from '../types';
+import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
 import { mockSeries, mockChapters, mockGlossaryTerms } from '../mock';
 
 // Simulate network delay for realistic testing
@@ -54,7 +54,7 @@ export class MockAPI {
     
     return {
       success: true,
-      data: `[Mock Retranslation with glossary: ${glossaryTerms.join(', ')}] ${originalText}`,
+      data: `[Mock Retranslation with glossary: ${glossaryTerms.join(', ')}] ${originalText} ${currentTranslation}`,
     };
   }
 
@@ -107,6 +107,25 @@ export class MockAPI {
     return {
       success: true,
       data: newSeries,
+    };
+  }
+
+  async updateSeries(seriesId: string, updates: Partial<Series>): Promise<APIResponse<Series>> {
+    await simulateDelay(300, 600);
+    
+    const index = mockSeries.findIndex(s => s.id === seriesId);
+    if (index === -1) {
+      return {
+        success: false,
+        error: 'Series not found'
+      };
+    }
+    
+    mockSeries[index] = { ...mockSeries[index], ...updates };
+    
+    return {
+      success: true,
+      data: mockSeries[index],
     };
   }
 
@@ -174,6 +193,25 @@ export class MockAPI {
     return {
       success: true,
       data: newChapter,
+    };
+  }
+
+  async updateChapter(chapterId: string, updates: Partial<Chapter>): Promise<APIResponse<Chapter>> {
+    await simulateDelay(300, 600);
+    
+    const index = mockChapters.findIndex(ch => ch.id === chapterId);
+    if (index === -1) {
+      return {
+        success: false,
+        error: 'Chapter not found'
+      };
+    }
+    
+    mockChapters[index] = { ...mockChapters[index], ...updates };
+    
+    return {
+      success: true,
+      data: mockChapters[index],
     };
   }
 

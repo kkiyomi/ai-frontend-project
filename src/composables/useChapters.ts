@@ -1,12 +1,17 @@
-import { ref, computed } from 'vue';
-import type { Chapter, Paragraph, Series } from '../types';
+import { ref, computed, onMounted } from 'vue';
+import type { Chapter, Series } from '../types';
 import { parseFileContent } from '../utils/fileParser';
+import { useDataAPI } from './useAPI';
 
 const series = ref<Series[]>([]);
 const currentChapterId = ref<string | null>(null);
 const currentSeriesId = ref<string | null>(null);
+const isLoading = ref<boolean>(false);
+const error = ref<string | null>(null);
 
 export function useChapters() {
+  const { getSeries, getChapters, createSeries: createSeriesAPI } = useDataAPI();
+
   const chapters = computed(() => 
     series.value.flatMap(s => s.chapters)
   );
@@ -19,7 +24,75 @@ export function useChapters() {
     series.value.find(s => s.id === currentSeriesId.value)
   );
 
-  const createSeries = (name: string, description?: string): Series => {
+  // Load series and chapters from API
+  const loadSeriesFromAPI = async (): Promise<void> => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      // Fetch series data
+      const seriesResponse = await getSeries();
+      if (seriesResponse.success && seriesResponse.data) {
+        series.value = seriesResponse.data;
+
+        // Load chapters for each series
+        for (const seriesItem of series.value) {
+          const chaptersResponse = await getChapters(seriesItem.id);
+          if (chaptersResponse.success && chaptersResponse.data) {
+            seriesItem.chapters = chaptersResponse.data;
+          }
+        }
+
+        // Set current series and chapter if data exists
+        if (series.value.length > 0) {
+          currentSeriesId.value = series.value[0].id;
+          
+          const firstSeries = series.value[0];
+          if (firstSeries.chapters && firstSeries.chapters.length > 0) {
+            currentChapterId.value = firstSeries.chapters[0].id;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error loading series from API:', err);
+      error.value = 'Failed to load series data';
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // Initialize data on mount
+  onMounted(() => {
+    loadSeriesFromAPI();
+  });
+
+  const createSeries = async (name: string, description?: string): Promise<Series | null> => {
+    try {
+      // Try to create on API first
+      const apiResponse = await createSeriesAPI(name, description);
+      
+      if (apiResponse.success && apiResponse.data) {
+        // Add to local state
+        series.value.push(apiResponse.data);
+        
+        // Set as current series if it's the first one
+        if (!currentSeriesId.value) {
+          currentSeriesId.value = apiResponse.data.id;
+        }
+        
+        return apiResponse.data;
+      } else {
+        // Fallback to local creation if API fails
+        return createSeriesLocal(name, description);
+      }
+    } catch (err) {
+      console.error('Error creating series via API, falling back to local:', err);
+      return createSeriesLocal(name, description);
+    }
+  };
+
+  // Local series creation as fallback
+  const createSeriesLocal = (name: string, description?: string): Series => {
     const newSeries: Series = {
       id: `series-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
@@ -84,8 +157,12 @@ export function useChapters() {
       
       if (!seriesId) {
         // Create a default series if none exists
-        const defaultSeries = createSeries('Default Series', 'Automatically created series');
-        seriesId = defaultSeries.id;
+        const defaultSeries = await createSeries('Default Series', 'Automatically created series');
+        seriesId = defaultSeries?.id || null;
+      }
+      
+      if (!seriesId) {
+        throw new Error('Failed to create or find a series for the chapter');
       }
       
       const chapterId = originalFile ? originalFile.name : `scraped-${Date.now()}`;
@@ -102,7 +179,7 @@ export function useChapters() {
         title,
         content,
         paragraphs,
-        seriesId: seriesId!,
+        seriesId: seriesId,
         originalFile,
       };
 
@@ -168,6 +245,11 @@ export function useChapters() {
     }
   };
 
+  // Refresh data from API
+  const refresh = async (): Promise<void> => {
+    await loadSeriesFromAPI();
+  };
+
   return {
     series: computed(() => series.value),
     chapters: computed(() => chapters.value),
@@ -175,6 +257,8 @@ export function useChapters() {
     currentChapterId,
     currentSeries,
     currentSeriesId,
+    isLoading: computed(() => isLoading.value),
+    error: computed(() => error.value),
     createSeries,
     removeSeries,
     selectSeries,
@@ -184,5 +268,7 @@ export function useChapters() {
     removeChapter,
     updateParagraphTranslation,
     toggleParagraphEditing,
+    refresh,
+    loadSeriesFromAPI,
   };
 }
