@@ -58,6 +58,7 @@ const getSelectedSeriesName = (): string => {
 };
 
 const handleFileUpload = async (event: Event) => {
+    console.log('handleFileUpload');
     const target = event.target as HTMLInputElement;
     const files = target.files;
 
@@ -67,6 +68,7 @@ const handleFileUpload = async (event: Event) => {
 
     try {
         for (const file of Array.from(files)) {
+            console.log('addChapter');
             await addChapter(file, selectedSeriesForUpload.value || undefined);
         }
     } catch (error) {

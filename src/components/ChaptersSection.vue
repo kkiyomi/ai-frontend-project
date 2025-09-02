@@ -40,7 +40,7 @@
                     <!-- Series Header -->
                     <div class="bg-gray-50 p-3 border-b border-gray-200">
                         <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0">
+                            <div class="flex-1 min-w-0 cursor-pointer" @click="selectSeriesOnly(seriesItem.id)" :class="{ 'opacity-100': currentSeriesId === seriesItem.id }">
                                 <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
                                 <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
                                     seriesItem.description }}</p>
@@ -50,7 +50,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <button @click="selectSeries(seriesItem.id)"
+                                <button @click="selectSeriesOnly(seriesItem.id)"
                                     class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                                     :class="{ 'text-blue-600': currentSeriesId === seriesItem.id }"
                                     title="Select series">
@@ -60,7 +60,7 @@
                                     </svg>
                                 </button>
                                 <BulkChapterUpload :seriesId="seriesItem.id" />
-                                <button @click="removeSeries(seriesItem.id)"
+                                <button @click="onRemoveSeries(seriesItem.id)"
                                     class="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                     title="Remove series">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@
                                     </div>
                                 </div>
 
-                                <button @click.stop="removeChapter(chapter.id)"
+                                <button @click.stop="onRemoveChapter(chapter.id)"
                                     class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
                                     title="Remove chapter">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,12 +142,11 @@ import type { Chapter, Series } from '../types';
 
 const {
     series,
-    chapters,
     currentChapterId,
     currentSeriesId,
     createSeries,
     removeSeries,
-    selectSeries,
+    selectSeriesOnly,
     selectChapter,
     removeChapter
 } = useChapters();
@@ -157,6 +156,7 @@ const newSeriesName = ref('');
 const newSeriesDescription = ref('');
 
 const handleCreateSeries = () => {
+    console.log('handleCreateSeries');
     if (!newSeriesName.value.trim()) return;
 
     createSeries(newSeriesName.value.trim(), newSeriesDescription.value.trim() || undefined);
@@ -167,10 +167,16 @@ const handleCreateSeries = () => {
     showAddSeriesForm.value = false;
 };
 
-const cancelAddSeries = () => {
-    newSeriesName.value = '';
-    newSeriesDescription.value = '';
-    showAddSeriesForm.value = false;
+// Removed unused cancelAddSeries handler
+
+const onRemoveSeries = (seriesId: string) => {
+    console.log('onRemoveSeries');
+    removeSeries(seriesId);
+};
+
+const onRemoveChapter = (chapterId: string) => {
+    console.log('onRemoveChapter');
+    removeChapter(chapterId);
 };
 
 const getSeriesTranslationProgress = (series: Series): number => {

@@ -140,6 +140,12 @@ export function useChapters() {
     }
   };
 
+  // Select a series and clear current chapter to show series-level context (e.g., glossary)
+  const selectSeriesOnly = (seriesId: string): void => {
+    currentSeriesId.value = seriesId;
+    currentChapterId.value = null;
+  };
+
   const addChapter = async (file: File, targetSeriesId?: string): Promise<void> => {
     try {
       const content = await parseFileContent(file);
@@ -268,6 +274,7 @@ export function useChapters() {
     createSeries,
     removeSeries,
     selectSeries,
+    selectSeriesOnly,
     addChapter,
     addChapterFromText,
     selectChapter,

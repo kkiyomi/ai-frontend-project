@@ -132,6 +132,7 @@ const triggerFileInput = () => {
 };
 
 const handleFileUpload = async (event: Event) => {
+    console.log('handleFileUpload');
     const target = event.target as HTMLInputElement;
     const files = target.files;
 
@@ -155,6 +156,7 @@ const handleFileUpload = async (event: Event) => {
         currentFileName.value = file.name;
 
         try {
+            console.log('addChapter');
             await addChapter(file, props.seriesId);
             uploadResults.value.success.push(file.name);
         } catch (error) {
