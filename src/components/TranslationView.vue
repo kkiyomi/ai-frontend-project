@@ -165,7 +165,7 @@
             <h3 class="font-medium text-secondary-900">Translation</h3>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
-            <div v-if="layoutMode === 'split'" class="max-w-4xl">
+            <div v-if="layoutMode === 'full'" class="max-w-4xl">
               <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
                 <div v-html="highlightTermsInText(getFullTranslatedText())"></div>
               </div>
