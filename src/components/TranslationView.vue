@@ -15,17 +15,16 @@
         
         <div v-if="currentChapter" class="flex items-center space-x-2">
           <button
-            @click="toggleViewMode"
+            @click="toggleLayoutMode"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
           >
-            {{ viewMode === 'split' ? 'Full Text View' : 'Split View' }}
+            {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
           </button>
           <button
-            @click="setTranslatedOnly"
+            @click="toggleContentMode"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
-            :class="{ 'bg-gray-200': viewMode === 'translated' }"
           >
-            Translated Only
+            {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
           </button>
           <button
             @click="translateAllParagraphs"
@@ -60,9 +59,9 @@
 
     <div v-else class="flex-1 overflow-hidden">
       <!-- Split Paragraph View -->
-      <div v-if="viewMode === 'split'" class="h-full flex">
+      <div v-if="layoutMode === 'split'" class="h-full flex">
         <!-- Original Text Column -->
-        <div class="flex-1 border-r border-secondary-200">
+        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
             <h3 class="font-medium text-secondary-900">Original Text</h3>
           </div>
@@ -144,9 +143,9 @@
       </div>
 
       <!-- Full Text View -->
-      <div v-else-if="viewMode === 'full'" class="h-full flex">
+      <div v-else class="h-full flex">
         <!-- Original Text Column -->
-        <div class="flex-1 border-r border-secondary-200">
+        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
             <h3 class="font-medium text-secondary-900">Original Text</h3>
           </div>
@@ -166,7 +165,7 @@
             <h3 class="font-medium text-secondary-900">Translation</h3>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="max-w-4xl">
+            <div v-if="layoutMode === 'split'" class="max-w-4xl">
               <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
                 <div v-html="highlightTermsInText(getFullTranslatedText())"></div>
               </div>
@@ -174,18 +173,7 @@
                 No translations yet. Use "Translate All" or translate individual paragraphs first.
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Translated Only View -->
-      <div v-else class="h-full flex">
-        <div class="flex-1">
-          <div class="p-4 bg-accent-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Translation</h3>
-          </div>
-          <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="space-y-6 max-w-2xl">
+            <div v-else class="space-y-6 max-w-2xl">
               <div
                 v-for="(paragraph, index) in currentChapter.paragraphs"
                 :key="`trans-only-${paragraph.id}`"
@@ -256,14 +244,15 @@ const {
 
 const { highlightTermsInText, glossaryTerms } = useGlossary();
 
-const viewMode = ref<'split' | 'full' | 'translated'>('split');
+const layoutMode = ref<'split' | 'full'>('split');
+const contentMode = ref<'all' | 'translated'>('all');
 
-const toggleViewMode = () => {
-  viewMode.value = viewMode.value === 'split' ? 'full' : 'split';
+const toggleLayoutMode = () => {
+  layoutMode.value = layoutMode.value === 'split' ? 'full' : 'split';
 };
 
-const setTranslatedOnly = () => {
-  viewMode.value = 'translated';
+const toggleContentMode = () => {
+  contentMode.value = contentMode.value === 'all' ? 'translated' : 'all';
 };
 
 const getFullOriginalText = (): string => {
