@@ -234,17 +234,39 @@ export class MockAPI {
   }
 
   // Glossary endpoints
-  async getGlossaryTerms(): Promise<APIResponse<GlossaryTerm[]>> {
+  async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
     await simulateDelay(200, 500);
+    
+    let filteredTerms = [...mockGlossaryTerms];
+    
+    if (chapterId) {
+      // Filter by specific chapter
+      filteredTerms = filteredTerms.filter(term => term.chapterId === chapterId);
+    } else if (seriesId) {
+      // Filter by series
+      filteredTerms = filteredTerms.filter(term => term.seriesId === seriesId);
+    }
     
     return {
       success: true,
-      data: [...mockGlossaryTerms],
+      data: filteredTerms,
     };
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
     await simulateDelay(400, 800);
+    
+    // Check if term already exists in the series
+    const existingTerm = mockGlossaryTerms.find(
+      t => t.term.toLowerCase() === term.term.toLowerCase() && t.seriesId === term.seriesId
+    );
+    
+    if (existingTerm) {
+      return {
+        success: false,
+        error: 'Term already exists in this series'
+      };
+    }
     
     const newTerm: GlossaryTerm = {
       ...term,

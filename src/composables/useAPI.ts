@@ -21,10 +21,30 @@ export function useAPI() {
     return apiService.suggestGlossaryTerms(text);
   };
 
+  const getGlossaryTerms = async (seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> => {
+    return apiService.getGlossaryTerms(seriesId, chapterId);
+  };
+
+  const createGlossaryTerm = async (term: Omit<GlossaryTerm, 'id' | 'frequency'>) => {
+    return apiService.createGlossaryTerm(term);
+  };
+
+  const updateGlossaryTerm = async (termId: string, updates: Partial<GlossaryTerm>) => {
+    return apiService.updateGlossaryTerm(termId, updates);
+  };
+
+  const deleteGlossaryTerm = async (termId: string) => {
+    return apiService.deleteGlossaryTerm(termId);
+  };
+
   return {
     translateText,
     retranslateWithGlossary,
     suggestGlossaryTerms,
+    getGlossaryTerms,
+    createGlossaryTerm,
+    updateGlossaryTerm,
+    deleteGlossaryTerm,
   };
 }
 
@@ -64,23 +84,6 @@ export function useDataAPI() {
     return apiService.deleteChapter(chapterId);
   };
 
-  // Glossary operations
-  const getGlossaryTerms = async () => {
-    return apiService.getGlossaryTerms();
-  };
-
-  const createGlossaryTerm = async (term: Omit<GlossaryTerm, 'id' | 'frequency'>) => {
-    return apiService.createGlossaryTerm(term);
-  };
-
-  const updateGlossaryTerm = async (termId: string, updates: Partial<GlossaryTerm>) => {
-    return apiService.updateGlossaryTerm(termId, updates);
-  };
-
-  const deleteGlossaryTerm = async (termId: string) => {
-    return apiService.deleteGlossaryTerm(termId);
-  };
-
   return {
     // Series
     getSeries,
@@ -92,10 +95,5 @@ export function useDataAPI() {
     createChapter,
     updateChapter,
     deleteChapter,
-    // Glossary
-    getGlossaryTerms,
-    createGlossaryTerm,
-    updateGlossaryTerm,
-    deleteGlossaryTerm,
   };
 }

@@ -15,18 +15,23 @@
         </button>
       </div>
       <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
+      <p v-if="currentChapter" class="text-xs text-blue-600 mt-1">
+        Chapter: {{ currentChapter.title }}
+      </p>
       
       <!-- Add Term Button -->
       <div class="mt-3">
         <button
           v-if="!showAddForm"
           @click="showAddForm = true"
+          :disabled="!currentChapter"
           class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          :class="{ 'opacity-50 cursor-not-allowed': !currentChapter }"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
-          <span>Add New Term</span>
+          <span>{{ currentChapter ? 'Add New Term' : 'Select Chapter First' }}</span>
         </button>
       </div>
     </div>
@@ -52,6 +57,7 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             required
           />
+          <p v-if="termExistsError" class="text-xs text-red-600 mt-1">{{ termExistsError }}</p>
         </div>
         <div>
           <input
@@ -83,7 +89,9 @@
           </select>
           <button
             type="submit"
+            :disabled="!newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            :class="{ 'opacity-50 cursor-not-allowed': !newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError }"
           >
             Add
           </button>
@@ -93,10 +101,20 @@
 
     <!-- Terms List -->
     <div class="flex-1 overflow-y-auto">
-      <div v-if="!glossaryTerms || glossaryTerms.length === 0" class="p-8 text-center">
+      <div v-if="isLoading" class="p-8 text-center">
+        <div class="text-4xl mb-3">⏳</div>
+        <p class="text-sm text-gray-500">Loading glossary terms...</p>
+      </div>
+      
+      <div v-else-if="!currentChapter" class="p-8 text-center">
+        <div class="text-4xl mb-3">📖</div>
+        <p class="text-sm text-gray-500">Select a chapter to view its glossary</p>
+      </div>
+      
+      <div v-else-if="!glossaryTerms || glossaryTerms.length === 0" class="p-8 text-center">
         <div class="text-4xl mb-3">📚</div>
-        <p class="text-sm text-gray-500">No glossary terms yet</p>
-        <p class="text-xs text-gray-400 mt-1">Add terms to improve translations</p>
+        <p class="text-sm text-gray-500">No glossary terms for this chapter</p>
+        <p class="text-xs text-gray-400 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
       </div>
 
       <div v-else class="p-4 space-y-4">
@@ -233,22 +251,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useGlossary } from '../composables/useGlossary';
 import { useChapters } from '../composables/useChapters';
 import type { GlossaryTerm } from '../types';
 
 const { 
   glossaryTerms, 
+  isLoading,
   termsByCategory, 
+  loadGlossaryTerms,
   addTerm, 
   updateTerm, 
   removeTerm, 
   suggestTermsFromText,
+  termExistsInSeries,
   toggleGlossaryVisibility 
 } = useGlossary();
 
-const { currentChapter } = useChapters();
+const { currentChapter, currentSeries } = useChapters();
 
 const newTerm = ref({
   term: '',
@@ -262,11 +283,19 @@ const suggestions = ref<string[]>([]);
 const isGeneratingSuggestions = ref(false);
 const editingTerms = ref<Set<string>>(new Set());
 const showAddForm = ref(false);
+const termExistsError = ref('');
 
-const handleAddTerm = () => {
+const handleAddTerm = async () => {
   if (!newTerm.value.term.trim() || !newTerm.value.translation.trim()) return;
   
-  addTerm({
+  // Check if term already exists in series
+  const exists = await termExistsInSeries(newTerm.value.term.trim());
+  if (exists) {
+    termExistsError.value = 'This term already exists in the current series';
+    return;
+  }
+  
+  await addTerm({
     term: newTerm.value.term.trim(),
     translation: newTerm.value.translation.trim(),
     definition: newTerm.value.definition.trim(),
@@ -283,6 +312,7 @@ const handleAddTerm = () => {
     isUserDefined: true,
   };
   
+  termExistsError.value = '';
   // Hide form after adding
   showAddForm.value = false;
 };
@@ -297,22 +327,29 @@ const cancelAddForm = () => {
     isUserDefined: true,
   };
   
+  termExistsError.value = '';
   // Hide form
   showAddForm.value = false;
 };
+
+// Clear error when term changes
+watch(() => newTerm.value.term, () => {
+  termExistsError.value = '';
+});
+
 const startEditingTerm = (term: GlossaryTerm) => {
-  updateTerm(term.id, { isEditing: true });
   editingTerms.value.add(term.id);
 };
 
-const saveTermEdit = (term: GlossaryTerm) => {
-  updateTerm(term.id, { isEditing: false });
+const saveTermEdit = async (term: GlossaryTerm) => {
+  await updateTerm(term.id, term);
   editingTerms.value.delete(term.id);
 };
 
 const cancelTermEdit = (term: GlossaryTerm) => {
-  updateTerm(term.id, { isEditing: false });
   editingTerms.value.delete(term.id);
+  // Reload terms to reset any unsaved changes
+  loadGlossaryTerms();
 };
 
 const addSuggestedTerm = (suggestion: string) => {
@@ -347,8 +384,17 @@ const getCategoryIcon = (category: string): string => {
   return icons[category as keyof typeof icons] || '📝';
 };
 
-// Generate initial suggestions when component mounts
+// Load glossary terms when component mounts or chapter changes
 onMounted(() => {
+  loadGlossaryTerms();
+  if (currentChapter.value) {
+    generateSuggestions();
+  }
+});
+
+// Watch for chapter changes and reload glossary
+watch(() => currentChapter.value?.id, () => {
+  loadGlossaryTerms();
   if (currentChapter.value) {
     generateSuggestions();
   }
