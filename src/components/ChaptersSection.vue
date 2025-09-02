@@ -50,7 +50,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <button @click="selectSeriesOnly(seriesItem.id)"
+                                <button @click.stop="selectSeriesOnly(seriesItem.id)"
                                     class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                                     :class="{ 'text-blue-600': currentSeriesId === seriesItem.id }"
                                     title="Select series">
@@ -60,7 +60,7 @@
                                     </svg>
                                 </button>
                                 <BulkChapterUpload :seriesId="seriesItem.id" />
-                                <button @click="onRemoveSeries(seriesItem.id)"
+                                <button @click.stop="onRemoveSeries(seriesItem.id)"
                                     class="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                     title="Remove series">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
