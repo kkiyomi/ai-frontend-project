@@ -1,9 +1,9 @@
 <template>
     <div class="flex-1 overflow-y-auto">
         <!-- Series Management Header -->
-        <div class="p-4 border-b border-gray-200 bg-gray-50">
+        <div class="p-4 border-b border-theme bg-theme-surface">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-900">Series</h3>
+                <h3 class="text-sm font-semibold text-theme-primary">Series</h3>
                 <button @click="showAddSeriesForm = !showAddSeriesForm"
                     class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
                     {{ showAddSeriesForm ? 'Cancel' : '+ New' }}
@@ -13,7 +13,7 @@
             <!-- Add Series Form -->
             <div v-if="showAddSeriesForm" class="space-y-2">
                 <input v-model="newSeriesName" type="text" placeholder="Series name"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    class="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-theme-background text-theme-primary"
                     @keyup.enter="handleCreateSeries" />
                 <div class="flex space-x-2">
                     <button @click="handleCreateSeries" :disabled="!newSeriesName.trim()"
@@ -29,22 +29,22 @@
             <!-- Empty State -->
             <div v-if="series.length === 0" class="text-center py-8">
                 <div class="text-4xl mb-3">📚</div>
-                <p class="text-sm text-gray-500">No series created yet</p>
-                <p class="text-xs text-gray-400 mt-1">Create a series to organize your chapters</p>
+                <p class="text-sm text-theme-secondary">No series created yet</p>
+                <p class="text-xs text-theme-secondary mt-1">Create a series to organize your chapters</p>
             </div>
 
             <!-- Series Groups -->
             <div v-else class="space-y-4">
                 <div v-for="seriesItem in series" :key="seriesItem.id"
-                    class="border border-gray-200 rounded-lg overflow-hidden">
+                    class="border border-theme rounded-lg overflow-hidden">
                     <!-- Series Header -->
-                    <div class="bg-gray-50 p-3 border-b border-gray-200">
+                    <div class="bg-theme-surface p-3 border-b border-theme">
                         <div class="flex items-center justify-between">
                             <div class="flex-1 min-w-0 cursor-pointer" @click="selectSeriesOnly(seriesItem.id)" :class="{ 'opacity-100': currentSeriesId === seriesItem.id }">
-                                <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
-                                <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
+                                <h4 class="text-sm font-semibold text-theme-primary truncate">{{ seriesItem.name }}</h4>
+                                <p v-if="seriesItem.description" class="text-xs text-theme-secondary mt-1">{{
                                     seriesItem.description }}</p>
-                                <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-theme-secondary">
                                     <span>{{ seriesItem.chapters.length }} chapters</span>
                                     <span>{{ getSeriesTranslationProgress(seriesItem) }}% translated</span>
                                 </div>
@@ -73,8 +73,8 @@
 
                         <!-- Series Progress Bar -->
                         <div class="mt-2">
-                            <div class="bg-gray-200 rounded-full h-1">
-                                <div class="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                            <div class="bg-theme-surface rounded-full h-1">
+                                <div class="bg-theme-primary h-1 rounded-full transition-all duration-300"
                                     :style="{ width: `${getSeriesTranslationProgress(seriesItem)}%` }" />
                             </div>
                         </div>
@@ -82,27 +82,27 @@
 
                     <!-- Chapters in Series -->
                     <div v-if="seriesItem.chapters.length === 0" class="p-4 text-center">
-                        <p class="text-xs text-gray-500">No chapters in this series</p>
-                        <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+                        <p class="text-xs text-theme-secondary">No chapters in this series</p>
+                        <p class="text-xs text-theme-secondary mt-1">Upload files to add chapters</p>
                     </div>
 
-                    <div v-else class="divide-y divide-gray-100">
+                    <div v-else class="divide-y divide-theme">
                         <div v-for="chapter in seriesItem.chapters" :key="chapter.id" @click="selectChapter(chapter.id)"
-                            class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" :class="{
-                                'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
+                            class="group relative p-3 cursor-pointer transition-all hover:bg-theme-accent hover:bg-opacity-10" :class="{
+                                'bg-theme-accent bg-opacity-10 border-l-4 border-theme-primary': currentChapterId === chapter.id,
                             }">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center space-x-2 mb-1">
                                         <span class="text-sm">{{ getFileIcon(chapter.title) }}</span>
-                                        <h5 class="text-sm font-medium text-gray-900 truncate">
+                                        <h5 class="text-sm font-medium text-theme-primary truncate">
                                             {{ chapter.title }}
                                         </h5>
                                     </div>
-                                    <p class="text-xs text-gray-500">
+                                    <p class="text-xs text-theme-secondary">
                                         {{ chapter.paragraphs.length }} paragraphs
                                     </p>
-                                    <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
+                                    <div class="mt-1 flex items-center space-x-3 text-xs text-theme-secondary">
                                         <span>{{ getTranslationProgress(chapter) }}% translated</span>
                                         <span>{{ formatFileSize(chapter.content.length) }}</span>
                                     </div>
@@ -120,8 +120,8 @@
 
                             <!-- Chapter Progress Bar -->
                             <div class="mt-2">
-                                <div class="bg-gray-200 rounded-full h-1">
-                                    <div class="bg-green-500 h-1 rounded-full transition-all duration-300"
+                                <div class="bg-theme-surface rounded-full h-1">
+                                    <div class="bg-theme-accent h-1 rounded-full transition-all duration-300"
                                         :style="{ width: `${getTranslationProgress(chapter)}%` }" />
                                 </div>
                             </div>

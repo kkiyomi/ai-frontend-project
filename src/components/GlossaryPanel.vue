@@ -1,12 +1,12 @@
 <template>
-  <div class="h-full bg-white flex flex-col">
+  <div class="h-full bg-theme-background flex flex-col">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-4 border-b border-theme">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-gray-900">Glossary</h2>
+        <h2 class="text-lg font-semibold text-theme-primary">Glossary</h2>
         <button
           @click="toggleGlossaryVisibility"
-          class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          class="p-1 text-theme-secondary hover:text-theme-primary transition-colors"
           title="Close glossary"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,7 +14,7 @@
           </svg>
         </button>
       </div>
-      <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
+      <p class="text-sm text-theme-secondary mt-1">{{ glossaryTerms.length }} terms defined</p>
       <p v-if="currentChapter" class="text-xs text-blue-600 mt-1">
         Chapter: {{ currentChapter.title }}
       </p>
