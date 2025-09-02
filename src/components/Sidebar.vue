@@ -1,9 +1,10 @@
 <template>
   <div
     ref="sidebar"
-    class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
+    class="group relative flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'"
     @mouseenter="isExpanded = true"
+    style="background-color: var(--color-surface); border-right: 1px solid var(--color-border);"
   >
     <!-- Minimized State Icons -->
     <div
@@ -77,6 +78,27 @@
         {{ chapters.length }}
       </div>
 
+      <!-- Theme Switcher Icon -->
+      <button
+        @click="cycleTheme"
+        class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center hover:bg-orange-200 transition-colors"
+        title="Change theme"
+      >
+        <svg
+          class="w-4 h-4 text-orange-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          ></path>
+        </svg>
+      </button>
+
       <!-- Glossary Toggle Icon -->
       <button
         @click="toggleGlossaryVisibility"
@@ -103,9 +125,9 @@
     <!-- Expanded Content -->
     <div v-if="isExpanded" class="flex flex-col h-full">
       <!-- Header -->
-      <div class="p-4 border-b border-gray-200 flex-shrink-0">
-        <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
-        <p class="text-sm text-gray-600">
+      <div class="p-4 flex-shrink-0" style="border-bottom: 1px solid var(--color-border);">
+        <h1 class="text-xl font-bold mb-2" style="color: var(--color-text);">Translation Tool</h1>
+        <p class="text-sm" style="color: var(--color-textSecondary);">
           Upload and manage your novel chapters
         </p>
       </div>
@@ -230,29 +252,51 @@
         </div>
       </div>
       <!-- Footer Actions (always visible when expanded) -->
-      <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
-        <button
-          @click="toggleGlossaryVisibility"
-          class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      <div class="p-4 flex-shrink-0" style="border-top: 1px solid var(--color-border); background-color: var(--color-surface);">
+        <div class="space-y-2">
+          <button
+            @click="toggleGlossaryVisibility"
+            class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            ></path>
-          </svg>
-          <span>{{ isGlossaryVisible ? "Hide" : "Show" }} Glossary</span>
-        </button>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <span>{{ isGlossaryVisible ? "Hide" : "Show" }} Glossary</span>
+          </button>
+
+          <button
+            @click="cycleTheme"
+            class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              ></path>
+            </svg>
+            <span>{{ currentThemeConfig.name }} Theme</span>
+          </button>
+        </div>
 
         <div class="mt-3 text-center">
-          <p class="text-xs text-gray-500">
+          <p class="text-xs" style="color: var(--color-textSecondary);">
             {{ getTotalStats() }}
           </p>
         </div>
@@ -265,6 +309,7 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useChapters } from "../composables/useChapters";
 import { useGlossary } from "../composables/useGlossary";
+import { useTheme } from "../composables/useTheme";
 import { getFileIcon } from "../utils/fileParser";
 import type { Chapter } from "../types";
 
@@ -272,6 +317,7 @@ const { chapters, currentChapterId, addChapter, selectChapter, removeChapter } =
   useChapters();
 
 const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
+const { currentThemeConfig, cycleTheme } = useTheme();
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
