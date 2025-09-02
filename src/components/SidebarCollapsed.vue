@@ -34,6 +34,16 @@
             {{ chaptersCount }}
         </div>
 
+        <!-- Theme Switcher Icon -->
+        <button @click="$emit('cycle-theme')"
+            class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center hover:bg-orange-200 transition-colors"
+            title="Change theme">
+            <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+        </button>
+
         <!-- Glossary Toggle Icon -->
         <button @click="$emit('toggle-glossary')"
             class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center hover:bg-green-200 transition-colors"
@@ -55,5 +65,6 @@ interface Props {
 defineProps<Props>();
 defineEmits<{
     'toggle-glossary': [];
+    'cycle-theme': [];
 }>();
 </script>
