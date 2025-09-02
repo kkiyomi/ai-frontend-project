@@ -31,6 +31,8 @@ export interface GlossaryTerm {
   category: 'character' | 'place' | 'cultural' | 'idiom' | 'other';
   frequency: number;
   isUserDefined: boolean;
+  seriesId: string;
+  chapterId?: string; // Optional - if null, it's a series-level term
 }
 
 export interface TranslationState {

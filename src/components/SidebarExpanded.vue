@@ -8,7 +8,7 @@
 
         <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto min-h-0 pb-4">
-            <FileUploadSection />
+            <!-- <FileUploadSection /> -->
             <ChaptersSection />
         </div>
 
