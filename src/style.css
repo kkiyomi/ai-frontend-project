@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Theme CSS Custom Properties */
+/* Theme CSS Custom Properties for Tailwind */
 :root {
   --color-primary: #3b82f6;
   --color-secondary: #6b7280;
@@ -15,7 +15,7 @@
   --color-error: #ef4444;
 }
 
-/* Theme classes */
+/* Light Theme (default) */
 .theme-light {
   --color-primary: #3b82f6;
   --color-secondary: #6b7280;
@@ -30,6 +30,7 @@
   --color-error: #ef4444;
 }
 
+/* Dracula Theme */
 .theme-dracula {
   --color-primary: #ff79c6;
   --color-secondary: #6272a4;
@@ -44,6 +45,7 @@
   --color-error: #ff5555;
 }
 
+/* Night Owl Theme */
 .theme-night-owl {
   --color-primary: #7c3aed;
   --color-secondary: #64748b;
@@ -64,6 +66,41 @@
     background-color: var(--color-background);
     color: var(--color-text);
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Theme-aware utility classes */
+@layer utilities {
+  .bg-theme-background {
+    background-color: var(--color-background);
+  }
+  
+  .bg-theme-surface {
+    background-color: var(--color-surface);
+  }
+  
+  .text-theme-primary {
+    color: var(--color-text);
+  }
+  
+  .text-theme-secondary {
+    color: var(--color-textSecondary);
+  }
+  
+  .border-theme {
+    border-color: var(--color-border);
+  }
+  
+  .bg-theme-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .bg-theme-accent {
+    background-color: var(--color-accent);
+  }
+  
+  .text-theme-accent {
+    color: var(--color-accent);
   }
 }
 

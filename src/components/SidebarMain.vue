@@ -1,9 +1,8 @@
 <template>
   <div ref="sidebar"
-    class="group relative flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
+    class="group relative bg-theme-surface border-r border-theme flex flex-col h-full transition-all duration-300 ease-in-out z-20 overflow-hidden"
     :class="isExpanded ? 'w-80' : 'w-12'" 
-    @mouseenter="isExpanded = true"
-    style="background-color: var(--color-surface); border-right: 1px solid var(--color-border);">
+    @mouseenter="isExpanded = true">
     <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length" :is-glossary-visible="isGlossaryVisible"
       @toggle-glossary="toggleGlossaryVisibility" @cycle-theme="cycleTheme" />
 

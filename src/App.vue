@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex" style="background-color: var(--color-background);">
+  <div class="h-screen flex bg-theme-background">
     <!-- Sidebar -->
     <!-- <Sidebar /> -->
     <SidebarMain />
@@ -16,8 +16,7 @@
         @click="closeGlossaryIfClickedOutside">
         <!-- Glossary Panel -->
         <div
-          class="w-80 h-full shadow-2xl transform transition-transform duration-300 ease-in-out"
-          style="background-color: var(--color-surface); border-left: 1px solid var(--color-border);"
+          class="w-80 h-full bg-theme-surface border-l border-theme shadow-2xl transform transition-transform duration-300 ease-in-out"
           @click.stop>
           <GlossaryPanel />
         </div>

@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col h-full">
         <!-- Header -->
-        <div class="p-4 flex-shrink-0" style="border-bottom: 1px solid var(--color-border);">
-            <h1 class="text-xl font-bold mb-2" style="color: var(--color-text);">Translation Tool</h1>
-            <p class="text-sm" style="color: var(--color-textSecondary);">Upload and manage your novel chapters</p>
+        <div class="border-b border-theme p-4 flex-shrink-0">
+            <h1 class="text-xl font-bold text-theme-primary mb-2">Translation Tool</h1>
+            <p class="text-sm text-theme-secondary">Upload and manage your novel chapters</p>
         </div>
 
         <!-- Scrollable Content Area -->
@@ -13,7 +13,7 @@
         </div>
 
         <!-- Footer Actions -->
-        <div class="p-4 flex-shrink-0" style="border-top: 1px solid var(--color-border); background-color: var(--color-surface);">
+        <div class="border-t border-theme bg-theme-surface p-4 flex-shrink-0">
             <div class="space-y-2">
                 <button @click="$emit('toggle-glossary')"
                     class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
@@ -35,7 +35,7 @@
             </div>
 
             <div class="mt-3 text-center">
-                <p class="text-xs" style="color: var(--color-textSecondary);">{{ getTotalStats() }}</p>
+                <p class="text-xs text-theme-secondary">{{ getTotalStats() }}</p>
             </div>
         </div>
     </div>

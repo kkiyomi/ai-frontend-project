@@ -1,28 +1,28 @@
 <template>
-  <div class="flex-1 flex flex-col h-full bg-white">
+  <div class="flex-1 flex flex-col h-full bg-theme-background">
     <!-- Header -->
-    <div class="border-b border-secondary-200 p-4">
+    <div class="border-b border-theme p-4">
       <div class="flex items-center justify-between">
         <div v-if="currentChapter">
-          <h2 class="text-lg font-semibold text-secondary-900">{{ currentChapter.title }}</h2>
-          <p class="text-sm text-secondary-500">
+          <h2 class="text-lg font-semibold text-theme-primary">{{ currentChapter.title }}</h2>
+          <p class="text-sm text-theme-secondary">
             {{ currentChapter.paragraphs.length }} paragraphs
           </p>
         </div>
-        <div v-else class="text-secondary-500">
+        <div v-else class="text-theme-secondary">
           Select a chapter to begin translation
         </div>
         
         <div v-if="currentChapter" class="flex items-center space-x-2">
           <button
             @click="toggleLayoutMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+            class="px-4 py-2 bg-theme-surface text-theme-primary rounded-lg hover:bg-theme-accent hover:text-white transition-colors text-sm font-medium border border-theme"
           >
             {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
           </button>
           <button
             @click="toggleContentMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+            class="px-4 py-2 bg-theme-surface text-theme-primary rounded-lg hover:bg-theme-accent hover:text-white transition-colors text-sm font-medium border border-theme"
           >
             {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
           </button>
@@ -38,13 +38,13 @@
       
       <!-- Progress Bar -->
       <div v-if="isTranslating" class="mt-3">
-        <div class="bg-gray-200 rounded-full h-3">
+        <div class="bg-theme-surface rounded-full h-3">
           <div 
-            class="bg-blue-600 h-3 rounded-full transition-all duration-300 shadow-sm"
+            class="bg-theme-primary h-3 rounded-full transition-all duration-300 shadow-sm"
             :style="{ width: `${translationProgress}%` }"
           ></div>
         </div>
-        <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
+        <p class="text-sm text-theme-secondary mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
       </div>
     </div>
 
