@@ -240,8 +240,11 @@ export class MockAPI {
     let filteredTerms = [...mockGlossaryTerms];
     
     if (chapterId) {
-      // Filter by specific chapter
-      filteredTerms = filteredTerms.filter(term => term.chapterId === chapterId);
+      // Filter by specific chapter OR series-level terms (no chapterId)
+      filteredTerms = filteredTerms.filter(term => 
+        term.chapterId === chapterId || 
+        (term.seriesId === seriesId && !term.chapterId)
+      );
     } else if (seriesId) {
       // Filter by series
       filteredTerms = filteredTerms.filter(term => term.seriesId === seriesId);

@@ -91,6 +91,29 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     isUserDefined: false,
     seriesId: 's2',
     chapterId: 'ch3'
+  },
+  // Series-level user-defined terms (no specific chapter)
+  {
+    id: 'term9',
+    term: 'Magic Council',
+    definition: 'The governing body of magical practitioners',
+    translation: 'Consejo Mágico',
+    category: 'cultural',
+    frequency: 0,
+    isUserDefined: true,
+    seriesId: 's1'
+    // No chapterId - this is a series-level term
+  },
+  {
+    id: 'term10',
+    term: 'Shadowlands',
+    definition: 'The dark realm beyond the known world',
+    translation: 'Tierras Sombrías',
+    category: 'place',
+    frequency: 0,
+    isUserDefined: true,
+    seriesId: 's1'
+    // No chapterId - this is a series-level term
   }
 ];
 

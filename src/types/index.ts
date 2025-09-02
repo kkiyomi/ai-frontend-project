@@ -32,7 +32,7 @@ export interface GlossaryTerm {
   frequency: number;
   isUserDefined: boolean;
   seriesId: string;
-  chapterId: string;
+  chapterId?: string; // Optional - if null, it's a series-level term
 }
 
 export interface TranslationState {

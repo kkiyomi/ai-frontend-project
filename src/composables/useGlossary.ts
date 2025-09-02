@@ -13,14 +13,18 @@ export function useGlossary() {
 
   // Load glossary terms for current chapter
   const loadGlossaryTerms = async (): Promise<void> => {
-    if (!currentChapter.value) {
+    if (!currentSeries.value) {
       glossaryTerms.value = [];
       return;
     }
 
     isLoading.value = true;
     try {
-      const response = await getGlossaryTerms(currentChapter.value.seriesId, currentChapter.value.id);
+      // Load terms for current chapter + series-level terms
+      const seriesId = currentSeries.value.id;
+      const chapterId = currentChapter.value?.id;
+      
+      const response = await getGlossaryTerms(seriesId, chapterId);
       if (response.success && response.data) {
         glossaryTerms.value = response.data;
       }
@@ -32,15 +36,15 @@ export function useGlossary() {
   };
 
   const addTerm = async (term: Omit<GlossaryTerm, 'id' | 'frequency' | 'seriesId' | 'chapterId'>): Promise<void> => {
-    if (!currentChapter.value || !currentSeries.value) {
-      console.error('No current chapter or series selected');
+    if (!currentSeries.value) {
+      console.error('No current series selected');
       return;
     }
 
     const termWithContext: Omit<GlossaryTerm, 'id' | 'frequency'> = {
       ...term,
       seriesId: currentSeries.value.id,
-      chapterId: currentChapter.value.id,
+      chapterId: currentChapter.value?.id, // Optional - can be undefined for series-level terms
     };
 
     try {

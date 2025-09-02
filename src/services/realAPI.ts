@@ -85,6 +85,9 @@ export class RealAPI {
     
     if (chapterId) {
       params.append('chapterId', chapterId);
+      if (seriesId) {
+        params.append('seriesId', seriesId);
+      }
     } else if (seriesId) {
       params.append('seriesId', seriesId);
     }
