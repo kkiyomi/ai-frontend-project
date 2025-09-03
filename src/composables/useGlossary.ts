@@ -28,15 +28,16 @@ export function useGlossary() {
       const response = await getGlossaryTerms(seriesId);
       if (response.success && response.data) {
         // Filter to show:
-        // 1. Series-level terms (no chapterId)
-        // 2. Terms specific to current chapter (if a chapter is selected)
+        // 1. If chapter is selected: series-level terms + chapter-specific terms
+        // 2. If no chapter selected: ALL terms for the series
         if (chapterId) {
+          // Show series-level terms + current chapter terms
           glossaryTerms.value = response.data.filter(term => 
             !term.chapterId || term.chapterId === chapterId
           );
         } else {
-          // If no chapter selected, show only series-level terms
-          glossaryTerms.value = response.data.filter(term => !term.chapterId);
+          // If no chapter selected, show ALL terms for the series
+          glossaryTerms.value = response.data;
         }
       }
     } catch (error) {

@@ -112,13 +112,13 @@
       <div v-else-if="!currentChapter" class="p-8 text-center">
         <div class="text-4xl mb-3">📖</div>
         <p class="text-sm text-gray-500">
-          {{ currentSeries ? 'Viewing series-level glossary terms' : 'Select a series to view its glossary' }}
+          {{ currentSeries ? 'Viewing all glossary terms for this series' : 'Select a series to view its glossary' }}
         </p>
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-gray-400 mt-2">
-          Showing {{ glossaryTerms.length }} series-level terms
+          Showing {{ glossaryTerms.length }} terms across all chapters
         </p>
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-blue-600 mt-1">
-          Select a chapter to see chapter-specific terms as well
+          Select a chapter to focus on chapter-specific context
         </p>
       </div>
       
