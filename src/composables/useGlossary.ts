@@ -20,13 +20,24 @@ export function useGlossary() {
 
     isLoading.value = true;
     try {
-      // Load terms for current chapter + series-level terms
+      // Load terms for current series, including both chapter-specific and series-level terms
       const seriesId = currentSeries.value.id;
       const chapterId = currentChapter.value?.id;
       
-      const response = await getGlossaryTerms(seriesId, chapterId);
+      // Always load all series terms, then filter on the frontend for better UX
+      const response = await getGlossaryTerms(seriesId);
       if (response.success && response.data) {
-        glossaryTerms.value = response.data;
+        // Filter to show:
+        // 1. Series-level terms (no chapterId)
+        // 2. Terms specific to current chapter (if a chapter is selected)
+        if (chapterId) {
+          glossaryTerms.value = response.data.filter(term => 
+            !term.chapterId || term.chapterId === chapterId
+          );
+        } else {
+          // If no chapter selected, show only series-level terms
+          glossaryTerms.value = response.data.filter(term => !term.chapterId);
+        }
       }
     } catch (error) {
       console.error('Error loading glossary terms:', error);
