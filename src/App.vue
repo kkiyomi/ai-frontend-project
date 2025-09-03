@@ -1,7 +1,6 @@
 <template>
   <div class="h-screen flex bg-gray-50">
     <!-- Sidebar -->
-    <!-- <Sidebar /> -->
     <SidebarMain />
 
     <!-- Main Content -->
@@ -26,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import Sidebar from './components/Sidebar.vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import GlossaryPanel from './components/GlossaryPanel.vue';
