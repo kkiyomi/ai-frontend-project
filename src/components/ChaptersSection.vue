@@ -40,7 +40,8 @@
                     <!-- Series Header -->
                     <div class="bg-gray-50 p-3 border-b border-gray-200">
                         <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0 cursor-pointer" @click="selectSeriesOnly(seriesItem.id)" :class="{ 'opacity-100': currentSeriesId === seriesItem.id }">
+                            <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)" 
+                                 :class="{ 'bg-blue-50': currentSeriesId === seriesItem.id }">
                                 <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
                                 <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
                                     seriesItem.description }}</p>
@@ -50,10 +51,13 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <button @click.stop="selectSeriesOnly(seriesItem.id)"
-                                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                    :class="{ 'text-blue-600': currentSeriesId === seriesItem.id }"
-                                    title="Select series">
+                                <button @click.stop="toggleSeriesSelection(seriesItem.id)"
+                                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors transform"
+                                    :class="{ 
+                                        'text-blue-600 rotate-90': currentSeriesId === seriesItem.id,
+                                        'text-gray-400': currentSeriesId !== seriesItem.id
+                                    }"
+                                    :title="currentSeriesId === seriesItem.id ? 'Collapse chapters' : 'Expand chapters'">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
@@ -80,49 +84,63 @@
                         </div>
                     </div>
 
-                    <!-- Chapters in Series -->
-                    <div v-if="seriesItem.chapters.length === 0" class="p-4 text-center">
-                        <p class="text-xs text-gray-500">No chapters in this series</p>
-                        <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
-                    </div>
+                    <!-- Chapters in Series (only show when series is selected) -->
+                    <div v-if="currentSeriesId === seriesItem.id">
+                        <div v-if="seriesItem.chapters.length === 0" class="p-4 text-center">
+                            <p class="text-xs text-gray-500">No chapters in this series</p>
+                            <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+                        </div>
 
-                    <div v-else class="divide-y divide-gray-100">
-                        <div v-for="chapter in seriesItem.chapters" :key="chapter.id" @click="selectChapter(chapter.id)"
-                            class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" :class="{
-                                'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
-                            }">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center space-x-2 mb-1">
-                                        <span class="text-sm">{{ getFileIcon(chapter.title) }}</span>
-                                        <h5 class="text-sm font-medium text-gray-900 truncate">
-                                            {{ chapter.title }}
-                                        </h5>
-                                    </div>
-                                    <p class="text-xs text-gray-500">
-                                        {{ chapter.paragraphs.length }} paragraphs
-                                    </p>
-                                    <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
-                                        <span>{{ getTranslationProgress(chapter) }}% translated</span>
-                                        <span>{{ formatFileSize(chapter.content.length) }}</span>
-                                    </div>
-                                </div>
-
-                                <button @click.stop="onRemoveChapter(chapter.id)"
-                                    class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
-                                    title="Remove chapter">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+                        <!-- Virtual scrolling container for large chapter lists -->
+                        <div v-else class="max-h-96 overflow-y-auto">
+                            <!-- Chapter count indicator for large lists -->
+                            <div v-if="seriesItem.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
+                                <p class="text-xs text-yellow-700 text-center">
+                                    📚 {{ seriesItem.chapters.length }} chapters in this series
+                                </p>
                             </div>
+                            
+                            <div class="divide-y divide-gray-100">
+                                <div v-for="chapter in seriesItem.chapters" :key="chapter.id" 
+                                     @click="selectChapter(chapter.id)"
+                                     class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" 
+                                     :class="{
+                                         'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
+                                     }">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2 mb-1">
+                                                <span class="text-sm">{{ getFileIcon(chapter.title) }}</span>
+                                                <h5 class="text-sm font-medium text-gray-900 truncate">
+                                                    {{ chapter.title }}
+                                                </h5>
+                                            </div>
+                                            <p class="text-xs text-gray-500">
+                                                {{ chapter.paragraphs.length }} paragraphs
+                                            </p>
+                                            <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
+                                                <span>{{ getTranslationProgress(chapter) }}% translated</span>
+                                                <span>{{ formatFileSize(chapter.content.length) }}</span>
+                                            </div>
+                                        </div>
 
-                            <!-- Chapter Progress Bar -->
-                            <div class="mt-2">
-                                <div class="bg-gray-200 rounded-full h-1">
-                                    <div class="bg-green-500 h-1 rounded-full transition-all duration-300"
-                                        :style="{ width: `${getTranslationProgress(chapter)}%` }" />
+                                        <button @click.stop="onRemoveChapter(chapter.id)"
+                                            class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                                            title="Remove chapter">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Chapter Progress Bar -->
+                                    <div class="mt-2">
+                                        <div class="bg-gray-200 rounded-full h-1">
+                                            <div class="bg-green-500 h-1 rounded-full transition-all duration-300"
+                                                :style="{ width: `${getTranslationProgress(chapter)}%` }" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -167,7 +185,15 @@ const handleCreateSeries = () => {
     showAddSeriesForm.value = false;
 };
 
-// Removed unused cancelAddSeries handler
+const toggleSeriesSelection = (seriesId: string) => {
+    if (currentSeriesId.value === seriesId) {
+        // If clicking the same series, deselect it
+        selectSeriesOnly('');
+    } else {
+        // Select the new series
+        selectSeriesOnly(seriesId);
+    }
+};
 
 const onRemoveSeries = (seriesId: string) => {
     console.log('onRemoveSeries');
