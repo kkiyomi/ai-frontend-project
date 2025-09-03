@@ -14,7 +14,7 @@
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
-            <button @click="$emit('toggle-glossary')"
+            <button v-if="currentChapterId" @click="$emit('toggle-glossary')"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -44,7 +44,7 @@ defineEmits<{
     'toggle-glossary': [];
 }>();
 
-const { series } = useChapters();
+const { series, currentChapterId } = useChapters();
 
 const getTotalStats = (): string => {
     const totalParagraphs = series.value.reduce(
