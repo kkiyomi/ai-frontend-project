@@ -38,10 +38,10 @@
                 <div v-for="seriesItem in series" :key="seriesItem.id"
                     class="border border-gray-200 rounded-lg overflow-hidden">
                     <!-- Series Header -->
-                    <div class="bg-gray-50 p-3 border-b border-gray-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)" 
+                    <div class="bg-gray-50 p-3 border-b border-gray-200" 
                                  :class="{ 'bg-blue-50': currentSeriesId === seriesItem.id }">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)">
                                 <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
                                 <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
                                     seriesItem.description }}</p>
