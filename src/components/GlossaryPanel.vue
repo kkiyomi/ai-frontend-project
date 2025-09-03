@@ -125,7 +125,7 @@
       <div v-if="!glossaryTerms || glossaryTerms.length === 0" class="p-8 text-center">
         <div class="text-4xl mb-3">📚</div>
         <p class="text-sm text-gray-500">No glossary terms yet</p>
-        <p class="text-xs text-gray-400 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
+        <p v-if="currentChapter" class="text-xs text-gray-400 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
       </div>
 
       <div v-else class="p-4 space-y-4">
