@@ -14,6 +14,7 @@
         </div>
         
         <div v-if="currentChapter" class="flex items-center space-x-2">
+          <ShareButton />
           <button
             @click="toggleLayoutMode"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
@@ -223,6 +224,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import ShareButton from './ShareButton.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';

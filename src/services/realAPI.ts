@@ -1,4 +1,5 @@
 import type { APIResponse, GlossaryTerm, Series, Chapter } from '../types';
+import type { ShareRequest, ShareResponse, SharedContent } from '../types/sharing';
 import { APIClient } from './apiClient';
 
 export class RealAPI {
@@ -109,5 +110,18 @@ export class RealAPI {
 
   async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
     return this.client.delete<void>(`/glossary/${termId}`);
+  }
+
+  // Sharing endpoints
+  async createShare(request: ShareRequest): Promise<APIResponse<ShareResponse>> {
+    return this.client.post<ShareResponse>('/share', request);
+  }
+
+  async getSharedContent(shareId: string): Promise<APIResponse<SharedContent>> {
+    return this.client.get<SharedContent>(`/share/${shareId}`);
+  }
+
+  async deleteShare(shareId: string): Promise<APIResponse<void>> {
+    return this.client.delete<void>(`/share/${shareId}`);
   }
 }

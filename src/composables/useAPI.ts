@@ -1,4 +1,5 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
+import type { ShareRequest, ShareResponse, SharedContent } from '../types/sharing';
 import { apiService } from '../services/apiService';
 
 export function useAPI() {
@@ -37,6 +38,19 @@ export function useAPI() {
     return apiService.deleteGlossaryTerm(termId);
   };
 
+  // Sharing functions
+  const createShare = async (request: ShareRequest) => {
+    return apiService.createShare(request);
+  };
+
+  const getSharedContent = async (shareId: string) => {
+    return apiService.getSharedContent(shareId);
+  };
+
+  const deleteShare = async (shareId: string) => {
+    return apiService.deleteShare(shareId);
+  };
+
   return {
     translateText,
     retranslateWithGlossary,
@@ -45,6 +59,9 @@ export function useAPI() {
     createGlossaryTerm,
     updateGlossaryTerm,
     deleteGlossaryTerm,
+    createShare,
+    getSharedContent,
+    deleteShare,
   };
 }
 

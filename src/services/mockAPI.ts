@@ -1,4 +1,5 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
+import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '../types/sharing';
 import { mockSeries, mockChapters, mockGlossaryTerms } from '../mock';
 
 // Simulate network delay for realistic testing
@@ -319,6 +320,136 @@ export class MockAPI {
     
     return {
       success: true,
+    };
+  }
+
+  // Sharing endpoints
+  async createShare(request: ShareRequest): Promise<APIResponse<ShareResponse>> {
+    await simulateDelay(800, 1500);
+    
+    if (simulateFailure(0.02)) {
+      return {
+        success: false,
+        error: 'Failed to create share link'
+      };
+    }
+    
+    const shareId = `share-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const shareUrl = `${window.location.origin}/share/${shareId}`;
+    
+    // Store the shared content (in a real app, this would be in a database)
+    const sharedContent = await this.buildSharedContent(request, shareId);
+    if (sharedContent) {
+      // In a real app, you'd store this in a database
+      localStorage.setItem(`share-${shareId}`, JSON.stringify(sharedContent));
+    }
+    
+    return {
+      success: true,
+      data: {
+        shareId,
+        shareUrl,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      }
+    };
+  }
+
+  async getSharedContent(shareId: string): Promise<APIResponse<SharedContent>> {
+    await simulateDelay(300, 800);
+    
+    // In a real app, this would query a database
+    const stored = localStorage.getItem(`share-${shareId}`);
+    if (!stored) {
+      return {
+        success: false,
+        error: 'Share not found or has expired'
+      };
+    }
+    
+    try {
+      const sharedContent = JSON.parse(stored) as SharedContent;
+      
+      // Check if expired
+      if (sharedContent.expiresAt && new Date() > new Date(sharedContent.expiresAt)) {
+        localStorage.removeItem(`share-${shareId}`);
+        return {
+          success: false,
+          error: 'Share has expired'
+        };
+      }
+      
+      return {
+        success: true,
+        data: sharedContent
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Invalid share data'
+      };
+    }
+  }
+
+  async deleteShare(shareId: string): Promise<APIResponse<void>> {
+    await simulateDelay(200, 500);
+    
+    localStorage.removeItem(`share-${shareId}`);
+    
+    return {
+      success: true
+    };
+  }
+
+  private async buildSharedContent(request: ShareRequest, shareId: string): Promise<SharedContent | null> {
+    let chapters: Chapter[] = [];
+    
+    switch (request.type) {
+      case 'chapter':
+        if (request.chapterIds && request.chapterIds.length > 0) {
+          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
+        }
+        break;
+      case 'chapters':
+        if (request.chapterIds && request.chapterIds.length > 0) {
+          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
+        }
+        break;
+      case 'series':
+        if (request.seriesIds && request.seriesIds.length > 0) {
+          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
+        }
+        break;
+      case 'multiple-series':
+        if (request.seriesIds && request.seriesIds.length > 0) {
+          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
+        }
+        break;
+    }
+    
+    if (chapters.length === 0) return null;
+    
+    const sharedChapters: SharedChapter[] = chapters.map(chapter => {
+      const series = mockSeries.find(s => s.id === chapter.seriesId);
+      
+      return {
+        id: chapter.id,
+        title: chapter.title,
+        originalText: chapter.paragraphs.map(p => p.originalText).join('\n\n'),
+        translatedText: chapter.paragraphs.map(p => p.translatedText).filter(t => t.trim()).join('\n\n'),
+        seriesName: series?.name || 'Unknown Series',
+        seriesId: chapter.seriesId
+      };
+    });
+    
+    return {
+      id: shareId,
+      type: request.type,
+      title: request.title || 'Shared Translation',
+      description: request.description,
+      content: sharedChapters,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      isPasswordProtected: false
     };
   }
 }

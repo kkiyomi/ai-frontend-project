@@ -1,5 +1,6 @@
 <template>
-  <div class="h-screen flex bg-gray-50">
+  <router-view v-if="$route.name === 'Share'" />
+  <div v-else class="h-screen flex bg-gray-50">
     <!-- Sidebar -->
     <SidebarMain />
 
