@@ -337,8 +337,13 @@ export class MockAPI {
     const shareId = `share-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const shareUrl = `${window.location.origin}/share/${shareId}`;
     
+    // Calculate expiration date
+    const expiresAt = request.expirationDays 
+      ? new Date(Date.now() + request.expirationDays * 24 * 60 * 60 * 1000)
+      : undefined;
+    
     // Store the shared content (in a real app, this would be in a database)
-    const sharedContent = await this.buildSharedContent(request, shareId);
+    const sharedContent = await this.buildSharedContent(request, shareId, expiresAt, request.password);
     if (sharedContent) {
       // In a real app, you'd store this in a database
       localStorage.setItem(`share-${shareId}`, JSON.stringify(sharedContent));
@@ -349,7 +354,7 @@ export class MockAPI {
       data: {
         shareId,
         shareUrl,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        expiresAt
       }
     };
   }
@@ -400,7 +405,12 @@ export class MockAPI {
     };
   }
 
-  private async buildSharedContent(request: ShareRequest, shareId: string): Promise<SharedContent | null> {
+  private async buildSharedContent(
+    request: ShareRequest, 
+    shareId: string, 
+    expiresAt?: Date, 
+    password?: string
+  ): Promise<SharedContent | null> {
     let chapters: Chapter[] = [];
     
     switch (request.type) {
@@ -448,8 +458,8 @@ export class MockAPI {
       description: request.description,
       content: sharedChapters,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      isPasswordProtected: false
+      expiresAt,
+      isPasswordProtected: !!password
     };
   }
 }

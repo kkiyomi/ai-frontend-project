@@ -4,6 +4,8 @@ export interface ShareRequest {
   seriesIds?: string[];
   title?: string;
   description?: string;
+  expirationDays?: number;
+  password?: string;
 }
 
 export interface ShareResponse {
