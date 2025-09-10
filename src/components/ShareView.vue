@@ -66,22 +66,22 @@
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <button
-            @click="viewMode = 'split'"
-            :class="viewMode === 'split' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'"
-            class="px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-          >
-            Split View
-          </button>
-          <button
             @click="viewMode = 'translation'"
-            :class="viewMode === 'translation' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'"
+            :class="viewMode === 'translation' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
             class="px-4 py-2 rounded-lg transition-colors text-sm font-medium"
           >
             Translation Only
           </button>
           <button
+            @click="viewMode = 'split'"
+            :class="viewMode === 'split' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+            class="px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+          >
+            Split View
+          </button>
+          <button
             @click="viewMode = 'original'"
-            :class="viewMode === 'original' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'"
+            :class="viewMode === 'original' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
             class="px-4 py-2 rounded-lg transition-colors text-sm font-medium"
           >
             Original Only
@@ -156,12 +156,26 @@
 
       <!-- Footer -->
       <div class="mt-12 text-center py-8 border-t border-gray-200">
+        <!-- Translation Tool Badge -->
+        <div class="fixed bottom-4 left-4 z-50">
+          <a 
+            href="/" 
+            class="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all text-xs font-medium hover:shadow-xl transform hover:scale-105"
+            title="Translated with AI-Assisted Novel Translation Tool"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Translated with AI Tool</span>
+          </a>
+        </div>
+        
         <p class="text-gray-500 text-sm">
           Shared via AI-Assisted Novel Translation Tool
         </p>
         <router-link 
           to="/" 
-          class="inline-flex items-center mt-2 text-purple-600 hover:text-purple-700 text-sm font-medium"
+          class="inline-flex items-center mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
         >
           Create your own translations →
         </router-link>
@@ -180,7 +194,7 @@ const route = useRoute();
 const { getSharedContent, isLoading, error } = useSharing();
 
 const sharedContent = ref<SharedContent | null>(null);
-const viewMode = ref<'split' | 'translation' | 'original'>('split');
+const viewMode = ref<'split' | 'translation' | 'original'>('translation');
 
 const shareId = computed(() => route.params.shareId as string);
 
