@@ -91,12 +91,12 @@ export class RealAPI {
     } else if (seriesId) {
       params.append('seriesId', seriesId);
     }
-    
+    let additional_params = '';
     if (params.toString()) {
-      endpoint += `?${params.toString()}`;
+      additional_params += `?${params.toString()}`;
     }
     
-    return this.client.get<GlossaryTerm[]>('/glossary');
+    return this.client.get<GlossaryTerm[]>('/glossary' + additional_params);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
