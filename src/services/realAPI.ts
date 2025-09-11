@@ -81,7 +81,6 @@ export class RealAPI {
 
   // Glossary endpoints
   async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
-    let endpoint = '/glossary';
     const params = new URLSearchParams();
     
     if (chapterId) {
@@ -97,7 +96,7 @@ export class RealAPI {
       endpoint += `?${params.toString()}`;
     }
     
-    return this.client.get<GlossaryTerm[]>(endpoint);
+    return this.client.get<GlossaryTerm[]>('/glossary');
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
