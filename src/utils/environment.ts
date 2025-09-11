@@ -2,7 +2,7 @@
 
 export const isDevelopment = import.meta.env.DEV;
 export const isProduction = import.meta.env.PROD;
-export const useMockAPI = import.meta.env.VITE_USE_MOCK_API === 'true';
+export const useMockAPI = true;
 export const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 export let isUserLoggedIn = false;
 
