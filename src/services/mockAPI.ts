@@ -395,6 +395,33 @@ export class MockAPI {
     }
   }
 
+  async verifySharePassword(shareId: string, password: string): Promise<APIResponse<boolean>> {
+    await simulateDelay(500, 1000);
+    
+    const stored = localStorage.getItem(`share-${shareId}`);
+    if (!stored) {
+      return {
+        success: false,
+        error: 'Share not found or has expired'
+      };
+    }
+    
+    try {
+      const shareData = JSON.parse(stored);
+      const isValid = shareData.password === password;
+      
+      return {
+        success: true,
+        data: isValid
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Invalid share data'
+      };
+    }
+  }
+
   async deleteShare(shareId: string): Promise<APIResponse<void>> {
     await simulateDelay(200, 500);
     
@@ -459,7 +486,8 @@ export class MockAPI {
       content: sharedChapters,
       createdAt: new Date(),
       expiresAt,
-      isPasswordProtected: !!password
+      isPasswordProtected: !!password,
+      password: password // Store password for demo (in real app, this would be hashed)
     };
   }
 }

@@ -124,4 +124,8 @@ export class RealAPI {
   async deleteShare(shareId: string): Promise<APIResponse<void>> {
     return this.client.delete<void>(`/share/${shareId}`);
   }
+
+  async verifySharePassword(shareId: string, password: string): Promise<APIResponse<boolean>> {
+    return this.client.post<boolean>(`/share/${shareId}/verify-password`, { password });
+  }
 }

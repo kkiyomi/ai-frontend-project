@@ -1,7 +1,49 @@
 <template>
   <div class="min-h-screen bg-gray-50">
+    <!-- Password Protection Modal -->
+    <div v-if="sharedContent?.isPasswordProtected && !isPasswordVerified" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="text-center mb-6">
+          <div class="text-4xl mb-3">🔒</div>
+          <h2 class="text-xl font-semibold text-gray-900 mb-2">Password Protected Content</h2>
+          <p class="text-gray-600">This shared content is password protected. Please enter the password to view it.</p>
+        </div>
+        
+        <form @submit.prevent="verifyPassword" class="space-y-4">
+          <div>
+            <input
+              v-model="passwordInput"
+              type="password"
+              placeholder="Enter password"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              :class="{ 'border-red-500': passwordError }"
+              required
+            />
+            <p v-if="passwordError" class="text-red-600 text-sm mt-1">{{ passwordError }}</p>
+          </div>
+          
+          <button
+            type="submit"
+            :disabled="isVerifyingPassword"
+            class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          >
+            {{ isVerifyingPassword ? 'Verifying...' : 'Access Content' }}
+          </button>
+        </form>
+        
+        <div class="mt-4 text-center">
+          <router-link 
+            to="/" 
+            class="text-sm text-gray-500 hover:text-gray-700"
+          >
+            ← Back to Translation Tool
+          </router-link>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
-    <div class="bg-white border-b border-gray-200">
+    <div v-if="!sharedContent?.isPasswordProtected || isPasswordVerified" class="bg-white border-b border-gray-200">
       <div class="max-w-4xl mx-auto px-4 py-6">
         <div class="flex items-center justify-between">
           <div>
@@ -41,14 +83,14 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="max-w-4xl mx-auto px-4 py-12 text-center">
+    <div v-if="isLoading && (!sharedContent?.isPasswordProtected || isPasswordVerified)" class="max-w-4xl mx-auto px-4 py-12 text-center">
       <div class="text-6xl mb-4">⏳</div>
       <h2 class="text-xl font-medium text-gray-900 mb-2">Loading shared content...</h2>
       <p class="text-gray-500">Please wait while we fetch the translation.</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="max-w-4xl mx-auto px-4 py-12 text-center">
+    <div v-else-if="error && (!sharedContent?.isPasswordProtected || isPasswordVerified)" class="max-w-4xl mx-auto px-4 py-12 text-center">
       <div class="text-6xl mb-4">❌</div>
       <h2 class="text-xl font-medium text-gray-900 mb-2">Content Not Found</h2>
       <p class="text-gray-500 mb-4">{{ error }}</p>
@@ -61,7 +103,7 @@
     </div>
 
     <!-- Content -->
-    <div v-else-if="sharedContent" class="max-w-4xl mx-auto px-4 py-8">
+    <div v-else-if="sharedContent && (!sharedContent.isPasswordProtected || isPasswordVerified)" class="max-w-4xl mx-auto px-4 py-8">
       <!-- View Mode Toggle -->
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center space-x-4">
@@ -195,6 +237,10 @@ const { getSharedContent, isLoading, error } = useSharing();
 
 const sharedContent = ref<SharedContent | null>(null);
 const viewMode = ref<'split' | 'translation' | 'original'>('translation');
+const isPasswordVerified = ref(false);
+const passwordInput = ref('');
+const passwordError = ref('');
+const isVerifyingPassword = ref(false);
 
 const shareId = computed(() => route.params.shareId as string);
 
@@ -206,6 +252,39 @@ onMounted(async () => {
     }
   }
 });
+
+const verifyPassword = async () => {
+  if (!passwordInput.value.trim()) return;
+  
+  isVerifyingPassword.value = true;
+  passwordError.value = '';
+  
+  try {
+    // In a real implementation, you would verify the password with the backend
+    // For now, we'll simulate password verification
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, we'll check against a stored password in localStorage
+    // In production, this would be handled securely on the backend
+    const storedShare = localStorage.getItem(`share-${shareId.value}`);
+    if (storedShare) {
+      const shareData = JSON.parse(storedShare);
+      // For demo, we'll assume password is stored (in real app, this would be hashed)
+      if (shareData.password === passwordInput.value) {
+        isPasswordVerified.value = true;
+        passwordError.value = '';
+      } else {
+        passwordError.value = 'Incorrect password. Please try again.';
+      }
+    } else {
+      passwordError.value = 'Share not found or has expired.';
+    }
+  } catch (error) {
+    passwordError.value = 'Failed to verify password. Please try again.';
+  } finally {
+    isVerifyingPassword.value = false;
+  }
+};
 
 const formatDate = (date?: Date): string => {
   if (!date) return '';
