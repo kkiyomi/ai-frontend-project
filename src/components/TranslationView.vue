@@ -14,11 +14,18 @@
         </div>
         
         <div v-if="currentChapter" class="flex items-center space-x-2">
+          <ShareButton />
           <button
-            @click="toggleViewMode"
+            @click="toggleLayoutMode"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
           >
-            {{ viewMode === 'split' ? 'Full Text View' : 'Split View' }}
+            {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
+          </button>
+          <button
+            @click="toggleContentMode"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+          >
+            {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
           </button>
           <button
             @click="translateAllParagraphs"
@@ -53,9 +60,9 @@
 
     <div v-else class="flex-1 overflow-hidden">
       <!-- Split Paragraph View -->
-      <div v-if="viewMode === 'split'" class="h-full flex">
+      <div v-if="layoutMode === 'split'" class="h-full flex">
         <!-- Original Text Column -->
-        <div class="flex-1 border-r border-secondary-200">
+        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
             <h3 class="font-medium text-secondary-900">Original Text</h3>
           </div>
@@ -139,7 +146,7 @@
       <!-- Full Text View -->
       <div v-else class="h-full flex">
         <!-- Original Text Column -->
-        <div class="flex-1 border-r border-secondary-200">
+        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
             <h3 class="font-medium text-secondary-900">Original Text</h3>
           </div>
@@ -159,12 +166,53 @@
             <h3 class="font-medium text-secondary-900">Translation</h3>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="max-w-4xl">
+            <div v-if="layoutMode === 'full'" class="max-w-4xl">
               <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
                 <div v-html="highlightTermsInText(getFullTranslatedText())"></div>
               </div>
               <div v-else class="text-secondary-400 italic">
                 No translations yet. Use "Translate All" or translate individual paragraphs first.
+              </div>
+            </div>
+            <div v-else class="space-y-6 max-w-2xl">
+              <div
+                v-for="(paragraph, index) in currentChapter.paragraphs"
+                :key="`trans-only-${paragraph.id}`"
+                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
+                  <div class="flex space-x-2">
+                    <button
+                      @click="retranslateParagraph(paragraph)"
+                      :disabled="isTranslating || !paragraph.translatedText"
+                      class="text-xs text-accent-600 hover:text-accent-700 disabled:opacity-50"
+                      title="Retranslate with current glossary"
+                    >
+                      Retranslate
+                    </button>
+                    <button
+                      @click="toggleParagraphEditing(paragraph.id)"
+                      class="text-xs text-primary-600 hover:text-primary-700"
+                    >
+                      {{ paragraph.isEditing ? 'Save' : 'Edit' }}
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
+                  <div v-if="paragraph.translatedText" v-html="highlightTermsInText(paragraph.translatedText)"></div>
+                  <div v-else class="text-secondary-400 italic">No translation yet</div>
+                </div>
+
+                <textarea
+                  v-else
+                  v-model="paragraph.translatedText"
+                  @blur="toggleParagraphEditing(paragraph.id)"
+                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
+                  rows="4"
+                  placeholder="Enter translation..."
+                ></textarea>
               </div>
             </div>
           </div>
@@ -176,6 +224,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import ShareButton from './ShareButton.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
@@ -197,10 +246,15 @@ const {
 
 const { highlightTermsInText, glossaryTerms } = useGlossary();
 
-const viewMode = ref<'split' | 'full'>('split');
+const layoutMode = ref<'split' | 'full'>('split');
+const contentMode = ref<'all' | 'translated'>('all');
 
-const toggleViewMode = () => {
-  viewMode.value = viewMode.value === 'split' ? 'full' : 'split';
+const toggleLayoutMode = () => {
+  layoutMode.value = layoutMode.value === 'split' ? 'full' : 'split';
+};
+
+const toggleContentMode = () => {
+  contentMode.value = contentMode.value === 'all' ? 'translated' : 'all';
 };
 
 const getFullOriginalText = (): string => {
