@@ -12,7 +12,6 @@ export interface Chapter {
   content: string;
   paragraphs: Paragraph[];
   seriesId: string;
-  originalFile?: File;
 }
 
 export interface Paragraph {

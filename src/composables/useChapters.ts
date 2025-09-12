@@ -28,6 +28,20 @@ export function useChapters() {
     series.value.find(s => s.id === currentSeriesId.value)
   );
 
+  function buildParagraphs(content: string, chapterId: string) {
+      return content
+        .split('\n')
+        .map(p => p.trim())
+        .filter(p => p.length > 0)
+        .map((text, index) => ({
+          id: `${chapterId}-p${index}`,
+          originalText: text,
+          translatedText: '',
+          isEditing: false,
+          chapterId,
+        }));
+    }
+
   // Load series and chapters from API
   const loadSeriesFromAPI = async (): Promise<void> => {
     // Avoid multiple simultaneous loads
@@ -59,7 +73,11 @@ export function useChapters() {
         const chapterPromises = seriesData.map(async (seriesItem) => {
           const chaptersResponse = await getChapters(seriesItem.id);
           if (chaptersResponse.success && chaptersResponse.data) {
-            seriesItem.chapters = chaptersResponse.data;
+          const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
+            ...chapter,
+            paragraphs: buildParagraphs(chapter.content, chapter.id),
+          }));
+            seriesItem.chapters = enrichedChapters;
           } else {
             seriesItem.chapters = [];
           }
@@ -200,21 +218,13 @@ export function useChapters() {
       }
       
       const chapterId = originalFile ? originalFile.name : `scraped-${Date.now()}`;
-      const paragraphs = content.split('\n').map(p => p.trim()).filter(p => p.length > 0).map((text, index) => ({
-        id: `${chapterId}-p${index}`,
-        originalText: text,
-        translatedText: '',
-        isEditing: false,
-        chapterId,
-      }));
 
       const chapter: Chapter = {
         id: chapterId,
         title,
         content,
-        paragraphs,
+        paragraphs: buildParagraphs(content, chapterId),
         seriesId: seriesId,
-        originalFile,
       };
 
       // Add chapter to the appropriate series
