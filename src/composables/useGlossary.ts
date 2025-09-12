@@ -7,9 +7,36 @@ const glossaryTerms = ref<GlossaryTerm[]>([]);
 const isGlossaryVisible = ref(false);
 const isLoading = ref(false);
 
+// Cache for glossary terms to avoid redundant loads
+const glossaryCache = new Map<string, { terms: GlossaryTerm[]; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+// Pending requests to avoid duplicate calls
+const pendingGlossaryRequests = new Map<string, Promise<void>>();
+
 export function useGlossary() {
   const { getGlossaryTerms, createGlossaryTerm, updateGlossaryTerm, deleteGlossaryTerm } = useAPI();
   const { currentChapter, currentSeries } = useChapters();
+
+  // Helper to create cache key
+  const createGlossaryCacheKey = (seriesId?: string, chapterId?: string): string => {
+    return `${seriesId || 'none'}:${chapterId || 'none'}`;
+  };
+
+  // Helper to get cached terms
+  const getCachedTerms = (key: string): GlossaryTerm[] | null => {
+    const cached = glossaryCache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.terms;
+    }
+    glossaryCache.delete(key);
+    return null;
+  };
+
+  // Helper to cache terms
+  const setCachedTerms = (key: string, terms: GlossaryTerm[]): void => {
+    glossaryCache.set(key, { terms: [...terms], timestamp: Date.now() });
+  };
 
   // Load glossary terms for current chapter
   const loadGlossaryTerms = async (): Promise<void> => {
@@ -18,26 +45,59 @@ export function useGlossary() {
       return;
     }
 
+    const seriesId = currentSeries.value.id;
+    const chapterId = currentChapter.value?.id;
+    const cacheKey = createGlossaryCacheKey(seriesId, chapterId);
+
+    // Check cache first
+    const cachedTerms = getCachedTerms(cacheKey);
+    if (cachedTerms) {
+      glossaryTerms.value = cachedTerms;
+      return;
+    }
+
+    // Check if request is already pending
+    if (pendingGlossaryRequests.has(cacheKey)) {
+      await pendingGlossaryRequests.get(cacheKey);
+      return;
+    }
+
+    // Create loading promise
+    const loadingPromise = performGlossaryLoad(seriesId, chapterId, cacheKey);
+    pendingGlossaryRequests.set(cacheKey, loadingPromise);
+
+    try {
+      await loadingPromise;
+    } finally {
+      pendingGlossaryRequests.delete(cacheKey);
+    }
+  };
+
+  const performGlossaryLoad = async (seriesId: string, chapterId?: string, cacheKey?: string): Promise<void> => {
     isLoading.value = true;
     try {
-      // Load terms for current series, including both chapter-specific and series-level terms
-      const seriesId = currentSeries.value.id;
-      const chapterId = currentChapter.value?.id;
-      
       // Always load all series terms, then filter on the frontend for better UX
       const response = await getGlossaryTerms(seriesId);
       if (response.success && response.data) {
         // Filter to show:
         // 1. If chapter is selected: series-level terms + chapter-specific terms
         // 2. If no chapter selected: ALL terms for the series
+        let filteredTerms: GlossaryTerm[];
         if (chapterId) {
           // Show series-level terms + current chapter terms
-          glossaryTerms.value = response.data.filter(term => 
+          filteredTerms = response.data.filter(term => 
             !term.chapterId || term.chapterId === chapterId
           );
         } else {
           // If no chapter selected, show ALL terms for the series
-          glossaryTerms.value = response.data;
+          filteredTerms = response.data;
+        }
+        
+        glossaryTerms.value = filteredTerms;
+        
+        // Cache the results
+        if (cacheKey) {
+          setCachedTerms(cacheKey, filteredTerms);
         }
       }
     } catch (error) {
@@ -63,6 +123,9 @@ export function useGlossary() {
       const response = await createGlossaryTerm(termWithContext);
       if (response.success && response.data) {
         glossaryTerms.value.push(response.data);
+        
+        // Clear cache to force reload
+        glossaryCache.clear();
       } else {
         console.error('Failed to create glossary term:', response.error);
       }
@@ -79,6 +142,9 @@ export function useGlossary() {
         if (index !== -1) {
           glossaryTerms.value[index] = response.data;
         }
+        
+        // Clear cache to force reload
+        glossaryCache.clear();
       } else {
         console.error('Failed to update glossary term:', response.error);
       }
@@ -92,6 +158,9 @@ export function useGlossary() {
       const response = await deleteGlossaryTerm(termId);
       if (response.success) {
         glossaryTerms.value = glossaryTerms.value.filter(term => term.id !== termId);
+        
+        // Clear cache to force reload
+        glossaryCache.clear();
       } else {
         console.error('Failed to delete glossary term:', response.error);
       }
@@ -160,6 +229,11 @@ export function useGlossary() {
     isGlossaryVisible.value = !isGlossaryVisible.value;
   };
 
+  // Clear glossary cache
+  const clearGlossaryCache = (): void => {
+    glossaryCache.clear();
+    pendingGlossaryRequests.clear();
+  };
   const termsByCategory = computed(() => {
     const grouped: Record<string, GlossaryTerm[]> = {};
     glossaryTerms.value.forEach(term => {
@@ -186,5 +260,6 @@ export function useGlossary() {
     suggestTermsFromText,
     highlightTermsInText,
     toggleGlossaryVisibility,
+    clearGlossaryCache,
   };
 }

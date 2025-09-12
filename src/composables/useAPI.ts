@@ -1,13 +1,80 @@
-import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
-import type { ShareRequest, ShareResponse, SharedContent } from '../types/sharing';
+import { ref } from 'vue';
+import type { APIResponse, GlossaryTerm } from '../types';
+import type { ShareRequest } from '../types/sharing';
 import { apiService } from '../services/apiService';
 
+// Cache for API responses to avoid duplicate calls
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Pending requests to avoid duplicate calls
+const pendingRequests = new Map<string, Promise<any>>();
+
+// Helper function to create cache key
+function createCacheKey(method: string, ...args: any[]): string {
+  return `${method}:${JSON.stringify(args)}`;
+}
+
+// Helper function to get cached data
+function getCachedData<T>(key: string): T | null {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  cache.delete(key);
+  return null;
+}
+
+// Helper function to cache data
+function setCachedData(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+// Helper function to handle API calls with caching and deduplication
+async function handleAPICall<T>(
+  cacheKey: string,
+  apiCall: () => Promise<APIResponse<T>>,
+  useCache: boolean = true
+): Promise<APIResponse<T>> {
+  // Check cache first
+  if (useCache) {
+    const cached = getCachedData<APIResponse<T>>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  // Check if request is already pending
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
+
+  // Make the API call
+  const promise = apiCall();
+  pendingRequests.set(cacheKey, promise);
+
+  try {
+    const result = await promise;
+    
+    // Cache successful responses
+    if (result.success && useCache) {
+      setCachedData(cacheKey, result);
+    }
+    
+    return result;
+  } finally {
+    pendingRequests.delete(cacheKey);
+  }
+}
+
 export function useAPI() {
-  const translateText = async (
-    text: string, 
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> => {
-    return apiService.translateText(text, glossaryContext);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+
+  // Translation methods
+  const translateText = async (text: string, glossaryContext?: string[]): Promise<APIResponse<string>> => {
+    const cacheKey = createCacheKey('translateText', text, glossaryContext);
+    return handleAPICall(cacheKey, () => apiService.translateText(text, glossaryContext), false); // Don't cache translations
   };
 
   const retranslateWithGlossary = async (
@@ -15,43 +82,97 @@ export function useAPI() {
     currentTranslation: string,
     glossaryTerms: string[]
   ): Promise<APIResponse<string>> => {
-    return apiService.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
+    const cacheKey = createCacheKey('retranslateWithGlossary', originalText, currentTranslation, glossaryTerms);
+    return handleAPICall(cacheKey, () => apiService.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms), false);
   };
 
   const suggestGlossaryTerms = async (text: string): Promise<APIResponse<string[]>> => {
-    return apiService.suggestGlossaryTerms(text);
+    const cacheKey = createCacheKey('suggestGlossaryTerms', text);
+    return handleAPICall(cacheKey, () => apiService.suggestGlossaryTerms(text));
   };
 
+  // Glossary methods with caching
   const getGlossaryTerms = async (seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> => {
-    return apiService.getGlossaryTerms(seriesId, chapterId);
+    const cacheKey = createCacheKey('getGlossaryTerms', seriesId, chapterId);
+    return handleAPICall(cacheKey, () => apiService.getGlossaryTerms(seriesId, chapterId));
   };
 
   const createGlossaryTerm = async (term: Omit<GlossaryTerm, 'id' | 'frequency'>) => {
-    return apiService.createGlossaryTerm(term);
+    const result = await apiService.createGlossaryTerm(term);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      const keysToDelete = Array.from(cache.keys()).filter(key => key.startsWith('getGlossaryTerms:'));
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
   const updateGlossaryTerm = async (termId: string, updates: Partial<GlossaryTerm>) => {
-    return apiService.updateGlossaryTerm(termId, updates);
+    const result = await apiService.updateGlossaryTerm(termId, updates);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      const keysToDelete = Array.from(cache.keys()).filter(key => key.startsWith('getGlossaryTerms:'));
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
   const deleteGlossaryTerm = async (termId: string) => {
-    return apiService.deleteGlossaryTerm(termId);
+    const result = await apiService.deleteGlossaryTerm(termId);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      const keysToDelete = Array.from(cache.keys()).filter(key => key.startsWith('getGlossaryTerms:'));
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
-  // Sharing functions
+  // Sharing methods
   const createShare = async (request: ShareRequest) => {
     return apiService.createShare(request);
   };
 
   const getSharedContent = async (shareId: string) => {
-    return apiService.getSharedContent(shareId);
+    const cacheKey = createCacheKey('getSharedContent', shareId);
+    return handleAPICall(cacheKey, () => apiService.getSharedContent(shareId));
   };
 
   const deleteShare = async (shareId: string) => {
-    return apiService.deleteShare(shareId);
+    const result = await apiService.deleteShare(shareId);
+    
+    // Invalidate cache for this share
+    if (result.success) {
+      const cacheKey = createCacheKey('getSharedContent', shareId);
+      cache.delete(cacheKey);
+    }
+    
+    return result;
+  };
+
+  const verifySharePassword = async (shareId: string, password: string) => {
+    return apiService.verifySharePassword(shareId, password);
+  };
+
+  // Cache management
+  const clearCache = () => {
+    cache.clear();
+    pendingRequests.clear();
+  };
+
+  const clearCacheByPattern = (pattern: string) => {
+    const keysToDelete = Array.from(cache.keys()).filter(key => key.includes(pattern));
+    keysToDelete.forEach(key => cache.delete(key));
   };
 
   return {
+    isLoading,
+    error,
     translateText,
     retranslateWithGlossary,
     suggestGlossaryTerms,
@@ -62,52 +183,115 @@ export function useAPI() {
     createShare,
     getSharedContent,
     deleteShare,
+    verifySharePassword,
+    clearCache,
+    clearCacheByPattern,
   };
 }
 
-// Additional API functions for data management
+// Separate composable for data management with optimized loading
 export function useDataAPI() {
-  // Series operations
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+
+  // Series operations with caching
   const getSeries = async () => {
-    return apiService.getSeries();
+    const cacheKey = createCacheKey('getSeries');
+    return handleAPICall(cacheKey, () => apiService.getSeries());
   };
 
   const createSeries = async (name: string, description?: string) => {
-    return apiService.createSeries(name, description);
+    const result = await apiService.createSeries(name, description);
+    
+    // Invalidate series cache
+    if (result.success) {
+      cache.delete(createCacheKey('getSeries'));
+    }
+    
+    return result;
   };
 
-  const updateSeries = async (seriesId: string, updates: Partial<Series>) => {
-    return apiService.updateSeries(seriesId, updates);
+  const updateSeries = async (seriesId: string, updates: any) => {
+    const result = await apiService.updateSeries(seriesId, updates);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      cache.delete(createCacheKey('getSeries'));
+      const keysToDelete = Array.from(cache.keys()).filter(key => key.includes(seriesId));
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
   const deleteSeries = async (seriesId: string) => {
-    return apiService.deleteSeries(seriesId);
+    const result = await apiService.deleteSeries(seriesId);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      cache.delete(createCacheKey('getSeries'));
+      const keysToDelete = Array.from(cache.keys()).filter(key => key.includes(seriesId));
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
-  // Chapter operations
+  // Chapter operations with caching
   const getChapters = async (seriesId?: string) => {
-    return apiService.getChapters(seriesId);
+    const cacheKey = createCacheKey('getChapters', seriesId);
+    return handleAPICall(cacheKey, () => apiService.getChapters(seriesId));
   };
 
   const createChapter = async (title: string, content: string, seriesId: string) => {
-    return apiService.createChapter(title, content, seriesId);
+    const result = await apiService.createChapter(title, content, seriesId);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      cache.delete(createCacheKey('getChapters'));
+      cache.delete(createCacheKey('getChapters', seriesId));
+      cache.delete(createCacheKey('getSeries'));
+    }
+    
+    return result;
   };
 
-  const updateChapter = async (chapterId: string, updates: Partial<Chapter>) => {
-    return apiService.updateChapter(chapterId, updates);
+  const updateChapter = async (chapterId: string, updates: any) => {
+    const result = await apiService.updateChapter(chapterId, updates);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      const keysToDelete = Array.from(cache.keys()).filter(key => 
+        key.startsWith('getChapters:') || key.includes(chapterId)
+      );
+      keysToDelete.forEach(key => cache.delete(key));
+    }
+    
+    return result;
   };
 
   const deleteChapter = async (chapterId: string) => {
-    return apiService.deleteChapter(chapterId);
+    const result = await apiService.deleteChapter(chapterId);
+    
+    // Invalidate related cache entries
+    if (result.success) {
+      const keysToDelete = Array.from(cache.keys()).filter(key => 
+        key.startsWith('getChapters:') || key.includes(chapterId)
+      );
+      keysToDelete.forEach(key => cache.delete(key));
+      cache.delete(createCacheKey('getSeries'));
+    }
+    
+    return result;
   };
 
   return {
-    // Series
+    isLoading,
+    error,
     getSeries,
     createSeries,
     updateSeries,
     deleteSeries,
-    // Chapters
     getChapters,
     createChapter,
     updateChapter,

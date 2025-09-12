@@ -9,6 +9,10 @@ const currentSeriesId = ref<string | null>(null);
 const isLoading = ref<boolean>(false);
 const error = ref<string | null>(null);
 
+// Cache for loaded data to avoid redundant API calls
+let dataLoaded = false;
+let loadingPromise: Promise<void> | null = null;
+
 export function useChapters() {
   const { getSeries, getChapters, createSeries: createSeriesAPI } = useDataAPI();
 
@@ -26,6 +30,22 @@ export function useChapters() {
 
   // Load series and chapters from API
   const loadSeriesFromAPI = async (): Promise<void> => {
+    // Avoid multiple simultaneous loads
+    if (loadingPromise) {
+      return loadingPromise;
+    }
+    
+    // Return early if data is already loaded
+    if (dataLoaded && series.value.length > 0) {
+      return;
+    }
+
+    loadingPromise = performLoad();
+    await loadingPromise;
+    loadingPromise = null;
+  };
+
+  const performLoad = async (): Promise<void> => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -33,15 +53,23 @@ export function useChapters() {
       // Fetch series data
       const seriesResponse = await getSeries();
       if (seriesResponse.success && seriesResponse.data) {
-        series.value = seriesResponse.data;
-
-        // Load chapters for each series
-        for (const seriesItem of series.value) {
+        const seriesData = seriesResponse.data;
+        
+        // Load chapters for all series in parallel for better performance
+        const chapterPromises = seriesData.map(async (seriesItem) => {
           const chaptersResponse = await getChapters(seriesItem.id);
           if (chaptersResponse.success && chaptersResponse.data) {
             seriesItem.chapters = chaptersResponse.data;
+          } else {
+            seriesItem.chapters = [];
           }
-        }
+          return seriesItem;
+        });
+
+        // Wait for all chapter loading to complete
+        const loadedSeries = await Promise.all(chapterPromises);
+        series.value = loadedSeries;
+        dataLoaded = true;
 
         // Set current series and chapter if data exists
         if (series.value.length > 0) {
@@ -259,9 +287,17 @@ export function useChapters() {
 
   // Refresh data from API
   const refresh = async (): Promise<void> => {
+    // Reset loaded state to force reload
+    dataLoaded = false;
     await loadSeriesFromAPI();
   };
 
+  // Force reload data (clears cache)
+  const forceReload = async (): Promise<void> => {
+    dataLoaded = false;
+    series.value = [];
+    await loadSeriesFromAPI();
+  };
   return {
     series: computed(() => series.value),
     chapters: computed(() => chapters.value),
@@ -282,6 +318,7 @@ export function useChapters() {
     updateParagraphTranslation,
     toggleParagraphEditing,
     refresh,
+    forceReload,
     loadSeriesFromAPI,
   };
 }
