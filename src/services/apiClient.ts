@@ -18,6 +18,7 @@ export class APIClient {
           'Content-Type': 'application/json',
           ...options.headers,
         },
+        credentials: 'include', // Include cookies for session
         ...options,
       });
 
