@@ -1,11 +1,11 @@
 <template>
     <div class="flex-1 overflow-y-auto">
         <!-- Series Management Header -->
-        <div class="p-4 border-b border-gray-200 bg-gray-50">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-900">Series</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Series</h3>
                 <button @click="showAddSeriesForm = !showAddSeriesForm"
-                    class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
+                    class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
                     {{ showAddSeriesForm ? 'Cancel' : '+ New' }}
                 </button>
             </div>
@@ -13,11 +13,11 @@
             <!-- Add Series Form -->
             <div v-if="showAddSeriesForm" class="space-y-2">
                 <input v-model="newSeriesName" type="text" placeholder="Series name"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     @keyup.enter="handleCreateSeries" />
                 <div class="flex space-x-2">
                     <button @click="handleCreateSeries" :disabled="!newSeriesName.trim()"
-                        class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        class="px-3 py-1 bg-blue-600 dark:bg-blue-700 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 transition-colors">
                         Save
                     </button>
                 </div>
@@ -29,33 +29,33 @@
             <!-- Empty State -->
             <div v-if="series.length === 0" class="text-center py-8">
                 <div class="text-4xl mb-3">📚</div>
-                <p class="text-sm text-gray-500">No series created yet</p>
-                <p class="text-xs text-gray-400 mt-1">Create a series to organize your chapters</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">No series created yet</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Create a series to organize your chapters</p>
             </div>
 
             <!-- Series Groups -->
             <div v-else class="space-y-4">
                 <div v-for="seriesItem in series" :key="seriesItem.id"
-                    class="border border-gray-200 rounded-lg overflow-hidden">
+                    class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                     <!-- Series Header -->
-                    <div class="bg-gray-50 p-3 border-b border-gray-200" 
-                                 :class="{ 'bg-blue-50': currentSeriesId === seriesItem.id }">
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 border-b border-gray-200 dark:border-gray-700" 
+                                 :class="{ 'bg-blue-50 dark:bg-blue-900/30': currentSeriesId === seriesItem.id }">
                         <div class="flex items-center justify-between">
                             <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)">
-                                <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
-                                <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
+                                <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ seriesItem.name }}</h4>
+                                <p v-if="seriesItem.description" class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{
                                     seriesItem.description }}</p>
-                                <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
+                                <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
                                     <span>{{ seriesItem.chapters.length }} chapters</span>
                                     <span>{{ getSeriesTranslationProgress(seriesItem) }}% translated</span>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
                                 <button @click.stop="toggleSeriesSelection(seriesItem.id)"
-                                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors transform"
+                                    class="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors transform"
                                     :class="{ 
-                                        'text-blue-600 rotate-90': currentSeriesId === seriesItem.id,
-                                        'text-gray-400': currentSeriesId !== seriesItem.id
+                                        'text-blue-600 dark:text-blue-400 rotate-90': currentSeriesId === seriesItem.id,
+                                        'text-gray-400 dark:text-gray-500': currentSeriesId !== seriesItem.id
                                     }"
                                     :title="currentSeriesId === seriesItem.id ? 'Collapse chapters' : 'Expand chapters'">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
                                 </button>
                                 <BulkChapterUpload :seriesId="seriesItem.id" />
                                 <button @click.stop="onRemoveSeries(seriesItem.id)"
-                                    class="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                    class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                                     title="Remove series">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -77,8 +77,8 @@
 
                         <!-- Series Progress Bar -->
                         <div class="mt-2">
-                            <div class="bg-gray-200 rounded-full h-1">
-                                <div class="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                            <div class="bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                <div class="bg-blue-500 dark:bg-blue-400 h-1 rounded-full transition-all duration-300"
                                     :style="{ width: `${getSeriesTranslationProgress(seriesItem)}%` }" />
                             </div>
                         </div>
@@ -87,45 +87,45 @@
                     <!-- Chapters in Series (only show when series is selected) -->
                     <div v-if="currentSeriesId === seriesItem.id">
                         <div v-if="seriesItem.chapters.length === 0" class="p-4 text-center">
-                            <p class="text-xs text-gray-500">No chapters in this series</p>
-                            <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">No chapters in this series</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Upload files to add chapters</p>
                         </div>
 
                         <!-- Virtual scrolling container for large chapter lists -->
                         <div v-else class="max-h-96 overflow-y-auto">
                             <!-- Chapter count indicator for large lists -->
                             <div v-if="seriesItem.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
-                                <p class="text-xs text-yellow-700 text-center">
+                                <p class="text-xs text-yellow-700 dark:text-yellow-600 text-center">
                                     📚 {{ seriesItem.chapters.length }} chapters in this series
                                 </p>
                             </div>
                             
-                            <div class="divide-y divide-gray-100">
+                            <div class="divide-y divide-gray-100 dark:divide-gray-700">
                                 <div v-for="chapter in seriesItem.chapters" :key="chapter.id" 
                                      @click="selectChapter(chapter.id)"
-                                     class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" 
+                                     class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50 dark:hover:bg-gray-700" 
                                      :class="{
-                                         'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
+                                         'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 dark:border-blue-400': currentChapterId === chapter.id,
                                      }">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center space-x-2 mb-1">
                                                 <span class="text-sm">{{ getFileIcon(chapter.title) }}</span>
-                                                <h5 class="text-sm font-medium text-gray-900 truncate">
+                                                <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                                     {{ chapter.title }}
                                                 </h5>
                                             </div>
-                                            <p class="text-xs text-gray-500">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
                                                 {{ chapter.paragraphs.length }} paragraphs
                                             </p>
-                                            <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
+                                            <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400 dark:text-gray-500">
                                                 <span>{{ getTranslationProgress(chapter) }}% translated</span>
                                                 <span>{{ formatFileSize(chapter.content.length) }}</span>
                                             </div>
                                         </div>
 
                                         <button @click.stop="onRemoveChapter(chapter.id)"
-                                            class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                                            class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all"
                                             title="Remove chapter">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -136,8 +136,8 @@
 
                                     <!-- Chapter Progress Bar -->
                                     <div class="mt-2">
-                                        <div class="bg-gray-200 rounded-full h-1">
-                                            <div class="bg-green-500 h-1 rounded-full transition-all duration-300"
+                                        <div class="bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                            <div class="bg-green-500 dark:bg-green-400 h-1 rounded-full transition-all duration-300"
                                                 :style="{ width: `${getTranslationProgress(chapter)}%` }" />
                                         </div>
                                     </div>

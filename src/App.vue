@@ -1,6 +1,6 @@
 <template>
   <router-view v-if="$route.name === 'Share'" />
-  <div v-else class="h-screen flex bg-gray-50">
+  <div v-else class="h-screen flex bg-gray-50 dark:bg-gray-900">
     <!-- Sidebar -->
     <SidebarMain />
 
@@ -16,7 +16,7 @@
         @click="closeGlossaryIfClickedOutside">
         <!-- Glossary Panel -->
         <div
-          class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
+          class="w-80 h-full bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-2xl transform transition-transform duration-300 ease-in-out"
           @click.stop>
           <GlossaryPanel />
         </div>
@@ -30,8 +30,13 @@ import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import GlossaryPanel from './components/GlossaryPanel.vue';
 import { useGlossary } from './composables/useGlossary';
+import { useDarkMode } from './composables/useDarkMode';
 
 const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
+const { initializeDarkMode } = useDarkMode();
+
+// Initialize dark mode on app start
+initializeDarkMode();
 
 const closeGlossaryIfClickedOutside = (event: Event) => {
   if (event.target === event.currentTarget) {

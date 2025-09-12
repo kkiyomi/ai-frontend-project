@@ -1,6 +1,6 @@
 <template>
   <div ref="sidebar"
-    class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20"
+    class="group relative bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-300 ease-in-out z-20"
     :class="isExpanded ? 'w-80' : 'w-12'" @mouseenter="isExpanded = true">
     <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length" :is-glossary-visible="isGlossaryVisible"
       @toggle-glossary="toggleGlossaryVisibility" />

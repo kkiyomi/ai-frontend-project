@@ -1,15 +1,15 @@
 <template>
-  <div class="flex-1 flex flex-col h-full bg-white">
+  <div class="flex-1 flex flex-col h-full bg-white dark:bg-gray-800">
     <!-- Header -->
-    <div class="border-b border-secondary-200 p-4">
+    <div class="border-b border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center justify-between">
         <div v-if="currentChapter">
-          <h2 class="text-lg font-semibold text-secondary-900">{{ currentChapter.title }}</h2>
-          <p class="text-sm text-secondary-500">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ currentChapter.title }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
             {{ currentChapter.paragraphs.length }} paragraphs
           </p>
         </div>
-        <div v-else class="text-secondary-500">
+        <div v-else class="text-gray-500 dark:text-gray-400">
           Select a chapter to begin translation
         </div>
         
@@ -17,13 +17,13 @@
           <ShareButton />
           <button
             @click="toggleLayoutMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium border border-gray-300 dark:border-gray-600"
           >
             {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
           </button>
           <button
             @click="toggleContentMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+            class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium border border-gray-300 dark:border-gray-600"
           >
             {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
           </button>
@@ -53,8 +53,8 @@
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">
         <div class="text-6xl mb-4">📖</div>
-        <h3 class="text-xl font-medium text-secondary-900 mb-2">Ready to Translate</h3>
-        <p class="text-secondary-500">Upload a chapter from the sidebar to get started</p>
+        <h3 class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">Ready to Translate</h3>
+        <p class="text-gray-500 dark:text-gray-400">Upload a chapter from the sidebar to get started</p>
       </div>
     </div>
 
@@ -62,29 +62,29 @@
       <!-- Split Paragraph View -->
       <div v-if="layoutMode === 'split'" class="h-full flex">
         <!-- Original Text Column -->
-        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
-          <div class="p-4 bg-secondary-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Original Text</h3>
+        <div v-if="contentMode === 'all'" class="flex-1 border-r border-gray-200 dark:border-gray-700">
+          <div class="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="font-medium text-gray-900 dark:text-gray-100">Original Text</h3>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="space-y-6 max-w-2xl">
               <div
                 v-for="(paragraph, index) in currentChapter.paragraphs"
                 :key="paragraph.id"
-                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
+                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors hover:bg-blue-50 dark:hover:bg-gray-700"
               >
                 <div class="flex items-start justify-between mb-2">
-                  <span class="text-xs text-secondary-500 font-medium">Paragraph {{ index + 1 }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Paragraph {{ index + 1 }}</span>
                   <button
                     @click="translateSingleParagraph(paragraph.id, paragraph.originalText)"
                     :disabled="isTranslating"
-                    class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50"
                   >
                     Translate
                   </button>
                 </div>
                 <div 
-                  class="reading-text text-secondary-900"
+                  class="reading-text text-gray-900 dark:text-gray-100"
                   v-html="highlightTermsInText(paragraph.originalText)"
                 ></div>
               </div>
@@ -94,46 +94,46 @@
 
         <!-- Translated Text Column -->
         <div class="flex-1">
-          <div class="p-4 bg-accent-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Translation</h3>
+          <div class="p-4 bg-green-50 dark:bg-green-900/20 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="font-medium text-gray-900 dark:text-gray-100">Translation</h3>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="space-y-6 max-w-2xl">
               <div
                 v-for="(paragraph, index) in currentChapter.paragraphs"
                 :key="`trans-${paragraph.id}`"
-                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
+                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors hover:bg-blue-50 dark:hover:bg-gray-700"
               >
                 <div class="flex items-start justify-between mb-2">
-                  <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Translation {{ index + 1 }}</span>
                   <div class="flex space-x-2">
                     <button
                       @click="retranslateParagraph(paragraph)"
                       :disabled="isTranslating || !paragraph.translatedText"
-                      class="text-xs text-accent-600 hover:text-accent-700 disabled:opacity-50"
+                      class="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 disabled:opacity-50"
                       title="Retranslate with current glossary"
                     >
                       Retranslate
                     </button>
                     <button
                       @click="toggleParagraphEditing(paragraph.id)"
-                      class="text-xs text-primary-600 hover:text-primary-700"
+                      class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       {{ paragraph.isEditing ? 'Save' : 'Edit' }}
                     </button>
                   </div>
                 </div>
                 
-                <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
+                <div v-if="!paragraph.isEditing" class="reading-text text-gray-900 dark:text-gray-100">
                   <div v-if="paragraph.translatedText" v-html="highlightTermsInText(paragraph.translatedText)"></div>
-                  <div v-else class="text-secondary-400 italic">No translation yet</div>
+                  <div v-else class="text-gray-400 dark:text-gray-500 italic">No translation yet</div>
                 </div>
                 
                 <textarea
                   v-else
                   v-model="paragraph.translatedText"
                   @blur="toggleParagraphEditing(paragraph.id)"
-                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
+                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   rows="4"
                   placeholder="Enter translation..."
                 ></textarea>

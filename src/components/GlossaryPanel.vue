@@ -1,12 +1,12 @@
 <template>
-  <div class="h-full bg-white flex flex-col">
+  <div class="h-full bg-white dark:bg-gray-800 flex flex-col">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-gray-900">Glossary</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Glossary</h2>
         <button
           @click="toggleGlossaryVisibility"
-          class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           title="Close glossary"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,7 +14,7 @@
           </svg>
         </button>
       </div>
-      <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ glossaryTerms.length }} terms defined</p>
       <p v-if="currentChapter" class="text-xs text-blue-600 mt-1">
         Chapter: {{ currentChapter.title }}
       </p>
@@ -28,7 +28,7 @@
           v-if="!showAddForm"
           @click="showAddForm = true"
           :disabled="!currentSeries"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium"
           :class="{ 'opacity-50 cursor-not-allowed': !currentSeries }"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,12 +40,12 @@
     </div>
 
     <!-- Add Term Form -->
-    <div v-if="showAddForm" class="p-4 border-b border-gray-200 bg-gray-50">
+    <div v-if="showAddForm" class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-gray-900">Add New Term</h3>
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Add New Term</h3>
         <button
           @click="cancelAddForm"
-          class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           Cancel
         </button>
@@ -57,7 +57,7 @@
             v-model="newTerm.term"
             type="text"
             placeholder="Term (e.g., character name)"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             required
           />
           <p v-if="termExistsError" class="text-xs text-red-600 mt-1">{{ termExistsError }}</p>
