@@ -66,4 +66,3 @@ const handleCreate = async () => {
   }
 };
 </script>
-</template>
