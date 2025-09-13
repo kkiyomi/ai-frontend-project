@@ -96,19 +96,19 @@ export class RealAPI {
       additional_params += `?${params.toString()}`;
     }
     
-    return this.client.get<GlossaryTerm[]>('/glossary' + additional_params);
+    return this.client.get<GlossaryTerm[]>('/glossary-terms' + additional_params);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.post<GlossaryTerm>('/glossary', term);
+    return this.client.post<GlossaryTerm>('/glossary-terms', term);
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.put<GlossaryTerm>(`/glossary/${termId}`, updates);
+    return this.client.put<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
   }
 
   async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
-    return this.client.delete<void>(`/glossary/${termId}`);
+    return this.client.delete<void>(`/glossary-terms/${termId}`);
   }
 
   // Sharing endpoints

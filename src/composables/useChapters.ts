@@ -69,23 +69,42 @@ export function useChapters() {
       if (seriesResponse.success && seriesResponse.data) {
         const seriesData = seriesResponse.data;
         
-        // Load chapters for all series in parallel for better performance
-        const chapterPromises = seriesData.map(async (seriesItem) => {
-          const chaptersResponse = await getChapters(seriesItem.id);
-          if (chaptersResponse.success && chaptersResponse.data) {
-          const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
-            ...chapter,
-            paragraphs: buildParagraphs(chapter.content, chapter.id),
-          }));
-            seriesItem.chapters = enrichedChapters;
-          } else {
-            seriesItem.chapters = [];
-          }
-          return seriesItem;
-        });
+//         // Load chapters for all series in parallel for better performance
+//         const chapterPromises = seriesData.map(async (seriesItem) => {
+//           const chaptersResponse = await getChapters(seriesItem.id);
+//           if (chaptersResponse.success && chaptersResponse.data) {
+//             const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
+//               ...chapter,
+//               paragraphs: buildParagraphs(chapter.content, chapter.id),
+//             }));
+//             seriesItem.chapters = enrichedChapters;
+//           } else {
+//             seriesItem.chapters = [];
+//           }
+//           return seriesItem;
+//         });
+//
+//         // Wait for all chapter loading to complete
+//         const loadedSeries = await Promise.all(chapterPromises);
 
-        // Wait for all chapter loading to complete
-        const loadedSeries = await Promise.all(chapterPromises);
+        async function loadChaptersForSeries(seriesData: any[]) {
+          const ids = seriesData.map(s => s.id).join(",");
+
+          const { success, data } = await getChapters(ids);
+          if (!success || !data) {
+            return seriesData.map(s => ({ ...s, chapters: [] }));
+          }
+
+          return seriesData.map(seriesItem => ({
+            ...seriesItem,
+            chapters: (data.filter((c: any) => c.seriesId === seriesItem.id) || [])
+              .map((chapter: any) => ({
+                ...chapter,
+                paragraphs: buildParagraphs(chapter.content, chapter.id),
+              })),
+          }));
+        }
+        const loadedSeries = await loadChaptersForSeries(seriesData)
         series.value = loadedSeries;
         dataLoaded = true;
 
