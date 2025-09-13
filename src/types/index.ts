@@ -19,6 +19,7 @@ export interface Paragraph {
   originalText: string;
   translatedText: string;
   isEditing: boolean;
+  isEditingOriginal?: boolean;
   chapterId: string;
 }
 
@@ -27,7 +28,7 @@ export interface GlossaryTerm {
   term: string;
   definition: string;
   translation: string;
-  category: 'character' | 'place' | 'cultural' | 'idiom' | 'other';
+  category: string;
   frequency: number;
   isUserDefined: boolean;
   seriesId: string;
