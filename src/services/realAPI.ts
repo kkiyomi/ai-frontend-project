@@ -46,7 +46,7 @@ export class RealAPI {
   }
 
   async updateSeries(seriesId: string, updates: Partial<Series>): Promise<APIResponse<Series>> {
-    return this.client.put<Series>(`/series/${seriesId}`, updates);
+    return this.client.patch<Series>(`/series/${seriesId}`, updates);
   }
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
@@ -72,7 +72,7 @@ export class RealAPI {
   }
 
   async updateChapter(chapterId: string, updates: Partial<Chapter>): Promise<APIResponse<Chapter>> {
-    return this.client.put<Chapter>(`/chapters/${chapterId}`, updates);
+    return this.client.patch<Chapter>(`/chapters/${chapterId}`, updates);
   }
 
   async deleteChapter(chapterId: string): Promise<APIResponse<void>> {
@@ -104,7 +104,7 @@ export class RealAPI {
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.put<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
+    return this.client.patch<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
   }
 
   async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
