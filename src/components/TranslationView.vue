@@ -16,6 +16,12 @@
         <div v-if="currentChapter" class="flex items-center space-x-2">
           <ShareButton />
           <button
+            @click="toggleEditMode"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+          >
+            {{ isEditingOriginal ? 'Save Changes' : 'Edit Original' }}
+          </button>
+          <button
             @click="toggleLayoutMode"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
           >
@@ -64,7 +70,16 @@
         <!-- Original Text Column -->
         <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Original Text</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="font-medium text-secondary-900">Original Text</h3>
+              <button
+                v-if="!isEditingOriginal"
+                @click="toggleEditMode"
+                class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Edit
+              </button>
+            </div>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="space-y-6 max-w-2xl">
@@ -75,18 +90,38 @@
               >
                 <div class="flex items-start justify-between mb-2">
                   <span class="text-xs text-secondary-500 font-medium">Paragraph {{ index + 1 }}</span>
-                  <button
-                    @click="translateSingleParagraph(paragraph.id, paragraph.originalText)"
-                    :disabled="isTranslating"
-                    class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
-                  >
-                    Translate
-                  </button>
+                  <div class="flex space-x-2">
+                    <button
+                      v-if="!isEditingOriginal"
+                      @click="translateSingleParagraph(paragraph.id, paragraph.originalText)"
+                      :disabled="isTranslating"
+                      class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    >
+                      Translate
+                    </button>
+                    <button
+                      v-if="isEditingOriginal"
+                      @click="toggleParagraphOriginalEditing(paragraph.id)"
+                      class="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      {{ paragraph.isEditingOriginal ? 'Save' : 'Edit' }}
+                    </button>
+                  </div>
                 </div>
-                <div 
-                  class="reading-text text-secondary-900"
-                  v-html="highlightTermsInText(paragraph.originalText)"
-                ></div>
+                
+                <div v-if="!paragraph.isEditingOriginal" 
+                     class="reading-text text-secondary-900"
+                     v-html="highlightTermsInText(paragraph.originalText)">
+                </div>
+                
+                <textarea
+                  v-else
+                  v-model="paragraph.originalText"
+                  @blur="toggleParagraphOriginalEditing(paragraph.id)"
+                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
+                  rows="4"
+                  placeholder="Enter original text..."
+                ></textarea>
               </div>
             </div>
           </div>
@@ -148,14 +183,31 @@
         <!-- Original Text Column -->
         <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
           <div class="p-4 bg-secondary-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Original Text</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="font-medium text-secondary-900">Original Text</h3>
+              <button
+                v-if="!isEditingOriginal"
+                @click="toggleEditMode"
+                class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Edit
+              </button>
+            </div>
           </div>
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="max-w-4xl">
-              <div 
-                class="reading-text text-secondary-900 leading-relaxed space-y-4"
-                v-html="highlightTermsInText(getFullOriginalText())"
-              ></div>
+              <div v-if="!isEditingOriginal" 
+                   class="reading-text text-secondary-900 leading-relaxed space-y-4"
+                   v-html="highlightTermsInText(getFullOriginalText())">
+              </div>
+              
+              <textarea
+                v-else
+                v-model="fullOriginalText"
+                @blur="saveFullOriginalText"
+                class="w-full h-96 p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
+                placeholder="Enter original text..."
+              ></textarea>
             </div>
           </div>
         </div>
@@ -223,17 +275,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import ShareButton from './ShareButton.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
+import { useDataAPI } from '../composables/useAPI';
+import { saveLayoutMode, loadLayoutMode, saveContentMode, loadContentMode } from '../utils/localStorage';
 import type { Paragraph } from '../types';
 
 const { 
   currentChapter, 
   updateParagraphTranslation, 
-  toggleParagraphEditing 
+  toggleParagraphEditing,
+  updateChapter
 } = useChapters();
 
 const { 
@@ -245,9 +300,34 @@ const {
 } = useTranslation();
 
 const { highlightTermsInText, glossaryTerms } = useGlossary();
+const { updateChapter: updateChapterAPI } = useDataAPI();
 
-const layoutMode = ref<'split' | 'full'>('split');
-const contentMode = ref<'all' | 'translated'>('all');
+const layoutMode = ref<'split' | 'full'>(loadLayoutMode());
+const contentMode = ref<'all' | 'translated'>(loadContentMode());
+const isEditingOriginal = ref(false);
+const fullOriginalText = ref('');
+
+// Save view modes to localStorage when they change
+watch(layoutMode, (newMode) => {
+  saveLayoutMode(newMode);
+});
+
+watch(contentMode, (newMode) => {
+  saveContentMode(newMode);
+});
+
+// Update fullOriginalText when chapter changes
+watch(() => currentChapter.value, (newChapter) => {
+  if (newChapter) {
+    fullOriginalText.value = newChapter.paragraphs.map(p => p.originalText).join('\n\n');
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  if (currentChapter.value) {
+    fullOriginalText.value = currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n');
+  }
+});
 
 const toggleLayoutMode = () => {
   layoutMode.value = layoutMode.value === 'split' ? 'full' : 'split';
@@ -255,6 +335,121 @@ const toggleLayoutMode = () => {
 
 const toggleContentMode = () => {
   contentMode.value = contentMode.value === 'all' ? 'translated' : 'all';
+};
+
+const toggleEditMode = async () => {
+  if (isEditingOriginal.value) {
+    // Save changes when exiting edit mode
+    await saveAllOriginalChanges();
+  }
+  isEditingOriginal.value = !isEditingOriginal.value;
+};
+
+const toggleParagraphOriginalEditing = async (paragraphId: string) => {
+  if (!currentChapter.value) return;
+  
+  const paragraph = currentChapter.value.paragraphs.find(p => p.id === paragraphId);
+  if (!paragraph) return;
+  
+  if (paragraph.isEditingOriginal) {
+    // Save changes when exiting edit mode
+    await saveParagraphOriginalChanges(paragraph);
+  }
+  
+  paragraph.isEditingOriginal = !paragraph.isEditingOriginal;
+};
+
+const saveParagraphOriginalChanges = async (paragraph: Paragraph) => {
+  if (!currentChapter.value) return;
+  
+  try {
+    // Update via API
+    const updatedChapter = {
+      ...currentChapter.value,
+      content: currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n'),
+      paragraphs: currentChapter.value.paragraphs
+    };
+    
+    const response = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+    
+    if (response.success) {
+      // Update local state
+      await updateChapter(currentChapter.value.id, updatedChapter);
+    } else {
+      console.error('Failed to update chapter:', response.error);
+    }
+  } catch (error) {
+    console.error('Error updating chapter:', error);
+  }
+};
+
+const saveFullOriginalText = async () => {
+  if (!currentChapter.value) return;
+  
+  try {
+    // Split the full text back into paragraphs
+    const paragraphs = fullOriginalText.value
+      .split('\n\n')
+      .map(text => text.trim())
+      .filter(text => text.length > 0);
+    
+    // Update paragraphs
+    const updatedParagraphs = paragraphs.map((text, index) => {
+      const existingParagraph = currentChapter.value!.paragraphs[index];
+      return existingParagraph ? {
+        ...existingParagraph,
+        originalText: text
+      } : {
+        id: `${currentChapter.value!.id}-p${index}`,
+        originalText: text,
+        translatedText: '',
+        isEditing: false,
+        chapterId: currentChapter.value!.id
+      };
+    });
+    
+    const updatedChapter = {
+      ...currentChapter.value,
+      content: fullOriginalText.value,
+      paragraphs: updatedParagraphs
+    };
+    
+    // Update via API
+    const response = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+    
+    if (response.success) {
+      // Update local state
+      await updateChapter(currentChapter.value.id, updatedChapter);
+    } else {
+      console.error('Failed to update chapter:', response.error);
+    }
+  } catch (error) {
+    console.error('Error updating chapter:', error);
+  }
+};
+
+const saveAllOriginalChanges = async () => {
+  if (!currentChapter.value) return;
+  
+  try {
+    const updatedChapter = {
+      ...currentChapter.value,
+      content: currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n'),
+      paragraphs: currentChapter.value.paragraphs
+    };
+    
+    // Update via API
+    const response = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+    
+    if (response.success) {
+      // Update local state
+      await updateChapter(currentChapter.value.id, updatedChapter);
+    } else {
+      console.error('Failed to update chapter:', response.error);
+    }
+  } catch (error) {
+    console.error('Error updating chapter:', error);
+  }
 };
 
 const getFullOriginalText = (): string => {

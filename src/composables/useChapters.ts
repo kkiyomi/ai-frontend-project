@@ -14,7 +14,7 @@ let dataLoaded = false;
 let loadingPromise: Promise<void> | null = null;
 
 export function useChapters() {
-  const { getSeries, getChapters, createSeries: createSeriesAPI } = useDataAPI();
+  const { getSeries, getChapters, createSeries: createSeriesAPI, updateSeries: updateSeriesAPI, deleteSeries: deleteSeriesAPI, updateChapter: updateChapterAPI } = useDataAPI();
 
   const chapters = computed(() => 
     series.value.flatMap(s => s.chapters)
@@ -157,7 +157,14 @@ export function useChapters() {
     return newSeries;
   };
 
-  const removeSeries = (seriesId: string): void => {
+  const updateSeries = async (seriesId: string, updates: Partial<Series>): Promise<void> => {
+    const index = series.value.findIndex(s => s.id === seriesId);
+    if (index !== -1) {
+      series.value[index] = { ...series.value[index], ...updates };
+    }
+  };
+
+  const deleteSeries = async (seriesId: string): Promise<void> => {
     series.value = series.value.filter(s => s.id !== seriesId);
     
     // Update current series if the removed one was selected
@@ -258,6 +265,15 @@ export function useChapters() {
     }
   };
 
+  const updateChapter = async (chapterId: string, updates: Partial<Chapter>): Promise<void> => {
+    series.value.forEach(s => {
+      const chapterIndex = s.chapters.findIndex(ch => ch.id === chapterId);
+      if (chapterIndex !== -1) {
+        s.chapters[chapterIndex] = { ...s.chapters[chapterIndex], ...updates };
+      }
+    });
+  };
+
   const removeChapter = (chapterId: string): void => {
     // Find and remove chapter from its series
     series.value.forEach(s => {
@@ -318,12 +334,14 @@ export function useChapters() {
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     createSeries,
-    removeSeries,
+    updateSeries,
+    deleteSeries,
     selectSeries,
     selectSeriesOnly,
     addChapter,
     addChapterFromText,
     selectChapter,
+    updateChapter,
     removeChapter,
     updateParagraphTranslation,
     toggleParagraphEditing,

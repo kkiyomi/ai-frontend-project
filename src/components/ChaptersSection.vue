@@ -4,10 +4,18 @@
         <div class="p-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Series</h3>
-                <button @click="showAddSeriesForm = !showAddSeriesForm"
-                    class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
-                    {{ showAddSeriesForm ? 'Cancel' : '+ New' }}
-                </button>
+                <div class="flex items-center space-x-2">
+                    <button @click="showManualChapterModal = true"
+                        :disabled="!currentSeriesId"
+                        class="text-xs text-green-600 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Add chapter manually">
+                        + Chapter
+                    </button>
+                    <button @click="showAddSeriesForm = !showAddSeriesForm"
+                        class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
+                        {{ showAddSeriesForm ? 'Cancel' : '+ Series' }}
+                    </button>
+                </div>
             </div>
 
             <!-- Add Series Form -->
@@ -61,6 +69,14 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                                <button @click.stop="editSeries(seriesItem)"
+                                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                    title="Edit series">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                 </button>
                                 <BulkChapterUpload :seriesId="seriesItem.id" />
@@ -149,12 +165,45 @@
             </div>
         </div>
     </div>
+
+    <!-- Series Edit Modal -->
+    <SeriesEditModal
+        v-if="showEditModal && editingSeries"
+        :series="editingSeries"
+        @close="closeEditModal"
+        @save="handleSeriesEdit"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmationModal
+        v-if="showDeleteModal && deletingSeries"
+        title="Delete Series"
+        :message="`Are you sure you want to delete '${deletingSeries.name}'?`"
+        details="This action cannot be undone. All chapters in this series will also be deleted."
+        type="danger"
+        confirm-text="Delete Series"
+        :is-processing="isDeletingSeries"
+        processing-text="Deleting..."
+        @confirm="confirmDeleteSeries"
+        @cancel="closeDeleteModal"
+    />
+
+    <!-- Manual Chapter Modal -->
+    <ManualChapterModal
+        v-if="showManualChapterModal"
+        @close="closeManualChapterModal"
+        @create="handleManualChapterCreate"
+    />
 </template>
 
 <script setup lang="ts">
 import BulkChapterUpload from './BulkChapterUpload.vue';
+import SeriesEditModal from './SeriesEditModal.vue';
+import ConfirmationModal from './ConfirmationModal.vue';
+import ManualChapterModal from './ManualChapterModal.vue';
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
+import { useDataAPI } from '../composables/useAPI';
 import { getFileIcon } from '../utils/fileParser';
 import type { Chapter, Series } from '../types';
 
@@ -163,15 +212,25 @@ const {
     currentChapterId,
     currentSeriesId,
     createSeries,
-    removeSeries,
+    updateSeries,
+    deleteSeries,
     selectSeriesOnly,
     selectChapter,
-    removeChapter
+    removeChapter,
+    addChapterFromText
 } = useChapters();
+
+const { updateSeries: updateSeriesAPI, deleteSeries: deleteSeriesAPI } = useDataAPI();
 
 const showAddSeriesForm = ref(false);
 const newSeriesName = ref('');
 const newSeriesDescription = ref('');
+const showEditModal = ref(false);
+const editingSeries = ref<Series | null>(null);
+const showDeleteModal = ref(false);
+const deletingSeries = ref<Series | null>(null);
+const isDeletingSeries = ref(false);
+const showManualChapterModal = ref(false);
 
 const handleCreateSeries = () => {
     console.log('handleCreateSeries');
@@ -195,9 +254,92 @@ const toggleSeriesSelection = (seriesId: string) => {
     }
 };
 
+const editSeries = (series: Series) => {
+    editingSeries.value = series;
+    showEditModal.value = true;
+};
+
+const closeEditModal = () => {
+    showEditModal.value = false;
+    editingSeries.value = null;
+};
+
+const handleSeriesEdit = async (name: string, description?: string) => {
+    if (!editingSeries.value) return;
+    
+    try {
+        // Update via API first
+        const response = await updateSeriesAPI(editingSeries.value.id, { name, description });
+        
+        if (response.success) {
+            // Update local state
+            await updateSeries(editingSeries.value.id, { name, description });
+            closeEditModal();
+        } else {
+            console.error('Failed to update series:', response.error);
+            // Could show error toast here
+        }
+    } catch (error) {
+        console.error('Error updating series:', error);
+        // Could show error toast here
+    }
+};
+
 const onRemoveSeries = (seriesId: string) => {
-    console.log('onRemoveSeries');
-    removeSeries(seriesId);
+    const series = series.value.find(s => s.id === seriesId);
+    if (series) {
+        deletingSeries.value = series;
+        showDeleteModal.value = true;
+    }
+};
+
+const closeDeleteModal = () => {
+    showDeleteModal.value = false;
+    deletingSeries.value = null;
+    isDeletingSeries.value = false;
+};
+
+const confirmDeleteSeries = async () => {
+    if (!deletingSeries.value) return;
+    
+    isDeletingSeries.value = true;
+    
+    try {
+        // Delete via API first
+        const response = await deleteSeriesAPI(deletingSeries.value.id);
+        
+        if (response.success) {
+            // Update local state
+            await deleteSeries(deletingSeries.value.id);
+            closeDeleteModal();
+        } else {
+            console.error('Failed to delete series:', response.error);
+            // Could show error toast here
+        }
+    } catch (error) {
+        console.error('Error deleting series:', error);
+        // Could show error toast here
+    } finally {
+        isDeletingSeries.value = false;
+    }
+};
+
+const closeManualChapterModal = () => {
+    showManualChapterModal.value = false;
+};
+
+const handleManualChapterCreate = async (title: string) => {
+    if (!currentSeriesId.value) return;
+    
+    try {
+        // Create empty chapter with just the title
+        const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
+        await addChapterFromText(emptyContent, title, currentSeriesId.value);
+        closeManualChapterModal();
+    } catch (error) {
+        console.error('Error creating manual chapter:', error);
+        // Could show error toast here
+    }
 };
 
 const onRemoveChapter = (chapterId: string) => {
