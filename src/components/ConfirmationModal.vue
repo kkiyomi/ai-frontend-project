@@ -126,4 +126,3 @@ const handleBackdropClick = () => {
   }
 };
 </script>
-</template>
