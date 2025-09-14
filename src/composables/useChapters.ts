@@ -42,6 +42,19 @@ export function useChapters() {
         }));
     }
 
+  function buildChapterFromContent(content: string, translatedContent: string, chapterId: string) {
+    const originalParagraphs = content.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+    const translatedParagraphs = translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+    
+    return originalParagraphs.map((text, index) => ({
+      id: `${chapterId}-p${index}`,
+      originalText: text,
+      translatedText: translatedParagraphs[index] || '',
+      isEditing: false,
+      chapterId,
+    }));
+  }
+
   // Load series and chapters from API
   const loadSeriesFromAPI = async (): Promise<void> => {
     // Avoid multiple simultaneous loads
@@ -75,7 +88,8 @@ export function useChapters() {
 //           if (chaptersResponse.success && chaptersResponse.data) {
 //             const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
 //               ...chapter,
-//               paragraphs: buildParagraphs(chapter.content, chapter.id),
+//               translatedContent: chapter.translatedContent || '',
+//               paragraphs: buildChapterFromContent(chapter.content, chapter.translatedContent || '', chapter.id),
 //             }));
 //             seriesItem.chapters = enrichedChapters;
 //           } else {
@@ -100,7 +114,8 @@ export function useChapters() {
             chapters: (data.filter((c: any) => c.seriesId === seriesItem.id) || [])
               .map((chapter: any) => ({
                 ...chapter,
-                paragraphs: buildParagraphs(chapter.content, chapter.id),
+                translatedContent: chapter.translatedContent || '',
+                paragraphs: buildChapterFromContent(chapter.content, chapter.translatedContent || '', chapter.id),
               })),
           }));
         }
@@ -249,6 +264,7 @@ export function useChapters() {
         id: chapterId,
         title,
         content,
+        translatedContent: '',
         paragraphs: buildParagraphs(content, chapterId),
         seriesId: seriesId,
       };

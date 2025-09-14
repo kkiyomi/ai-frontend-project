@@ -39,6 +39,30 @@ export class MockAPI {
     };
   }
 
+  async translateParagraph(
+    text: string,
+    chapterId: string,
+    paragraphIndex: number,
+    glossaryContext?: string[]
+  ): Promise<APIResponse<string>> {
+    await simulateDelay(300, 800);
+    
+    if (simulateFailure(0.03)) {
+      return {
+        success: false,
+        error: 'Paragraph translation failed'
+      };
+    }
+    
+    const contextNote = glossaryContext && glossaryContext.length > 0 
+      ? ` (with context: ${glossaryContext.join(', ')})` 
+      : '';
+    
+    return {
+      success: true,
+      data: `[Mock Paragraph Translation]${contextNote} ${text}`,
+    };
+  }
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,

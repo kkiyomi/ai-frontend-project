@@ -10,6 +10,7 @@ export interface Chapter {
   id: string;
   title: string;
   content: string;
+  translatedContent: string;
   paragraphs: Paragraph[];
   seriesId: string;
 }

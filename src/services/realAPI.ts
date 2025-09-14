@@ -20,6 +20,19 @@ export class RealAPI {
     });
   }
 
+  async translateParagraph(
+    text: string,
+    chapterId: string,
+    paragraphIndex: number,
+    glossaryContext?: string[]
+  ): Promise<APIResponse<string>> {
+    return this.client.post<string>('/translate-paragraph', {
+      text,
+      chapterId,
+      paragraphIndex,
+      glossaryContext
+    });
+  }
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,

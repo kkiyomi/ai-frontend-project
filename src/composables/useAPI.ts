@@ -77,6 +77,15 @@ export function useAPI() {
     return handleAPICall(cacheKey, () => apiService.translateText(text, glossaryContext), false); // Don't cache translations
   };
 
+  const translateParagraph = async (
+    text: string,
+    chapterId: string,
+    paragraphIndex: number,
+    glossaryContext?: string[]
+  ): Promise<APIResponse<string>> => {
+    const cacheKey = createCacheKey('translateParagraph', text, chapterId, paragraphIndex, glossaryContext);
+    return handleAPICall(cacheKey, () => apiService.translateParagraph(text, chapterId, paragraphIndex, glossaryContext), false);
+  };
   const retranslateWithGlossary = async (
     originalText: string,
     currentTranslation: string,
@@ -174,6 +183,7 @@ export function useAPI() {
     isLoading,
     error,
     translateText,
+    translateParagraph,
     retranslateWithGlossary,
     suggestGlossaryTerms,
     getGlossaryTerms,

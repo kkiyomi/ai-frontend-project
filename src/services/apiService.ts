@@ -47,6 +47,10 @@ class APIService {
     return api.translateText(text, glossaryContext);
   }
 
+  async translateParagraph(text: string, chapterId: string, paragraphIndex: number, glossaryContext?: string[]) {
+    const api = await this.getAPI();
+    return (api as any).translateParagraph?.(text, chapterId, paragraphIndex, glossaryContext) || api.translateText(text, glossaryContext);
+  }
   async retranslateWithGlossary(originalText: string, currentTranslation: string, glossaryTerms: string[]) {
     const api = await this.getAPI();
     return api.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
