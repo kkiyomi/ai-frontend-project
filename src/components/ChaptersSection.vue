@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1 overflow-y-auto"> 
+    <div class="flex-1 overflow-y-auto">
         <!-- Series Management Header -->
         <div class="p-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between mb-3">
@@ -30,6 +30,23 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Add Chapter Form -->
+            <div v-if="showAddChapterForm" class="space-y-2">
+                <input v-model="newChapterTitle" type="text" placeholder="Chapter title"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                    @keyup.enter="handleCreateChapter" />
+                <div class="flex space-x-2">
+                    <button @click="handleCreateChapter" :disabled="!newChapterTitle.trim()"
+                        class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50 transition-colors">
+                        Save
+                    </button>
+                    <button @click="cancelAddChapter"
+                        class="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Series List -->
@@ -43,35 +60,89 @@
 
             <!-- Series Groups -->
             <div v-else class="space-y-4">
-                <div v-for="seriesItem in series" :key="seriesItem.id"
+                <!-- Show all series when none selected -->
+                <div v-if="!currentSeriesId" class="space-y-4">
+                    <div v-for="seriesItem in series" :key="seriesItem.id"
+                        class="border border-gray-200 rounded-lg overflow-hidden">
+                        <!-- Series Header -->
+                        <div class="bg-gray-50 p-3 border-b border-gray-200 cursor-pointer" 
+                             @click="toggleSeriesSelection(seriesItem.id)">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-semibold text-gray-900">{{ seriesItem.name }}</h4>
+                                    <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
+                                        seriesItem.description }}</p>
+                                    <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
+                                        <span>{{ seriesItem.chapters.length }} chapters</span>
+                                        <span>{{ getSeriesTranslationProgress(seriesItem) }}% translated</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button @click.stop="editSeries(seriesItem)"
+                                        class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                        title="Edit series">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <BulkChapterUpload :seriesId="seriesItem.id" />
+                                    <button @click.stop="onRemoveSeries(seriesItem.id)"
+                                        class="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                        title="Remove series">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Series Progress Bar -->
+                            <div class="mt-2">
+                                <div class="bg-gray-200 rounded-full h-1">
+                                    <div class="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                                        :style="{ width: `${getSeriesTranslationProgress(seriesItem)}%` }" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Show only selected series when one is selected -->
+                    v-else-if="currentSeries"
+                    :key="currentSeries.id"
                     class="border border-gray-200 rounded-lg overflow-hidden">
                     <!-- Series Header -->
-                    <div class="bg-gray-50 p-3 border-b border-gray-200" 
-                                 :class="{ 'bg-blue-50': currentSeriesId === seriesItem.id }">
+                    <div class="bg-blue-50 p-3 border-b border-gray-200">
                         <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)">
-                                <h4 class="text-sm font-semibold text-gray-900">{{ seriesItem.name }}</h4>
-                                <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
-                                    seriesItem.description }}</p>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center space-x-2">
+                                    <button @click="deselectSeries"
+                                        class="p-1 text-blue-600 hover:text-blue-700 transition-colors"
+                                        title="Back to all series">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <h4 class="text-sm font-semibold text-gray-900">{{ currentSeries.name }}</h4>
+                                </div>
+                                <p v-if="currentSeries.description" class="text-xs text-gray-500 mt-1 ml-6">{{
+                                    currentSeries.description }}</p>
                                 <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
-                                    <span>{{ seriesItem.chapters.length }} chapters</span>
-                                    <span>{{ getSeriesTranslationProgress(seriesItem) }}% translated</span>
+                                    <span class="ml-6">{{ currentSeries.chapters.length }} chapters</span>
+                                    <span>{{ getSeriesTranslationProgress(currentSeries) }}% translated</span>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <button @click.stop="toggleSeriesSelection(seriesItem.id)"
-                                    class="p-1 text-gray-400 hover:text-blue-600 transition-colors transform"
-                                    :class="{ 
-                                        'text-blue-600 rotate-90': currentSeriesId === seriesItem.id,
-                                        'text-gray-400': currentSeriesId !== seriesItem.id
-                                    }"
-                                    :title="currentSeriesId === seriesItem.id ? 'Collapse chapters' : 'Expand chapters'">
+                                <button @click="showAddChapterForm = true"
+                                    class="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                                    title="Add chapter">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5l7 7-7 7" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
                                 </button>
-                                <button @click.stop="editSeries(seriesItem)"
+                                <button @click.stop="editSeries(currentSeries)"
                                     class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                                     title="Edit series">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,8 +150,8 @@
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                 </button>
-                                <BulkChapterUpload :seriesId="seriesItem.id" />
-                                <button @click.stop="onRemoveSeries(seriesItem.id)"
+                                <BulkChapterUpload :seriesId="currentSeries.id" />
+                                <button @click.stop="onRemoveSeries(currentSeries.id)"
                                     class="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                     title="Remove series">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,14 +166,14 @@
                         <div class="mt-2">
                             <div class="bg-gray-200 rounded-full h-1">
                                 <div class="bg-blue-500 h-1 rounded-full transition-all duration-300"
-                                    :style="{ width: `${getSeriesTranslationProgress(seriesItem)}%` }" />
+                                    :style="{ width: `${getSeriesTranslationProgress(currentSeries)}%` }" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Chapters in Series (only show when series is selected) -->
-                    <div v-if="currentSeriesId === seriesItem.id">
-                        <div v-if="seriesItem.chapters.length === 0" class="p-4 text-center">
+                    <div>
+                        <div v-if="currentSeries.chapters.length === 0" class="p-4 text-center">
                             <p class="text-xs text-gray-500">No chapters in this series</p>
                             <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
                         </div>
@@ -110,14 +181,14 @@
                         <!-- Virtual scrolling container for large chapter lists -->
                         <div v-else class="max-h-96 overflow-y-auto">
                             <!-- Chapter count indicator for large lists -->
-                            <div v-if="seriesItem.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
+                            <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
                                 <p class="text-xs text-yellow-700 text-center">
-                                    📚 {{ seriesItem.chapters.length }} chapters in this series
+                                    📚 {{ currentSeries.chapters.length }} chapters in this series
                                 </p>
                             </div>
                             
                             <div class="divide-y divide-gray-100">
-                                <div v-for="chapter in seriesItem.chapters" :key="chapter.id" 
+                                <div v-for="chapter in currentSeries.chapters" :key="chapter.id" 
                                      @click="selectChapter(chapter.id)"
                                      class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" 
                                      :class="{
@@ -127,9 +198,21 @@
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center space-x-2 mb-1">
                                                 <span class="text-sm">{{ getFileIcon(chapter.title) }}</span>
-                                                <h5 class="text-sm font-medium text-gray-900 truncate">
-                                                    {{ chapter.title }}
-                                                </h5>
+                                                <div v-if="!editingChapters.has(chapter.id)" class="flex-1">
+                                                    <h5 class="text-sm font-medium text-gray-900 truncate">
+                                                        {{ chapter.title }}
+                                                    </h5>
+                                                </div>
+                                                <div v-else class="flex-1">
+                                                    <input
+                                                        v-model="chapter.title"
+                                                        @blur="saveChapterEdit(chapter)"
+                                                        @keyup.enter="saveChapterEdit(chapter)"
+                                                        @keyup.escape="cancelChapterEdit(chapter)"
+                                                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                        @click.stop
+                                                    />
+                                                </div>
                                             </div>
                                             <p class="text-xs text-gray-500">
                                                 {{ chapter.paragraphs.length }} paragraphs
@@ -140,14 +223,25 @@
                                             </div>
                                         </div>
 
-                                        <button @click.stop="onRemoveChapter(chapter.id)"
-                                            class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
-                                            title="Remove chapter">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                                        <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button @click.stop="startEditingChapter(chapter)"
+                                                v-if="!editingChapters.has(chapter.id)"
+                                                class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                                title="Edit chapter title">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button @click.stop="onRemoveChapter(chapter.id)"
+                                                class="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                                title="Remove chapter">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Chapter Progress Bar -->
@@ -187,20 +281,12 @@
         @confirm="confirmDeleteSeries"
         @cancel="closeDeleteModal"
     />
-
-    <!-- Manual Chapter Modal -->
-    <ManualChapterModal
-        v-if="showManualChapterModal"
-        @close="closeManualChapterModal"
-        @create="handleManualChapterCreate"
-    />
 </template>
 
 <script setup lang="ts">
 import BulkChapterUpload from './BulkChapterUpload.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
-import ManualChapterModal from './ManualChapterModal.vue';
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
 import { useDataAPI } from '../composables/useAPI';
@@ -211,26 +297,30 @@ const {
     series,
     currentChapterId,
     currentSeriesId,
+    currentSeries,
     createSeries,
     updateSeries,
     deleteSeries,
     selectSeriesOnly,
     selectChapter,
     removeChapter,
-    addChapterFromText
+    addChapterFromText,
+    updateChapter
 } = useChapters();
 
-const { updateSeries: updateSeriesAPI, deleteSeries: deleteSeriesAPI } = useDataAPI();
+const { updateSeries: updateSeriesAPI, deleteSeries: deleteSeriesAPI, createChapter: createChapterAPI, updateChapter: updateChapterAPI } = useDataAPI();
 
 const showAddSeriesForm = ref(false);
 const newSeriesName = ref('');
 const newSeriesDescription = ref('');
+const showAddChapterForm = ref(false);
+const newChapterTitle = ref('');
 const showEditModal = ref(false);
 const editingSeries = ref<Series | null>(null);
 const showDeleteModal = ref(false);
 const deletingSeries = ref<Series | null>(null);
 const isDeletingSeries = ref(false);
-const showManualChapterModal = ref(false);
+const editingChapters = ref<Set<string>>(new Set());
 
 const handleCreateSeries = () => {
     console.log('handleCreateSeries');
@@ -244,14 +334,82 @@ const handleCreateSeries = () => {
     showAddSeriesForm.value = false;
 };
 
-const toggleSeriesSelection = (seriesId: string) => {
-    if (currentSeriesId.value === seriesId) {
-        // If clicking the same series, deselect it
-        selectSeriesOnly('');
-    } else {
-        // Select the new series
-        selectSeriesOnly(seriesId);
+const handleCreateChapter = async () => {
+    console.log('handleCreateChapter');
+    if (!newChapterTitle.value.trim() || !currentSeriesId.value) return;
+
+    try {
+        // Create empty chapter with just the title
+        const emptyContent = `Chapter: ${newChapterTitle.value}\n\n[Add your content here...]`;
+        
+        // Create via API first
+        const response = await createChapterAPI(newChapterTitle.value.trim(), emptyContent, currentSeriesId.value);
+        
+        if (response.success && response.data) {
+            // Add to local state
+            await addChapterFromText(emptyContent, newChapterTitle.value.trim(), currentSeriesId.value);
+        } else {
+            console.error('Failed to create chapter:', response.error);
+            // Fallback to local creation
+            await addChapterFromText(emptyContent, newChapterTitle.value.trim(), currentSeriesId.value);
+        }
+        
+        // Reset form
+        newChapterTitle.value = '';
+        showAddChapterForm.value = false;
+    } catch (error) {
+        console.error('Error creating chapter:', error);
+        // Could show error toast here
     }
+};
+
+const cancelAddChapter = () => {
+    newChapterTitle.value = '';
+    showAddChapterForm.value = false;
+};
+
+const toggleSeriesSelection = (seriesId: string) => {
+    // Always select the series when clicked from the overview
+    selectSeriesOnly(seriesId);
+};
+
+const deselectSeries = () => {
+    selectSeriesOnly('');
+};
+
+const startEditingChapter = (chapter: Chapter) => {
+    editingChapters.value.add(chapter.id);
+};
+
+const saveChapterEdit = async (chapter: Chapter) => {
+    if (!chapter.title.trim()) {
+        cancelChapterEdit(chapter);
+        return;
+    }
+    
+    try {
+        // Update via API first
+        const response = await updateChapterAPI(chapter.id, { title: chapter.title.trim() });
+        
+        if (response.success) {
+            // Update local state
+            await updateChapter(chapter.id, { title: chapter.title.trim() });
+        } else {
+            console.error('Failed to update chapter:', response.error);
+            // Could show error toast here
+        }
+    } catch (error) {
+        console.error('Error updating chapter:', error);
+        // Could show error toast here
+    }
+    
+    editingChapters.value.delete(chapter.id);
+};
+
+const cancelChapterEdit = (chapter: Chapter) => {
+    // Reload chapter data to reset any unsaved changes
+    editingChapters.value.delete(chapter.id);
+    // In a real app, you might want to reload the chapter from API
 };
 
 const editSeries = (series: Series) => {
@@ -324,23 +482,7 @@ const confirmDeleteSeries = async () => {
     }
 };
 
-const closeManualChapterModal = () => {
-    showManualChapterModal.value = false;
-};
 
-const handleManualChapterCreate = async (title: string) => {
-    if (!currentSeriesId.value) return;
-    
-    try {
-        // Create empty chapter with just the title
-        const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
-        await addChapterFromText(emptyContent, title, currentSeriesId.value);
-        closeManualChapterModal();
-    } catch (error) {
-        console.error('Error creating manual chapter:', error);
-        // Could show error toast here
-    }
-};
 
 const onRemoveChapter = (chapterId: string) => {
     console.log('onRemoveChapter');
