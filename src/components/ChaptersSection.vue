@@ -50,7 +50,7 @@
                                  :class="{ 'bg-blue-50': currentSeriesId === seriesItem.id }">
                         <div class="flex items-center justify-between">
                             <div class="flex-1 min-w-0 cursor-pointer" @click="toggleSeriesSelection(seriesItem.id)">
-                                <h4 class="text-sm font-semibold text-gray-900 truncate">{{ seriesItem.name }}</h4>
+                                <h4 class="text-sm font-semibold text-gray-900">{{ seriesItem.name }}</h4>
                                 <p v-if="seriesItem.description" class="text-xs text-gray-500 mt-1">{{
                                     seriesItem.description }}</p>
                                 <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
@@ -286,9 +286,9 @@ const handleSeriesEdit = async (name: string, description?: string) => {
 };
 
 const onRemoveSeries = (seriesId: string) => {
-    const series = series.value.find(s => s.id === seriesId);
-    if (series) {
-        deletingSeries.value = series;
+    const seriesToDelete = series.value.find(s => s.id === seriesId);
+    if (seriesToDelete) {
+        deletingSeries.value = seriesToDelete;
         showDeleteModal.value = true;
     }
 };
