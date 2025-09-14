@@ -34,6 +34,13 @@
             {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
           </button>
           <button
+            @click="toggleHighlight"
+            class="px-4 py-2 rounded-lg transition-colors text-sm font-medium border"
+            :class="isHighlightEnabled ? 'bg-green-100 text-green-700 border-green-300' : 'bg-gray-100 text-gray-700 border-gray-300'"
+          >
+            {{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}
+          </button>
+          <button
             @click="translateAllParagraphs"
             :disabled="isTranslating"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
@@ -111,7 +118,7 @@
                 
                 <div v-if="!paragraph.isEditingOriginal" 
                      class="reading-text text-secondary-900"
-                     v-html="highlightTermsInText(paragraph.originalText)">
+                     v-html="isHighlightEnabled ? highlightTermsInText(paragraph.originalText) : paragraph.originalText">
                 </div>
                 
                 <textarea
@@ -160,7 +167,7 @@
                 </div>
                 
                 <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
-                  <div v-if="paragraph.translatedText" v-html="highlightTermsInText(paragraph.translatedText)"></div>
+                  <div v-if="paragraph.translatedText" v-html="isHighlightEnabled ? highlightTermsInText(paragraph.translatedText) : paragraph.translatedText"></div>
                   <div v-else class="text-secondary-400 italic">No translation yet</div>
                 </div>
                 
@@ -198,7 +205,7 @@
             <div class="max-w-4xl">
               <div v-if="!isEditingOriginal" 
                    class="reading-text text-secondary-900 leading-relaxed space-y-4"
-                   v-html="highlightTermsInText(getFullOriginalText())">
+                   v-html="isHighlightEnabled ? highlightTermsInText(getFullOriginalText()) : getFullOriginalText()">
               </div>
               
               <textarea
@@ -220,7 +227,7 @@
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div v-if="layoutMode === 'full'" class="max-w-4xl">
               <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
-                <div v-html="highlightTermsInText(getFullTranslatedText())"></div>
+                <div v-html="isHighlightEnabled ? highlightTermsInText(getFullTranslatedText()) : getFullTranslatedText()"></div>
               </div>
               <div v-else class="text-secondary-400 italic">
                 No translations yet. Use "Translate All" or translate individual paragraphs first.
@@ -253,7 +260,7 @@
                 </div>
 
                 <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
-                  <div v-if="paragraph.translatedText" v-html="highlightTermsInText(paragraph.translatedText)"></div>
+                  <div v-if="paragraph.translatedText" v-html="isHighlightEnabled ? highlightTermsInText(paragraph.translatedText) : paragraph.translatedText"></div>
                   <div v-else class="text-secondary-400 italic">No translation yet</div>
                 </div>
 
@@ -280,7 +287,7 @@ import ShareButton from './ShareButton.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
-import { useDataAPI } from '../composables/useAPI';
+import { useDataAPI, useAPI } from '../composables/useAPI';
 import { saveLayoutMode, loadLayoutMode, saveContentMode, loadContentMode } from '../utils/localStorage';
 import type { Paragraph } from '../types';
 
@@ -299,8 +306,9 @@ const {
   translateChapter 
 } = useTranslation();
 
-const { highlightTermsInText, glossaryTerms } = useGlossary();
+const { highlightTermsInText, glossaryTerms, isHighlightEnabled, toggleHighlight } = useGlossary();
 const { updateChapter: updateChapterAPI } = useDataAPI();
+const { translateText, translateParagraph: translateSingleParagraph } = useAPI();
 
 const layoutMode = ref<'split' | 'full'>(loadLayoutMode());
 const contentMode = ref<'all' | 'translated'>(loadContentMode());
@@ -473,9 +481,28 @@ const getFullTranslatedText = (): string => {
 };
 
 const translateSingleParagraph = async (paragraphId: string, originalText: string) => {
+  if (!currentChapter.value) return;
+  
+  const paragraph = currentChapter.value.paragraphs.find(p => p.id === paragraphId);
+  if (!paragraph) return;
+  
+  const paragraphIndex = currentChapter.value.paragraphs.indexOf(paragraph);
   const glossaryContext = glossaryTerms.value.map(term => term.term);
-  const translation = await translateParagraph(originalText, glossaryContext);
-  updateParagraphTranslation(paragraphId, translation);
+  
+  try {
+    const response = await translateSingleParagraph(
+      originalText, 
+      currentChapter.value.id, 
+      paragraphIndex, 
+      glossaryContext
+    );
+    
+    if (response.success && response.data) {
+      updateParagraphTranslation(paragraphId, response.data);
+    }
+  } catch (error) {
+    console.error('Error translating paragraph:', error);
+  }
 };
 
 const retranslateParagraph = async (paragraph: Paragraph) => {
@@ -492,11 +519,36 @@ const translateAllParagraphs = async () => {
   if (!currentChapter.value) return;
   
   const glossaryContext = glossaryTerms.value.map(term => term.term);
-  const originalTexts = currentChapter.value.paragraphs.map(p => p.originalText);
-  const translations = await translateChapter(originalTexts, glossaryContext);
+  const fullText = currentChapter.value.content;
   
-  currentChapter.value.paragraphs.forEach((paragraph, index) => {
-    updateParagraphTranslation(paragraph.id, translations[index]);
-  });
+  try {
+    const response = await translateText(fullText, glossaryContext);
+    
+    if (response.success && response.data) {
+      // Update the chapter's translatedContent
+      const updatedChapter = {
+        ...currentChapter.value,
+        translatedContent: response.data
+      };
+      
+      // Update via API
+      const apiResponse = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+      
+      if (apiResponse.success) {
+        // Update local state
+        await updateChapter(currentChapter.value.id, updatedChapter);
+        
+        // Split translated content into paragraphs and update individual paragraphs
+        const translatedParagraphs = response.data.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        currentChapter.value.paragraphs.forEach((paragraph, index) => {
+          if (translatedParagraphs[index]) {
+            updateParagraphTranslation(paragraph.id, translatedParagraphs[index]);
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error translating all paragraphs:', error);
+  }
 };
 </script>

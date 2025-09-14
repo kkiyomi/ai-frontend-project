@@ -84,12 +84,20 @@
             v-model="newTerm.category"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
+            <option value="">Select category...</option>
             <option value="Character">Character</option>
             <option value="Place">Place</option>
             <option value="Cultural">Cultural</option>
             <option value="Idiom">Idiom</option>
             <option value="Other">Other</option>
           </select>
+          <input
+            v-if="newTerm.category === '' || !['Character', 'Place', 'Cultural', 'Idiom', 'Other'].includes(newTerm.category)"
+            v-model="newTerm.category"
+            type="text"
+            placeholder="Enter custom category"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2"
+          />
         </div>
         
         <button
@@ -203,11 +211,23 @@
                   rows="2"
                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
                 ></textarea>
+                <select
+                  v-model="term.category"
+                  class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                >
+                  <option value="">Select category...</option>
+                  <option value="Character">Character</option>
+                  <option value="Place">Place</option>
+                  <option value="Cultural">Cultural</option>
+                  <option value="Idiom">Idiom</option>
+                  <option value="Other">Other</option>
+                </select>
                 <input
+                  v-if="term.category === '' || !['Character', 'Place', 'Cultural', 'Idiom', 'Other'].includes(term.category)"
                   v-model="term.category"
                   type="text"
-                  placeholder="Category (e.g., Character, Place, etc.)"
-                  class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                  placeholder="Enter custom category"
+                  class="w-full px-2 py-1 border border-gray-300 rounded text-sm mt-1"
                 />
                 <div class="flex items-center space-x-2">
                   <button

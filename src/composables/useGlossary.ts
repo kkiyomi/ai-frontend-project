@@ -5,6 +5,7 @@ import { useChapters } from './useChapters';
 
 const glossaryTerms = ref<GlossaryTerm[]>([]);
 const isGlossaryVisible = ref(false);
+const isHighlightEnabled = ref(false);
 const isLoading = ref(false);
 
 // Cache for glossary terms to avoid redundant loads
@@ -229,6 +230,9 @@ export function useGlossary() {
     isGlossaryVisible.value = !isGlossaryVisible.value;
   };
 
+  const toggleHighlight = (): void => {
+    isHighlightEnabled.value = !isHighlightEnabled.value;
+  };
   // Clear glossary cache
   const clearGlossaryCache = (): void => {
     glossaryCache.clear();
@@ -248,6 +252,7 @@ export function useGlossary() {
   return {
     glossaryTerms: computed(() => glossaryTerms.value),
     isGlossaryVisible: computed(() => isGlossaryVisible.value),
+    isHighlightEnabled: computed(() => isHighlightEnabled.value),
     isLoading: computed(() => isLoading.value),
     termsByCategory,
     loadGlossaryTerms,
@@ -260,6 +265,7 @@ export function useGlossary() {
     suggestTermsFromText,
     highlightTermsInText,
     toggleGlossaryVisibility,
+    toggleHighlight,
     clearGlossaryCache,
   };
 }
