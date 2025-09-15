@@ -264,7 +264,6 @@ export function useGlossary() {
     termExistsInSeries,
     suggestTermsFromText,
     highlightTermsInText,
-    highlightGlossaryTermsInText,
     toggleGlossaryVisibility,
     toggleHighlight,
     clearGlossaryCache,
