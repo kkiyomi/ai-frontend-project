@@ -308,7 +308,7 @@ const {
 
 const { highlightTermsInText, glossaryTerms, isHighlightEnabled, toggleHighlight } = useGlossary();
 const { updateChapter: updateChapterAPI } = useDataAPI();
-const { translateText, translateParagraph: translateSingleParagraph } = useAPI();
+const { translateText, translateParagraph: translateSingleParagraphAPI } = useAPI();
 
 const layoutMode = ref<'split' | 'full'>(loadLayoutMode());
 const contentMode = ref<'all' | 'translated'>(loadContentMode());
@@ -490,7 +490,7 @@ const translateSingleParagraph = async (paragraphId: string, originalText: strin
   const glossaryContext = glossaryTerms.value.map(term => term.term);
   
   try {
-    const response = await translateSingleParagraph(
+    const response = await translateSingleParagraphAPI(
       originalText, 
       currentChapter.value.id, 
       paragraphIndex, 

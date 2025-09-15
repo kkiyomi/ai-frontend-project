@@ -110,7 +110,7 @@
                 </div>
 
                 <!-- Show only selected series when one is selected -->
-                    v-else-if="currentSeries"
+                <div v-else-if="currentSeries"
                     :key="currentSeries.id"
                     class="border border-gray-200 rounded-lg overflow-hidden">
                     <!-- Series Header -->
