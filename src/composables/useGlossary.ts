@@ -216,13 +216,24 @@ export function useGlossary() {
   const highlightTermsInText = (text: string): string => {
     let highlightedText = text;
     loadGlossaryTerms()
-    glossaryTerms.value.forEach(term => {
-      const regex = new RegExp(term.term, 'gi');
-      highlightedText = highlightedText.replace(regex,
+    const sortedTerms = glossaryTerms.value
+    .slice()
+    .sort((a, b) => Math.max(b.term.length, b.translation.length) - Math.max(a.term.length, a.translation.length));
+
+    sortedTerms.forEach(term => {
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const regex = new RegExp(
+      `${escapeRegex(term.term)}|${escapeRegex(term.translation)}`,
+      "gi"
+    );
+
+    highlightedText = highlightedText.replace(
+      regex,
         `<span class="glossary-highlight" data-term-id="${term.id}">$&</span>`
       );
     });
-    
+
     return highlightedText;
   };
 
