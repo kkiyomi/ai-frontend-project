@@ -160,4 +160,3 @@ const getCategoryIcon = (category: string): string => {
   return icons[category] || '📝';
 };
 </script>
-</template>
