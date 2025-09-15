@@ -215,10 +215,10 @@ export function useGlossary() {
 
   const highlightTermsInText = (text: string): string => {
     let highlightedText = text;
-    
+    loadGlossaryTerms()
     glossaryTerms.value.forEach(term => {
-      const regex = new RegExp(`\\b${term.term}\\b`, 'gi');
-      highlightedText = highlightedText.replace(regex, 
+      const regex = new RegExp(term.term, 'gi');
+      highlightedText = highlightedText.replace(regex,
         `<span class="glossary-highlight" data-term-id="${term.id}">$&</span>`
       );
     });
@@ -264,6 +264,7 @@ export function useGlossary() {
     termExistsInSeries,
     suggestTermsFromText,
     highlightTermsInText,
+    highlightGlossaryTermsInText,
     toggleGlossaryVisibility,
     toggleHighlight,
     clearGlossaryCache,
