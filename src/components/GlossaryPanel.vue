@@ -88,9 +88,15 @@
             <option value="Character">Character</option>
             <option value="Place">Place</option>
             <option value="Cultural">Cultural</option>
-            placeholder="Category (e.g., Character, Place, Cultural)"
             <option value="Other">Other</option>
           </select>
+          <input
+            v-if="newTerm.category === '' || !['Character', 'Place', 'Cultural', 'Idiom', 'Other'].includes(newTerm.category)"
+            v-model="newTerm.category"
+            type="text"
+            placeholder="Enter custom category"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2"
+          />
         </div>
         
         <button

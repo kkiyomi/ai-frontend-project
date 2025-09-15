@@ -48,12 +48,12 @@ const { series, currentSeriesId } = useChapters();
 
 const getTotalStats = (): string => {
     const totalParagraphs = series.value.reduce(
-        (sum, s) => sum + s.chapters.reduce((chSum, chapter) => chSum + chapter.paragraphs.length, 0),
+        (sum, s) => sum + s.chapters.reduce((chSum, chapter) => chSum + chapter.originalParagraphs.length, 0),
         0
     );
     const translatedParagraphs = series.value.reduce(
         (sum, s) => sum + s.chapters.reduce(
-            (chSum, chapter) => chSum + chapter.paragraphs.filter((p) => p.translatedText.trim()).length,
+            (chSum, chapter) => chSum + chapter.translatedParagraphs.filter((p) => p.trim()).length,
             0
         ),
         0

@@ -5,12 +5,6 @@
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Series</h3>
                 <div class="flex items-center space-x-2">
-                    <button @click="showManualChapterModal = true"
-                        :disabled="!currentSeriesId"
-                        class="text-xs text-green-600 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        title="Add chapter manually">
-                        + Chapter
-                    </button>
                     <button @click="showAddSeriesForm = !showAddSeriesForm"
                         class="text-xs text-blue-600 hover:text-blue-700 transition-colors">
                         {{ showAddSeriesForm ? 'Cancel' : '+ Series' }}
@@ -215,7 +209,7 @@
                                                 </div>
                                             </div>
                                             <p class="text-xs text-gray-500">
-                                                {{ chapter.paragraphs.length }} paragraphs
+                                                {{ chapter.originalParagraphs.length }} paragraphs
                                             </p>
                                             <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
                                                 <span>{{ getTranslationProgress(chapter) }}% translated</span>
@@ -545,9 +539,9 @@ const confirmDeleteChapter = async () => {
 const getSeriesTranslationProgress = (series: Series): number => {
     if (series.chapters.length === 0) return 0;
 
-    const totalParagraphs = series.chapters.reduce((sum, chapter) => sum + chapter.paragraphs.length, 0);
+    const totalParagraphs = series.chapters.reduce((sum, chapter) => sum + chapter.originalParagraphs.length, 0);
     const translatedParagraphs = series.chapters.reduce(
-        (sum, chapter) => sum + chapter.paragraphs.filter(p => p.translatedText.trim()).length,
+        (sum, chapter) => sum + chapter.translatedParagraphs.filter(p => p.trim()).length,
         0
     );
 

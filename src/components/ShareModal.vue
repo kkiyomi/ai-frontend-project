@@ -117,7 +117,7 @@
                       />
                       <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-gray-900 truncate">{{ chapter.title }}</div>
-                        <div class="text-xs text-gray-500">{{ getTranslationProgress(chapter) }}% translated • {{ chapter.paragraphs.length }} paragraphs</div>
+                        <div class="text-xs text-gray-500">{{ getTranslationProgress(chapter) }}% translated • {{ chapter.originalParagraphs.length }} paragraphs</div>
                       </div>
                     </label>
                   </div>
@@ -187,7 +187,7 @@
                       />
                       <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-gray-900 truncate">{{ chapter.title }}</div>
-                        <div class="text-xs text-gray-500">{{ getTranslationProgress(chapter) }}% translated • {{ chapter.paragraphs.length }} paragraphs</div>
+                        <div class="text-xs text-gray-500">{{ getTranslationProgress(chapter) }}% translated • {{ chapter.originalParagraphs.length }} paragraphs</div>
                       </div>
                     </label>
                   </div>
@@ -637,7 +637,7 @@ const getAllChapters = () => {
 
 const getTranslatedChapters = (chapters: Chapter[]) => {
   return chapters.filter(chapter => 
-    chapter.paragraphs.some(p => p.translatedText.trim())
+    chapter.originalParagraphs.some(p => p.trim())
   );
 };
 
@@ -653,21 +653,21 @@ const getFilteredChapters = (chapters: Chapter[]) => {
 const getSeriesWithTranslations = () => {
   return series.value.filter(s => 
     s.chapters.some(chapter => 
-      chapter.paragraphs.some(p => p.translatedText.trim())
+      chapter.originalParagraphs.some(p => p.trim())
     )
   );
 };
 
 const getTranslationProgress = (chapter: Chapter): number => {
-  if (chapter.paragraphs.length === 0) return 0;
-  const translatedCount = chapter.paragraphs.filter(p => p.translatedText.trim()).length;
-  return Math.round((translatedCount / chapter.paragraphs.length) * 100);
+  if (chapter.translatedParagraphs.length === 0) return 0;
+  const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
+  return Math.round((translatedCount / chapter.originalParagraphs.length) * 100);
 };
 
 const getSeriesTranslationProgress = (series: Series): number => {
-  const totalParagraphs = series.chapters.reduce((sum, c) => sum + c.paragraphs.length, 0);
+  const totalParagraphs = series.chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
   const translatedParagraphs = series.chapters.reduce(
-    (sum, c) => sum + c.paragraphs.filter(p => p.translatedText.trim()).length,
+    (sum, c) => sum + c.translatedParagraphs.filter(p => p.trim()).length,
     0
   );
   if (totalParagraphs === 0) return 0;
