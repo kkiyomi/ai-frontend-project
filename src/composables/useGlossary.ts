@@ -215,7 +215,6 @@ export function useGlossary() {
 
   const highlightTermsInText = (text: string): string => {
     let highlightedText = text;
-    loadGlossaryTerms()
     const sortedTerms = glossaryTerms.value
     .slice()
     .sort((a, b) => Math.max(b.term.length, b.translation.length) - Math.max(a.term.length, a.translation.length));
@@ -230,7 +229,7 @@ export function useGlossary() {
 
     highlightedText = highlightedText.replace(
       regex,
-        `<span class="glossary-highlight" data-term-id="${term.id}">$&</span>`
+        `<span class="glossary-highlight glossary-popup" data-term-id="${term.id}">$&</span>`
       );
     });
 

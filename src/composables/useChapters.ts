@@ -28,31 +28,12 @@ export function useChapters() {
     series.value.find(s => s.id === currentSeriesId.value)
   );
 
-  function buildParagraphs(content: string, chapterId: string) {
-      return content
-        .split('\n')
-        .map(p => p.trim())
-        .filter(p => p.length > 0)
-        .map((text, index) => ({
-          id: `${chapterId}-p${index}`,
-          originalText: text,
-          translatedText: '',
-          isEditing: false,
-          chapterId,
-        }));
-    }
+  function buildOriginalParagraphs(content: string): string[] {
+    return content.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+  }
 
-  function buildChapterFromContent(content: string, translatedContent: string, chapterId: string) {
-    const originalParagraphs = content.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-    const translatedParagraphs = translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-    
-    return originalParagraphs.map((text, index) => ({
-      id: `${chapterId}-p${index}`,
-      originalText: text,
-      translatedText: translatedParagraphs[index] || '',
-      isEditing: false,
-      chapterId,
-    }));
+  function buildTranslatedParagraphs(translatedContent: string): string[] {
+    return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
   }
 
   // Load series and chapters from API
@@ -89,7 +70,8 @@ export function useChapters() {
 //             const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
 //               ...chapter,
 //               translatedContent: chapter.translatedContent || '',
-//               paragraphs: buildChapterFromContent(chapter.content, chapter.translatedContent || '', chapter.id),
+//               originalParagraphs: buildOriginalParagraphs(chapter.content),
+//               translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
 //             }));
 //             seriesItem.chapters = enrichedChapters;
 //           } else {
@@ -115,7 +97,8 @@ export function useChapters() {
               .map((chapter: any) => ({
                 ...chapter,
                 translatedContent: chapter.translatedContent || '',
-                paragraphs: buildChapterFromContent(chapter.content, chapter.translatedContent || '', chapter.id),
+                originalParagraphs: buildOriginalParagraphs(chapter.content),
+                translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
               })),
           }));
         }
@@ -265,7 +248,8 @@ export function useChapters() {
         title,
         content,
         translatedContent: '',
-        paragraphs: buildParagraphs(content, chapterId),
+        originalParagraphs: buildOriginalParagraphs(content),
+        translatedParagraphs: [],
         seriesId: seriesId,
       };
 
@@ -321,29 +305,13 @@ export function useChapters() {
   };
 
   const updateParagraphTranslation = (paragraphId: string, translation: string): void => {
-    const chapter = chapters.value.find(ch =>
-      ch.paragraphs.some(p => p.id === paragraphId)
-    );
-    
-    if (chapter) {
-      const paragraph = chapter.paragraphs.find(p => p.id === paragraphId);
-      if (paragraph) {
-        paragraph.translatedText = translation;
-      }
-    }
+    // This method is no longer needed with the new paragraph structure
+    // Translation updates are handled through chapter-level operations
   };
 
   const toggleParagraphEditing = (paragraphId: string): void => {
-    const chapter = chapters.value.find(ch =>
-      ch.paragraphs.some(p => p.id === paragraphId)
-    );
-    
-    if (chapter) {
-      const paragraph = chapter.paragraphs.find(p => p.id === paragraphId);
-      if (paragraph) {
-        paragraph.isEditing = !paragraph.isEditing;
-      }
-    }
+    // This method is no longer needed with the new paragraph structure
+    // Editing is handled at the chapter level
   };
 
   // Refresh data from API

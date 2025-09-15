@@ -11,17 +11,9 @@ export interface Chapter {
   title: string;
   content: string;
   translatedContent: string;
-  paragraphs: Paragraph[];
+  originalParagraphs: string[];
+  translatedParagraphs: string[];
   seriesId: string;
-}
-
-export interface Paragraph {
-  id: string;
-  originalText: string;
-  translatedText: string;
-  isEditing: boolean;
-  isEditingOriginal?: boolean;
-  chapterId: string;
 }
 
 export interface GlossaryTerm {

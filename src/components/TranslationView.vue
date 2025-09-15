@@ -6,7 +6,10 @@
         <div v-if="currentChapter">
           <h2 class="text-lg font-semibold text-secondary-900">{{ currentChapter.title }}</h2>
           <p class="text-sm text-secondary-500">
-            {{ currentChapter.paragraphs.length }} paragraphs
+            {{ currentChapter.originalParagraphs.length }} original paragraphs
+            <span v-if="currentChapter.translatedParagraphs.length > 0">
+              • {{ currentChapter.translatedParagraphs.length }} translated paragraphs
+            </span>
           </p>
         </div>
         <div v-else class="text-secondary-500">
@@ -91,40 +94,32 @@
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="space-y-6 max-w-2xl">
               <div
-                v-for="(paragraph, index) in currentChapter.paragraphs"
-                :key="paragraph.id"
+                v-for="(paragraph, index) in currentChapter.originalParagraphs"
+                :key="`orig-${index}`"
                 class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
               >
                 <div class="flex items-start justify-between mb-2">
                   <span class="text-xs text-secondary-500 font-medium">Paragraph {{ index + 1 }}</span>
                   <div class="flex space-x-2">
                     <button
-                      v-if="!isEditingOriginal"
-                      @click="translateSingleParagraph(paragraph.id, paragraph.originalText)"
-                      :disabled="isTranslating"
-                      class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
-                    >
-                      Translate
-                    </button>
-                    <button
                       v-if="isEditingOriginal"
-                      @click="toggleParagraphOriginalEditing(paragraph.id)"
+                      @click="toggleParagraphOriginalEditing(index)"
                       class="text-xs text-blue-600 hover:text-blue-700"
                     >
-                      {{ paragraph.isEditingOriginal ? 'Save' : 'Edit' }}
+                      {{ editingOriginalParagraphs.has(index) ? 'Save' : 'Edit' }}
                     </button>
                   </div>
                 </div>
                 
-                <div v-if="!paragraph.isEditingOriginal" 
+                <div v-if="!editingOriginalParagraphs.has(index)" 
                      class="reading-text text-secondary-900"
-                     v-html="isHighlightEnabled ? highlightTermsInText(paragraph.originalText) : paragraph.originalText">
+                     v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph">
                 </div>
                 
                 <textarea
                   v-else
-                  v-model="paragraph.originalText"
-                  @blur="toggleParagraphOriginalEditing(paragraph.id)"
+                  v-model="currentChapter.originalParagraphs[index]"
+                  @blur="toggleParagraphOriginalEditing(index)"
                   class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
                   rows="4"
                   placeholder="Enter original text..."
@@ -142,39 +137,31 @@
           <div class="p-4 overflow-y-auto h-full pb-20">
             <div class="space-y-6 max-w-2xl">
               <div
-                v-for="(paragraph, index) in currentChapter.paragraphs"
-                :key="`trans-${paragraph.id}`"
+                v-for="(paragraph, index) in currentChapter.translatedParagraphs"
+                :key="`trans-${index}`"
                 class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
               >
                 <div class="flex items-start justify-between mb-2">
                   <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
                   <div class="flex space-x-2">
                     <button
-                      @click="retranslateParagraph(paragraph)"
-                      :disabled="isTranslating || !paragraph.translatedText"
-                      class="text-xs text-accent-600 hover:text-accent-700 disabled:opacity-50"
-                      title="Retranslate with current glossary"
-                    >
-                      Retranslate
-                    </button>
-                    <button
-                      @click="toggleParagraphEditing(paragraph.id)"
+                      @click="toggleParagraphTranslatedEditing(index)"
                       class="text-xs text-primary-600 hover:text-primary-700"
                     >
-                      {{ paragraph.isEditing ? 'Save' : 'Edit' }}
+                      {{ editingTranslatedParagraphs.has(index) ? 'Save' : 'Edit' }}
                     </button>
                   </div>
                 </div>
                 
-                <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
-                  <div v-if="paragraph.translatedText" v-html="isHighlightEnabled ? highlightTermsInText(paragraph.translatedText) : paragraph.translatedText"></div>
+                <div v-if="!editingTranslatedParagraphs.has(index)" class="reading-text text-secondary-900">
+                  <div v-if="paragraph" v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph"></div>
                   <div v-else class="text-secondary-400 italic">No translation yet</div>
                 </div>
                 
                 <textarea
                   v-else
-                  v-model="paragraph.translatedText"
-                  @blur="toggleParagraphEditing(paragraph.id)"
+                  v-model="currentChapter.translatedParagraphs[index]"
+                  @blur="toggleParagraphTranslatedEditing(index)"
                   class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
                   rows="4"
                   placeholder="Enter translation..."
@@ -235,39 +222,31 @@
             </div>
             <div v-else class="space-y-6 max-w-2xl">
               <div
-                v-for="(paragraph, index) in currentChapter.paragraphs"
-                :key="`trans-only-${paragraph.id}`"
+                v-for="(paragraph, index) in currentChapter.translatedParagraphs"
+                :key="`trans-only-${index}`"
                 class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
               >
                 <div class="flex items-start justify-between mb-2">
                   <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
                   <div class="flex space-x-2">
                     <button
-                      @click="retranslateParagraph(paragraph)"
-                      :disabled="isTranslating || !paragraph.translatedText"
-                      class="text-xs text-accent-600 hover:text-accent-700 disabled:opacity-50"
-                      title="Retranslate with current glossary"
-                    >
-                      Retranslate
-                    </button>
-                    <button
-                      @click="toggleParagraphEditing(paragraph.id)"
+                      @click="toggleParagraphTranslatedEditing(index)"
                       class="text-xs text-primary-600 hover:text-primary-700"
                     >
-                      {{ paragraph.isEditing ? 'Save' : 'Edit' }}
+                      {{ editingTranslatedParagraphs.has(index) ? 'Save' : 'Edit' }}
                     </button>
                   </div>
                 </div>
 
-                <div v-if="!paragraph.isEditing" class="reading-text text-secondary-900">
-                  <div v-if="paragraph.translatedText" v-html="isHighlightEnabled ? highlightTermsInText(paragraph.translatedText) : paragraph.translatedText"></div>
+                <div v-if="!editingTranslatedParagraphs.has(index)" class="reading-text text-secondary-900">
+                  <div v-if="paragraph" v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph"></div>
                   <div v-else class="text-secondary-400 italic">No translation yet</div>
                 </div>
 
                 <textarea
                   v-else
-                  v-model="paragraph.translatedText"
-                  @blur="toggleParagraphEditing(paragraph.id)"
+                  v-model="currentChapter.translatedParagraphs[index]"
+                  @blur="toggleParagraphTranslatedEditing(index)"
                   class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
                   rows="4"
                   placeholder="Enter translation..."
@@ -279,41 +258,60 @@
       </div>
     </div>
   </div>
+
+  <!-- Glossary Term Popup -->
+  <GlossaryTermPopup
+    v-if="showGlossaryPopup && hoveredTerm"
+    :term="hoveredTerm"
+    :position="popupPosition"
+    @update="handleTermUpdate"
+    @close="closeGlossaryPopup"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import ShareButton from './ShareButton.vue';
+import GlossaryTermPopup from './GlossaryTermPopup.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
 import { useDataAPI, useAPI } from '../composables/useAPI';
 import { saveLayoutMode, loadLayoutMode, saveContentMode, loadContentMode } from '../utils/localStorage';
-import type { Paragraph } from '../types';
+import type { GlossaryTerm } from '../types';
 
 const { 
   currentChapter, 
-  updateParagraphTranslation, 
-  toggleParagraphEditing,
   updateChapter
 } = useChapters();
 
 const { 
   isTranslating, 
   translationProgress, 
-  translateParagraph, 
-  retranslateParagraph: retranslateWithGlossary, 
   translateChapter 
 } = useTranslation();
 
-const { highlightTermsInText, glossaryTerms, isHighlightEnabled, toggleHighlight } = useGlossary();
+const { 
+  highlightTermsInText, 
+  glossaryTerms, 
+  isHighlightEnabled, 
+  toggleHighlight,
+  updateTerm 
+} = useGlossary();
 const { updateChapter: updateChapterAPI } = useDataAPI();
-const { translateText, translateParagraph: translateSingleParagraphAPI } = useAPI();
+const { translateText } = useAPI();
 
 const layoutMode = ref<'split' | 'full'>(loadLayoutMode());
 const contentMode = ref<'all' | 'translated'>(loadContentMode());
 const isEditingOriginal = ref(false);
 const fullOriginalText = ref('');
+const editingOriginalParagraphs = ref<Set<number>>(new Set());
+const editingTranslatedParagraphs = ref<Set<number>>(new Set());
+
+// Glossary popup state
+const showGlossaryPopup = ref(false);
+const hoveredTerm = ref<GlossaryTerm | null>(null);
+const popupPosition = ref({ x: 0, y: 0 });
 
 // Save view modes to localStorage when they change
 watch(layoutMode, (newMode) => {
@@ -327,14 +325,19 @@ watch(contentMode, (newMode) => {
 // Update fullOriginalText when chapter changes
 watch(() => currentChapter.value, (newChapter) => {
   if (newChapter) {
-    fullOriginalText.value = newChapter.paragraphs.map(p => p.originalText).join('\n\n');
+    fullOriginalText.value = newChapter.originalParagraphs.join('\n\n');
   }
 }, { immediate: true });
 
 onMounted(() => {
   if (currentChapter.value) {
-    fullOriginalText.value = currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n');
+    fullOriginalText.value = currentChapter.value.originalParagraphs.join('\n\n');
   }
+  
+  // Add event listeners for glossary term hover
+  document.addEventListener('mouseover', handleGlossaryHover);
+  document.addEventListener('mouseout', handleGlossaryMouseOut);
+  document.addEventListener('click', handleDocumentClick);
 });
 
 const toggleLayoutMode = () => {
@@ -353,29 +356,61 @@ const toggleEditMode = async () => {
   isEditingOriginal.value = !isEditingOriginal.value;
 };
 
-const toggleParagraphOriginalEditing = async (paragraphId: string) => {
+const toggleParagraphOriginalEditing = async (index: number) => {
   if (!currentChapter.value) return;
   
-  const paragraph = currentChapter.value.paragraphs.find(p => p.id === paragraphId);
-  if (!paragraph) return;
-  
-  if (paragraph.isEditingOriginal) {
+  if (editingOriginalParagraphs.value.has(index)) {
     // Save changes when exiting edit mode
-    await saveParagraphOriginalChanges(paragraph);
+    await saveOriginalParagraphChanges();
+    editingOriginalParagraphs.value.delete(index);
+  } else {
+    editingOriginalParagraphs.value.add(index);
   }
-  
-  paragraph.isEditingOriginal = !paragraph.isEditingOriginal;
 };
 
-const saveParagraphOriginalChanges = async (paragraph: Paragraph) => {
+const toggleParagraphTranslatedEditing = async (index: number) => {
+  if (!currentChapter.value) return;
+  
+  if (editingTranslatedParagraphs.value.has(index)) {
+    // Save changes when exiting edit mode
+    await saveTranslatedParagraphChanges();
+    editingTranslatedParagraphs.value.delete(index);
+  } else {
+    editingTranslatedParagraphs.value.add(index);
+  }
+};
+
+const saveOriginalParagraphChanges = async () => {
   if (!currentChapter.value) return;
   
   try {
     // Update via API
     const updatedChapter = {
       ...currentChapter.value,
-      content: currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n'),
-      paragraphs: currentChapter.value.paragraphs
+      content: currentChapter.value.originalParagraphs.join('\n\n'),
+    };
+    
+    const response = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+    
+    if (response.success) {
+      // Update local state
+      await updateChapter(currentChapter.value.id, updatedChapter);
+    } else {
+      console.error('Failed to update chapter:', response.error);
+    }
+  } catch (error) {
+    console.error('Error updating chapter:', error);
+  }
+};
+
+const saveTranslatedParagraphChanges = async () => {
+  if (!currentChapter.value) return;
+  
+  try {
+    // Update via API
+    const updatedChapter = {
+      ...currentChapter.value,
+      translatedContent: currentChapter.value.translatedParagraphs.join('\n\n'),
     };
     
     const response = await updateChapterAPI(currentChapter.value.id, updatedChapter);
@@ -396,30 +431,15 @@ const saveFullOriginalText = async () => {
   
   try {
     // Split the full text back into paragraphs
-    const paragraphs = fullOriginalText.value
+    const originalParagraphs = fullOriginalText.value
       .split('\n\n')
       .map(text => text.trim())
       .filter(text => text.length > 0);
     
-    // Update paragraphs
-    const updatedParagraphs = paragraphs.map((text, index) => {
-      const existingParagraph = currentChapter.value!.paragraphs[index];
-      return existingParagraph ? {
-        ...existingParagraph,
-        originalText: text
-      } : {
-        id: `${currentChapter.value!.id}-p${index}`,
-        originalText: text,
-        translatedText: '',
-        isEditing: false,
-        chapterId: currentChapter.value!.id
-      };
-    });
-    
     const updatedChapter = {
       ...currentChapter.value,
       content: fullOriginalText.value,
-      paragraphs: updatedParagraphs
+      originalParagraphs: originalParagraphs,
     };
     
     // Update via API
@@ -442,8 +462,7 @@ const saveAllOriginalChanges = async () => {
   try {
     const updatedChapter = {
       ...currentChapter.value,
-      content: currentChapter.value.paragraphs.map(p => p.originalText).join('\n\n'),
-      paragraphs: currentChapter.value.paragraphs
+      content: currentChapter.value.originalParagraphs.join('\n\n'),
     };
     
     // Update via API
@@ -462,57 +481,16 @@ const saveAllOriginalChanges = async () => {
 
 const getFullOriginalText = (): string => {
   if (!currentChapter.value) return '';
-  return currentChapter.value.paragraphs
-    .map(p => p.originalText)
-    .join('<br><br>');
+  return currentChapter.value.originalParagraphs.join('<br><br>');
 };
 
 const getFullTranslatedText = (): string => {
   if (!currentChapter.value) return '';
-  const translations = currentChapter.value.paragraphs
-    .map(p => p.translatedText)
-    .filter(text => text.trim());
+  const translations = currentChapter.value.translatedParagraphs.filter(text => text.trim());
   
   if (translations.length === 0) return '';
   
-  return currentChapter.value.paragraphs
-    .map(p => p.translatedText || '[Not translated yet]')
-    .join('<br><br>');
-};
-
-const translateSingleParagraph = async (paragraphId: string, originalText: string) => {
-  if (!currentChapter.value) return;
-  
-  const paragraph = currentChapter.value.paragraphs.find(p => p.id === paragraphId);
-  if (!paragraph) return;
-  
-  const paragraphIndex = currentChapter.value.paragraphs.indexOf(paragraph);
-  const glossaryContext = glossaryTerms.value.map(term => term.term);
-  
-  try {
-    const response = await translateSingleParagraphAPI(
-      originalText, 
-      currentChapter.value.id, 
-      paragraphIndex, 
-      glossaryContext
-    );
-    
-    if (response.success && response.data) {
-      updateParagraphTranslation(paragraphId, response.data);
-    }
-  } catch (error) {
-    console.error('Error translating paragraph:', error);
-  }
-};
-
-const retranslateParagraph = async (paragraph: Paragraph) => {
-  const glossaryContext = glossaryTerms.value.map(term => term.term);
-  const translation = await retranslateWithGlossary(
-    paragraph.originalText,
-    paragraph.translatedText,
-    glossaryContext
-  );
-  updateParagraphTranslation(paragraph.id, translation);
+  return currentChapter.value.translatedParagraphs.join('<br><br>');
 };
 
 const translateAllParagraphs = async () => {
@@ -528,7 +506,8 @@ const translateAllParagraphs = async () => {
       // Update the chapter's translatedContent
       const updatedChapter = {
         ...currentChapter.value,
-        translatedContent: response.data
+        translatedContent: response.data,
+        translatedParagraphs: response.data.split('\n').map(p => p.trim()).filter(p => p.length > 0)
       };
       
       // Update via API
@@ -537,18 +516,65 @@ const translateAllParagraphs = async () => {
       if (apiResponse.success) {
         // Update local state
         await updateChapter(currentChapter.value.id, updatedChapter);
-        
-        // Split translated content into paragraphs and update individual paragraphs
-        const translatedParagraphs = response.data.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-        currentChapter.value.paragraphs.forEach((paragraph, index) => {
-          if (translatedParagraphs[index]) {
-            updateParagraphTranslation(paragraph.id, translatedParagraphs[index]);
-          }
-        });
       }
     }
   } catch (error) {
     console.error('Error translating all paragraphs:', error);
   }
+};
+
+// Glossary popup handlers
+const handleGlossaryHover = (event: MouseEvent) => {
+  if (!isHighlightEnabled.value) return;
+  
+  const target = event.target as HTMLElement;
+  if (target.classList.contains('glossary-highlight')) {
+    const termId = target.getAttribute('data-term-id');
+    if (termId) {
+      const term = glossaryTerms.value.find(t => t.id === termId);
+      if (term) {
+        hoveredTerm.value = term;
+        popupPosition.value = {
+          x: event.clientX + 10,
+          y: event.clientY - 10
+        };
+        showGlossaryPopup.value = true;
+      }
+    }
+  }
+};
+
+const handleGlossaryMouseOut = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  const relatedTarget = event.relatedTarget as HTMLElement;
+  
+  // Don't hide if moving to the popup
+  if (relatedTarget && (relatedTarget.closest('.glossary-popup') || target.classList.contains('glossary-highlight'))) {
+    return;
+  }
+  
+  setTimeout(() => {
+    if (!document.querySelector('.glossary-popup:hover')) {
+      showGlossaryPopup.value = false;
+      hoveredTerm.value = null;
+    }
+  }, 100);
+};
+
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.glossary-popup') && !target.classList.contains('glossary-highlight')) {
+    closeGlossaryPopup();
+  }
+};
+
+const closeGlossaryPopup = () => {
+  showGlossaryPopup.value = false;
+  hoveredTerm.value = null;
+};
+
+const handleTermUpdate = async (termId: string, updates: Partial<GlossaryTerm>) => {
+  await updateTerm(termId, updates);
+  closeGlossaryPopup();
 };
 </script>

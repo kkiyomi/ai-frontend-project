@@ -233,7 +233,9 @@
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </button>
-                                            <button @click.stop="onRemoveChapter(chapter.id)"
+                                            <button 
+                                                v-if="!editingChapters.has(chapter.id)"
+                                                @click.stop="onRemoveChapter(chapter.id)"
                                                 class="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                                 title="Remove chapter">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,6 +283,20 @@
         @confirm="confirmDeleteSeries"
         @cancel="closeDeleteModal"
     />
+
+    <!-- Chapter Delete Confirmation Modal -->
+    <ConfirmationModal
+        v-if="showDeleteChapterModal && deletingChapter"
+        title="Delete Chapter"
+        :message="`Are you sure you want to delete '${deletingChapter.title}'?`"
+        details="This action cannot be undone. All translations for this chapter will be lost."
+        type="danger"
+        confirm-text="Delete Chapter"
+        :is-processing="isDeletingChapter"
+        processing-text="Deleting..."
+        @confirm="confirmDeleteChapter"
+        @cancel="closeDeleteChapterModal"
+    />
 </template>
 
 <script setup lang="ts">
@@ -320,6 +336,9 @@ const editingSeries = ref<Series | null>(null);
 const showDeleteModal = ref(false);
 const deletingSeries = ref<Series | null>(null);
 const isDeletingSeries = ref(false);
+const showDeleteChapterModal = ref(false);
+const deletingChapter = ref<Chapter | null>(null);
+const isDeletingChapter = ref(false);
 const editingChapters = ref<Set<string>>(new Set());
 
 const handleCreateSeries = () => {
@@ -485,8 +504,42 @@ const confirmDeleteSeries = async () => {
 
 
 const onRemoveChapter = (chapterId: string) => {
-    console.log('onRemoveChapter');
-    removeChapter(chapterId);
+    const chapterToDelete = chapters.value.find(c => c.id === chapterId);
+    if (chapterToDelete) {
+        deletingChapter.value = chapterToDelete;
+        showDeleteChapterModal.value = true;
+    }
+};
+
+const closeDeleteChapterModal = () => {
+    showDeleteChapterModal.value = false;
+    deletingChapter.value = null;
+    isDeletingChapter.value = false;
+};
+
+const confirmDeleteChapter = async () => {
+    if (!deletingChapter.value) return;
+    
+    isDeletingChapter.value = true;
+    
+    try {
+        // Delete via API first
+        const response = await deleteChapterAPI(deletingChapter.value.id);
+        
+        if (response.success) {
+            // Update local state
+            removeChapter(deletingChapter.value.id);
+            closeDeleteChapterModal();
+        } else {
+            console.error('Failed to delete chapter:', response.error);
+            // Could show error toast here
+        }
+    } catch (error) {
+        console.error('Error deleting chapter:', error);
+        // Could show error toast here
+    } finally {
+        isDeletingChapter.value = false;
+    }
 };
 
 const getSeriesTranslationProgress = (series: Series): number => {
@@ -503,11 +556,9 @@ const getSeriesTranslationProgress = (series: Series): number => {
 };
 
 const getTranslationProgress = (chapter: Chapter): number => {
-    if (chapter.paragraphs.length === 0) return 0;
-    const translatedCount = chapter.paragraphs.filter((p) =>
-        p.translatedText.trim()
-    ).length;
-    return Math.round((translatedCount / chapter.paragraphs.length) * 100);
+    if (chapter.originalParagraphs.length === 0) return 0;
+    const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
+    return Math.round((translatedCount / chapter.originalParagraphs.length) * 100);
 };
 
 const formatFileSize = (bytes: number): string => {
