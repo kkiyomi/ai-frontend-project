@@ -495,8 +495,8 @@ export class MockAPI {
       return {
         id: chapter.id,
         title: chapter.title,
-        originalText: chapter.paragraphs.map(p => p.originalText).join('\n\n'),
-        translatedText: chapter.paragraphs.map(p => p.translatedText).filter(t => t.trim()).join('\n\n'),
+        originalText: chapter.originalParagraphs.join('\n\n'),
+        translatedText: chapter.translatedParagraphs.filter(t => t.trim()).join('\n\n'),
         seriesName: series?.name || 'Unknown Series',
         seriesId: chapter.seriesId
       };

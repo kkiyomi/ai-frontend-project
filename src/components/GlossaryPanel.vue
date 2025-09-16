@@ -392,8 +392,7 @@ const generateSuggestions = () => {
   
   // Simulate async operation
   setTimeout(() => {
-    const allText = currentChapter.value!.paragraphs
-      .map(p => p.originalText)
+    const allText = currentChapter.value!.originalParagraphs
       .join(' ');
     
     suggestions.value = suggestTermsFromText(allText);

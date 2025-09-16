@@ -615,9 +615,9 @@ const shareStats = computed(() => {
       break;
   }
 
-  const totalParagraphs = chapters.reduce((sum, c) => sum + c.paragraphs.length, 0);
+  const totalParagraphs = chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
   const translatedParagraphs = chapters.reduce(
-    (sum, c) => sum + c.paragraphs.filter(p => p.translatedText.trim()).length,
+    (sum, c) => sum + c.translatedParagraphs.filter(p => p.trim()).length,
     0
   );
 
@@ -676,7 +676,7 @@ const getSeriesTranslationProgress = (series: Series): number => {
 
 const getSeriesWordCount = (series: Series): number => {
   return series.chapters.reduce((sum, c) => 
-    sum + c.paragraphs.reduce((pSum, p) => 
+    sum + c.originalParagraphs.reduce((pSum, p) =>
       pSum + (p.translatedText || p.originalText).split(' ').length, 0
     ), 0
   );
@@ -724,7 +724,7 @@ const getContentSummary = (): string => {
 // Selection helpers
 const selectAllChapters = () => {
   selectedChapterIds.value = getAllChapters()
-    .filter(c => c.paragraphs.some(p => p.translatedText.trim()))
+    .filter(c => c.translatedParagraphs.some(p => p.trim()))
     .map(c => c.id);
 };
 
