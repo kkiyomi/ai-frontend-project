@@ -1,69 +1,20 @@
 <template>
   <div class="flex-1 flex flex-col h-full bg-white">
     <!-- Header -->
-    <div class="border-b border-secondary-200 p-4">
-      <div class="flex items-center justify-between">
-        <div v-if="currentChapter">
-          <h2 class="text-lg font-semibold text-secondary-900">{{ currentChapter.title }}</h2>
-          <p class="text-sm text-secondary-500">
-            {{ currentChapter.originalParagraphs.length }} original paragraphs
-            <span v-if="currentChapter.translatedParagraphs.length > 0">
-              • {{ currentChapter.translatedParagraphs.length }} translated paragraphs
-            </span>
-          </p>
-        </div>
-        <div v-else class="text-secondary-500">
-          Select a chapter to begin translation
-        </div>
-        
-        <div v-if="currentChapter" class="flex items-center space-x-2">
-          <ShareButton />
-          <button
-            @click="toggleEditMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
-          >
-            {{ isEditingOriginal ? 'Save Changes' : 'Edit Original' }}
-          </button>
-          <button
-            @click="toggleLayoutMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
-          >
-            {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
-          </button>
-          <button
-            @click="toggleContentMode"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
-          >
-            {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
-          </button>
-          <button
-            @click="toggleHighlight"
-            class="px-4 py-2 rounded-lg transition-colors text-sm font-medium border"
-            :class="isHighlightEnabled ? 'bg-green-100 text-green-700 border-green-300' : 'bg-gray-100 text-gray-700 border-gray-300'"
-          >
-            {{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}
-          </button>
-          <button
-            @click="translateAllParagraphs"
-            :disabled="isTranslating"
-            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
-          >
-            {{ isTranslating ? 'Translating...' : 'Translate All' }}
-          </button>
-        </div>
-      </div>
-      
-      <!-- Progress Bar -->
-      <div v-if="isTranslating" class="mt-3">
-        <div class="bg-gray-200 rounded-full h-3">
-          <div 
-            class="bg-blue-600 h-3 rounded-full transition-all duration-300 shadow-sm"
-            :style="{ width: `${translationProgress}%` }"
-          ></div>
-        </div>
-        <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
-      </div>
-    </div>
+    <TranslationHeader
+      :currentChapter="currentChapter"
+      :isEditingOriginal="isEditingOriginal"
+      :layoutMode="layoutMode"
+      :contentMode="contentMode"
+      :isHighlightEnabled="isHighlightEnabled"
+      :isTranslating="isTranslating"
+      :translationProgress="translationProgress"
+      @toggleEditMode="toggleEditMode"
+      @toggleLayoutMode="toggleLayoutMode"
+      @toggleContentMode="toggleContentMode"
+      @toggleHighlight="toggleHighlight"
+      @translateAll="translateAllParagraphs"
+    />
 
     <!-- Content Area -->
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
@@ -77,184 +28,74 @@
     <div v-else class="flex-1 overflow-hidden">
       <!-- Split Paragraph View -->
       <div v-if="layoutMode === 'split'" class="h-full flex">
-        <!-- Original Text Column -->
-        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
-          <div class="p-4 bg-secondary-50 border-b border-secondary-200">
-            <div class="flex items-center justify-between">
-              <h3 class="font-medium text-secondary-900">Original Text</h3>
-              <button
-                v-if="!isEditingOriginal"
-                @click="toggleEditMode"
-                class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-          <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="space-y-6 max-w-2xl">
-              <div
-                v-for="(paragraph, index) in currentChapter.originalParagraphs"
-                :key="`orig-${index}`"
-                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
-              >
-                <div class="flex items-start justify-between mb-2">
-                  <span class="text-xs text-secondary-500 font-medium">Paragraph {{ index + 1 }}</span>
-                  <div class="flex space-x-2">
-                    <button
-                      v-if="isEditingOriginal"
-                      @click="toggleParagraphOriginalEditing(index)"
-                      class="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      {{ editingOriginalParagraphs.has(index) ? 'Save' : 'Edit' }}
-                    </button>
-                  </div>
-                </div>
-                
-                <div v-if="!editingOriginalParagraphs.has(index)" 
-                     class="reading-text text-secondary-900"
-                     v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph">
-                </div>
-                
-                <textarea
-                  v-else
-                  v-model="currentChapter.originalParagraphs[index]"
-                  @blur="toggleParagraphOriginalEditing(index)"
-                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
-                  rows="4"
-                  placeholder="Enter original text..."
-                ></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TextColumn
+          v-if="contentMode === 'all'"
+          title="Original Text"
+          :paragraphs="currentChapter.originalParagraphs"
+          mode="paragraph"
+          type="original"
+          :editingParagraphs="editingOriginalParagraphs"
+          :showBorder="true"
+          :showEditButton="!isEditingOriginal"
+          placeholder="Enter original text..."
+          :highlightTermsInText="highlightTermsInText"
+          :isHighlightEnabled="isHighlightEnabled"
+          @toggleEdit="toggleEditMode"
+          @toggleParagraphEditing="toggleParagraphOriginalEditing"
+          @saveParagraph="saveParagraphOriginal"
+          @cancelParagraphEdit="cancelParagraphOriginalEdit"
+        />
 
-        <!-- Translated Text Column -->
-        <div class="flex-1">
-          <div class="p-4 bg-accent-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Translation</h3>
-          </div>
-          <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="space-y-6 max-w-2xl">
-              <div
-                v-for="(paragraph, index) in currentChapter.translatedParagraphs"
-                :key="`trans-${index}`"
-                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
-              >
-                <div class="flex items-start justify-between mb-2">
-                  <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
-                  <div class="flex space-x-2">
-                    <button
-                      @click="toggleParagraphTranslatedEditing(index)"
-                      class="text-xs text-primary-600 hover:text-primary-700"
-                    >
-                      {{ editingTranslatedParagraphs.has(index) ? 'Save' : 'Edit' }}
-                    </button>
-                  </div>
-                </div>
-                
-                <div v-if="!editingTranslatedParagraphs.has(index)" class="reading-text text-secondary-900">
-                  <div v-if="paragraph" v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph"></div>
-                  <div v-else class="text-secondary-400 italic">No translation yet</div>
-                </div>
-                
-                <textarea
-                  v-else
-                  v-model="currentChapter.translatedParagraphs[index]"
-                  @blur="toggleParagraphTranslatedEditing(index)"
-                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
-                  rows="4"
-                  placeholder="Enter translation..."
-                ></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TextColumn
+          title="Translation"
+          :paragraphs="currentChapter.translatedParagraphs"
+          mode="paragraph"
+          type="translated"
+          :editingParagraphs="editingTranslatedParagraphs"
+          emptyMessage="No translation yet"
+          placeholder="Enter translation..."
+          :highlightTermsInText="highlightTermsInText"
+          :isHighlightEnabled="isHighlightEnabled"
+          @toggleParagraphEditing="toggleParagraphTranslatedEditing"
+          @saveParagraph="saveParagraphTranslated"
+          @cancelParagraphEdit="cancelParagraphTranslatedEdit"
+        />
       </div>
 
       <!-- Full Text View -->
       <div v-else class="h-full flex">
-        <!-- Original Text Column -->
-        <div v-if="contentMode === 'all'" class="flex-1 border-r border-secondary-200">
-          <div class="p-4 bg-secondary-50 border-b border-secondary-200">
-            <div class="flex items-center justify-between">
-              <h3 class="font-medium text-secondary-900">Original Text</h3>
-              <button
-                v-if="!isEditingOriginal"
-                @click="toggleEditMode"
-                class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-          <div class="p-4 overflow-y-auto h-full pb-20">
-            <div class="max-w-4xl">
-              <div v-if="!isEditingOriginal" 
-                   class="reading-text text-secondary-900 leading-relaxed space-y-4"
-                   v-html="isHighlightEnabled ? highlightTermsInText(getFullOriginalText()) : getFullOriginalText()">
-              </div>
-              
-              <textarea
-                v-else
-                v-model="fullOriginalText"
-                @blur="saveFullOriginalText"
-                class="w-full h-96 p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
-                placeholder="Enter original text..."
-              ></textarea>
-            </div>
-          </div>
-        </div>
+        <TextColumn
+          v-if="contentMode === 'all'"
+          title="Original Text"
+          :fullText="getFullOriginalText()"
+          mode="full"
+          type="original"
+          :editingParagraphs="editingOriginalParagraphs"
+          :isEditingMode="isEditingOriginal"
+          :showBorder="true"
+          :showEditButton="!isEditingOriginal"
+          placeholder="Enter original text..."
+          :highlightTermsInText="highlightTermsInText"
+          :isHighlightEnabled="isHighlightEnabled"
+          @toggleEdit="toggleEditMode"
+          @saveFullText="saveFullOriginalText"
+        />
 
-        <!-- Translated Text Column -->
-        <div class="flex-1">
-          <div class="p-4 bg-accent-50 border-b border-secondary-200">
-            <h3 class="font-medium text-secondary-900">Translation</h3>
-          </div>
-          <div class="p-4 overflow-y-auto h-full pb-20">
-            <div v-if="layoutMode === 'full'" class="max-w-4xl">
-              <div v-if="getFullTranslatedText()" class="reading-text text-secondary-900 leading-relaxed space-y-4">
-                <div v-html="isHighlightEnabled ? highlightTermsInText(getFullTranslatedText()) : getFullTranslatedText()"></div>
-              </div>
-              <div v-else class="text-secondary-400 italic">
-                No translations yet. Use "Translate All" or translate individual paragraphs first.
-              </div>
-            </div>
-            <div v-else class="space-y-6 max-w-2xl">
-              <div
-                v-for="(paragraph, index) in currentChapter.translatedParagraphs"
-                :key="`trans-only-${index}`"
-                class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors"
-              >
-                <div class="flex items-start justify-between mb-2">
-                  <span class="text-xs text-secondary-500 font-medium">Translation {{ index + 1 }}</span>
-                  <div class="flex space-x-2">
-                    <button
-                      @click="toggleParagraphTranslatedEditing(index)"
-                      class="text-xs text-primary-600 hover:text-primary-700"
-                    >
-                      {{ editingTranslatedParagraphs.has(index) ? 'Save' : 'Edit' }}
-                    </button>
-                  </div>
-                </div>
-
-                <div v-if="!editingTranslatedParagraphs.has(index)" class="reading-text text-secondary-900">
-                  <div v-if="paragraph" v-html="isHighlightEnabled ? highlightTermsInText(paragraph) : paragraph"></div>
-                  <div v-else class="text-secondary-400 italic">No translation yet</div>
-                </div>
-
-                <textarea
-                  v-else
-                  v-model="currentChapter.translatedParagraphs[index]"
-                  @blur="toggleParagraphTranslatedEditing(index)"
-                  class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 reading-text resize-none"
-                  rows="4"
-                  placeholder="Enter translation..."
-                ></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TextColumn
+          title="Translation"
+          :fullText="getFullTranslatedText()"
+          :paragraphs="currentChapter.translatedParagraphs"
+          :mode="layoutMode === 'full' ? 'full' : 'paragraph'"
+          type="translated"
+          :editingParagraphs="editingTranslatedParagraphs"
+          emptyMessage="No translations yet. Use 'Translate All' or translate individual paragraphs first."
+          placeholder="Enter translation..."
+          :highlightTermsInText="highlightTermsInText"
+          :isHighlightEnabled="isHighlightEnabled"
+          @toggleParagraphEditing="toggleParagraphTranslatedEditing"
+          @saveParagraph="saveParagraphTranslated"
+          @cancelParagraphEdit="cancelParagraphTranslatedEdit"
+        />
       </div>
     </div>
   </div>
@@ -271,8 +112,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import ShareButton from './ShareButton.vue';
 import GlossaryTermPopup from './GlossaryTermPopup.vue';
+import TranslationHeader from './TranslationHeader.vue';
+import TextColumn from './TextColumn.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossary } from '../composables/useGlossary';
@@ -368,6 +210,23 @@ const toggleParagraphOriginalEditing = async (index: number) => {
   }
 };
 
+const saveParagraphOriginal = async (index: number, content: string) => {
+  if (currentChapter.value) {
+    currentChapter.value.originalParagraphs[index] = content;
+    await saveOriginalParagraphChanges();
+    editingOriginalParagraphs.value.delete(index);
+  }
+};
+
+const cancelParagraphOriginalEdit = (index: number) => {
+  editingOriginalParagraphs.value.delete(index);
+};
+
+const saveFullOriginalText = async (text: string) => {
+  fullOriginalText.value = text;
+  await saveFullOriginalText();
+};
+
 const toggleParagraphTranslatedEditing = async (index: number) => {
   if (!currentChapter.value) return;
   
@@ -378,6 +237,18 @@ const toggleParagraphTranslatedEditing = async (index: number) => {
   } else {
     editingTranslatedParagraphs.value.add(index);
   }
+};
+
+const saveParagraphTranslated = async (index: number, content: string) => {
+  if (currentChapter.value) {
+    currentChapter.value.translatedParagraphs[index] = content;
+    await saveTranslatedParagraphChanges();
+    editingTranslatedParagraphs.value.delete(index);
+  }
+};
+
+const cancelParagraphTranslatedEdit = (index: number) => {
+  editingTranslatedParagraphs.value.delete(index);
 };
 
 const saveOriginalParagraphChanges = async () => {
@@ -426,7 +297,7 @@ const saveTranslatedParagraphChanges = async () => {
   }
 };
 
-const saveFullOriginalText = async () => {
+const saveFullOriginalTextInternal = async () => {
   if (!currentChapter.value) return;
   
   try {
@@ -481,7 +352,7 @@ const saveAllOriginalChanges = async () => {
 
 const getFullOriginalText = (): string => {
   if (!currentChapter.value) return '';
-  return currentChapter.value.originalParagraphs.join('<br><br>');
+  return currentChapter.value.originalParagraphs.join('\n\n');
 };
 
 const getFullTranslatedText = (): string => {
@@ -490,7 +361,7 @@ const getFullTranslatedText = (): string => {
   
   if (translations.length === 0) return '';
   
-  return currentChapter.value.translatedParagraphs.join('<br><br>');
+  return currentChapter.value.translatedParagraphs.join('\n\n');
 };
 
 const translateAllParagraphs = async () => {
