@@ -380,14 +380,15 @@ const translateAllParagraphs = async () => {
         translatedContent: response.data,
         translatedParagraphs: response.data.split('\n').map(p => p.trim()).filter(p => p.length > 0)
       };
-      
+      await updateChapter(currentChapter.value.id, updatedChapter);
+
       // Update via API
-      const apiResponse = await updateChapterAPI(currentChapter.value.id, updatedChapter);
+      // const apiResponse = await updateChapterAPI(currentChapter.value.id, updatedChapter);
       
-      if (apiResponse.success) {
+      // if (apiResponse.success) {
         // Update local state
-        await updateChapter(currentChapter.value.id, updatedChapter);
-      }
+      //   await updateChapter(currentChapter.value.id, updatedChapter);
+      // }
     }
   } catch (error) {
     console.error('Error translating all paragraphs:', error);

@@ -2,7 +2,6 @@
   <div class="p-4 bg-blue-50 rounded-lg">
     <h4 class="font-medium text-gray-900 mb-2">Share Preview</h4>
     <div class="text-sm text-gray-600 space-y-1">
-      <p><strong>Type:</strong> {{ shareTypeLabel }}</p>
       <p><strong>Content:</strong> {{ contentSummary }}</p>
       <p v-if="stats"><strong>Progress:</strong> {{ stats.translatedParagraphs }}/{{ stats.totalParagraphs }} paragraphs translated ({{ stats.translationProgress }}%)</p>
       <p><strong>Expires:</strong> {{ expiration === '0' ? 'Never' : `${expiration} days` }}</p>
@@ -21,8 +20,6 @@ interface ShareStats {
 }
 
 interface Props {
-  shareType: string;
-  shareTypeLabel: string;
   contentSummary: string;
   stats: ShareStats | null;
   expiration: string;

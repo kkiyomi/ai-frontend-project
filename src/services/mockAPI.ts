@@ -19,6 +19,7 @@ export class MockAPI {
     text: string, 
     glossaryContext?: string[]
   ): Promise<APIResponse<string>> {
+    console.log('MockAPI translateText')
     await simulateDelay();
     
     if (simulateFailure(0.05)) { // 5% failure rate
@@ -32,7 +33,8 @@ export class MockAPI {
     const contextNote = glossaryContext && glossaryContext.length > 0 
       ? ` (with context: ${glossaryContext.join(', ')})` 
       : '';
-    
+    console.log(contextNote)
+    console.log(text)
     return {
       success: true,
       data: `[Mock Translation]${contextNote} ${text}`,

@@ -17,13 +17,9 @@
       <!-- Content -->
       <div class="flex-1 overflow-y-auto">
         <div class="p-6 space-y-6">
-          <!-- Share Type Selection -->
-          <ShareTypeSelector v-model="shareType" />
 
           <!-- Content Selection -->
           <ShareContentSelector
-            v-if="shareType"
-            :shareType="shareType"
             :series="series"
             :selectedChapterId="selectedChapterId"
             :selectedChapterIds="selectedChapterIds"
@@ -44,7 +40,7 @@
 
           <!-- Share Details -->
           <ShareDetailsForm
-            v-if="shareType && hasValidSelection"
+            v-if="hasValidSelection"
             :title="shareTitle"
             :description="shareDescription"
             :expiration="shareExpiration"
@@ -60,9 +56,7 @@
 
           <!-- Share Preview -->
           <SharePreview
-            v-if="shareType && hasValidSelection"
-            :shareType="shareType"
-            :shareTypeLabel="getShareTypeLabel()"
+            v-if="hasValidSelection"
             :contentSummary="getContentSummary()"
             :stats="shareStats"
             :expiration="shareExpiration"
@@ -92,14 +86,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useChapters } from '../composables/useChapters';
 import { useSharing } from '../composables/useSharing';
 import ShareTypeSelector from './ShareTypeSelector.vue';
 import ShareContentSelector from './ShareContentSelector.vue';
 import ShareDetailsForm from './ShareDetailsForm.vue';
 import SharePreview from './SharePreview.vue';
-import type { ShareRequest, SharedContent } from '../types/sharing';
+import type { ShareRequest, SharedContent, ShareStats } from '../types/sharing';
 import type { Chapter, Series } from '../types';
 
 const emit = defineEmits<{
@@ -157,54 +151,64 @@ const loadExistingShares = () => {
 };
 
 // Computed properties
-const hasValidSelection = computed(() => {
-  switch (shareType.value) {
-    case 'chapter':
-      return !!selectedChapterId.value;
-    case 'chapters':
-      return selectedChapterIds.value.length > 0;
-    case 'series':
-      return !!selectedSeriesId.value;
-    case 'multiple-series':
-      return selectedSeriesIds.value.length > 0;
-    default:
-      return false;
+const hasValidSelection = computed((): boolean => {
+  // Check if any chapter selection exists
+  if (selectedChapterId.value || selectedChapterIds.value.length > 0) {
+    return selectedChapterId.value ? !!selectedChapterId.value : selectedChapterIds.value.length > 0;
   }
+
+  // Check if any series selection exists
+  if (selectedSeriesId.value || selectedSeriesIds.value.length > 0) {
+    return selectedSeriesId.value ? !!selectedSeriesId.value : selectedSeriesIds.value.length > 0;
+  }
+
+  return false;
 });
 
-const shareStats = computed(() => {
-  if (!hasValidSelection.value) return null;
-
-  let chapters: Chapter[] = [];
-  let seriesCount = 0;
-
-  switch (shareType.value) {
-    case 'chapter':
-      const chapter = getAllChapters().find(c => c.id === selectedChapterId.value);
-      if (chapter) chapters = [chapter];
-      seriesCount = 1;
-      break;
-    case 'chapters':
-      chapters = getAllChapters().filter(c => selectedChapterIds.value.includes(c.id));
-      seriesCount = new Set(chapters.map(c => c.seriesId)).size;
-      break;
-    case 'series':
-      const selectedSeries = series.value.find(s => s.id === selectedSeriesId.value);
-      if (selectedSeries) {
-        chapters = selectedSeries.chapters;
-        seriesCount = 1;
-      }
-      break;
-    case 'multiple-series':
-      chapters = series.value
-        .filter(s => selectedSeriesIds.value.includes(s.id))
-        .flatMap(s => s.chapters);
-      seriesCount = selectedSeriesIds.value.length;
-      break;
+const getSelectedChapters = (): Chapter[] => {
+  // Single chapter
+  if (selectedChapterId.value) {
+    const chapter = getAllChapters().find(c => c.id === selectedChapterId.value);
+    return chapter ? [chapter] : [];
   }
 
-  const totalParagraphs = chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
-  const translatedParagraphs = chapters.reduce(
+  // Multiple chapters
+  if (selectedChapterIds.value.length > 0) {
+    return getAllChapters().filter(c => selectedChapterIds.value.includes(c.id));
+  }
+
+  // Single series
+  if (selectedSeriesId.value) {
+    const selectedSeries = series.value.find(s => s.id === selectedSeriesId.value);
+    return selectedSeries ? selectedSeries.chapters : [];
+  }
+
+  // Multiple series
+  if (selectedSeriesIds.value.length > 0) {
+    return series.value
+      .filter(s => selectedSeriesIds.value.includes(s.id))
+      .flatMap(s => s.chapters);
+  }
+
+  return [];
+};
+
+const getSeriesCount = (chapters: Chapter[]): number => {
+  if (selectedChapterId.value || selectedSeriesId.value) return 1;
+  if (selectedChapterIds.value.length > 0) {
+    return new Set(chapters.map(c => c.seriesId)).size;
+  }
+  return selectedSeriesIds.value.length;
+};
+
+const shareStats = computed((): ShareStats | null => {
+  if (!hasValidSelection.value) return null;
+
+  const chapters: Chapter[] = getSelectedChapters();
+  const seriesCount: number = getSeriesCount(chapters);
+
+  const totalParagraphs: number = chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
+  const translatedParagraphs: number = chapters.reduce(
     (sum, c) => sum + c.translatedParagraphs.filter(p => p.trim()).length,
     0
   );
@@ -271,30 +275,28 @@ const getSeriesWordCount = (series: Series): number => {
 };
 
 const getDefaultTitle = (): string => {
-  switch (shareType.value) {
-    case 'chapter':
+  const isChapterMode: boolean = selectedChapterId.value !== undefined || selectedChapterIds.value !== undefined;
+  const isMultiSelect: boolean = selectedChapterIds.value !== undefined || selectedSeriesIds.value !== undefined;
+
+  if (isChapterMode) {
+    if (isMultiSelect) {
+      // Multiple chapters
+      return `${selectedChapterIds.value.length} Chapters - Translation`;
+    } else {
+      // Single chapter
       const chapter = getAllChapters().find(c => c.id === selectedChapterId.value);
       return chapter ? `${chapter.title} - Translation` : 'Chapter Translation';
-    case 'chapters':
-      return `${selectedChapterIds.value.length} Chapters - Translation`;
-    case 'series':
+    }
+  } else {
+    if (isMultiSelect) {
+      // Multiple series
+      return `${selectedSeriesIds.value.length} Series - Translation Collection`;
+    } else {
+      // Single series
       const selectedSeries = series.value.find(s => s.id === selectedSeriesId.value);
       return selectedSeries ? `${selectedSeries.name} - Complete Translation` : 'Series Translation';
-    case 'multiple-series':
-      return `${selectedSeriesIds.value.length} Series - Translation Collection`;
-    default:
-      return 'Translation Share';
+    }
   }
-};
-
-const getShareTypeLabel = (): string => {
-  const labels = {
-    chapter: 'Single Chapter',
-    chapters: 'Multiple Chapters',
-    series: 'Complete Series',
-    'multiple-series': 'Multiple Series'
-  };
-  return labels[shareType.value];
 };
 
 const getContentSummary = (): string => {
@@ -350,28 +352,26 @@ const handleShare = async () => {
 
   isCreatingShare.value = true;
 
+  const isChapterMode: boolean = selectedChapterId.value !== undefined || selectedChapterIds.value !== undefined;
+  const isMultiSelect: boolean = selectedChapterIds.value !== undefined || selectedSeriesIds.value !== undefined;
+
+  let chapterIds: string[] | undefined;
+  let seriesIds: string[] | undefined;
+
+  if (isChapterMode) {
+    chapterIds = isMultiSelect ? selectedChapterIds.value : [selectedChapterId.value];
+  } else {
+    seriesIds = isMultiSelect ? selectedSeriesIds.value : [selectedSeriesId.value];
+  }
+
   const request: ShareRequest = {
-    type: shareType.value,
     title: shareTitle.value || getDefaultTitle(),
     description: shareDescription.value || undefined,
     expirationDays: shareExpiration.value === '0' ? undefined : parseInt(shareExpiration.value),
-    password: sharePasswordProtected.value ? sharePassword.value : undefined
+    password: sharePasswordProtected.value ? sharePassword.value : undefined,
+    chapterIds,
+    seriesIds
   };
-
-  switch (shareType.value) {
-    case 'chapter':
-      request.chapterIds = [selectedChapterId.value];
-      break;
-    case 'chapters':
-      request.chapterIds = selectedChapterIds.value;
-      break;
-    case 'series':
-      request.seriesIds = [selectedSeriesId.value];
-      break;
-    case 'multiple-series':
-      request.seriesIds = selectedSeriesIds.value;
-      break;
-  }
 
   try {
     const result = await createShare(request);
@@ -385,14 +385,4 @@ const handleShare = async () => {
     isCreatingShare.value = false;
   }
 };
-
-// Reset selections when share type changes
-watch(shareType, () => {
-  selectedChapterId.value = '';
-  selectedChapterIds.value = [];
-  selectedSeriesId.value = '';
-  selectedSeriesIds.value = [];
-  shareTitle.value = '';
-  shareDescription.value = '';
-});
 </script>

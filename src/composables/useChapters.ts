@@ -21,7 +21,7 @@ export function useChapters() {
   );
 
   const currentChapter = computed(() => 
-    chapters.value.find(chapter => chapter.id === currentChapterId.value)
+    chapters.value.find(chapter => chapter.id === currentChapterId.value) || null
   );
 
   const currentSeries = computed(() =>
