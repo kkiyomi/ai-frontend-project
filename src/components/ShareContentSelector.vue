@@ -1,68 +1,78 @@
 <template>
   <div class="space-y-4">
     <div>
-      <h4 class="font-medium text-gray-900 mb-3">{{ title }}</h4>
+      <h4 class="font-medium text-gray-900 mb-3">Select Content to Share</h4>
 
       <!-- Bulk Actions -->
-      <div v-if="isMultiSelect" class="mb-3 flex items-center justify-between">
+      <div class="mb-3 flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <button
-            @click="handleSelectAll"
+            @click="selectAllSeries"
             class="text-sm text-blue-600 hover:text-blue-700"
           >
-            Select All
+            Select All Series
           </button>
           <span class="text-gray-300">|</span>
           <button
-            @click="handleClearAll"
+            @click="clearAllSelections"
             class="text-sm text-gray-600 hover:text-gray-700"
           >
             Clear All
           </button>
         </div>
-        <div class="text-sm text-gray-500">{{ selectedCount }} selected</div>
+        <div class="text-sm text-gray-500">{{ totalSelectedCount }} selected</div>
       </div>
 
       <!-- Search -->
-      <div v-if="showSearch" class="mb-3">
+      <div class="mb-3">
         <input
           :value="searchQuery"
           @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
           type="text"
-          placeholder="Search chapters..."
+          placeholder="Search series and chapters..."
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
         />
       </div>
 
       <!-- Selection List -->
-      <div :class="containerClass">
-        <!-- Chapter Selection (grouped by series) -->
-        <div v-if="isChapterMode" v-for="seriesItem in displayData" :key="seriesItem.id" class="border-b border-gray-100 last:border-b-0">
+      <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg">
+        <div v-for="seriesItem in filteredSeries" :key="seriesItem.id" class="border-b border-gray-100 last:border-b-0">
+          <!-- Series Header -->
           <div class="p-3 bg-gray-50 font-medium text-gray-900 text-sm flex items-center justify-between">
-            <span>{{ seriesItem.name }}</span>
-            <div v-if="isMultiSelect" class="flex items-center space-x-2">
-              <button
-                @click="toggleSeriesSelection(seriesItem.id)"
-                class="text-xs text-blue-600 hover:text-blue-700"
-              >
-                {{ isSeriesFullySelected(seriesItem.id) ? 'Deselect All' : 'Select All' }}
-              </button>
+            <div class="flex items-center space-x-3">
+              <input
+                :checked="isSeriesSelected(seriesItem.id)"
+                @change="toggleSeriesSelection(seriesItem.id, ($event.target as HTMLInputElement).checked)"
+                type="checkbox"
+                class="text-blue-600 focus:ring-blue-500"
+              />
+              <span>{{ seriesItem.name }}</span>
+            </div>
+            <div class="flex items-center space-x-3">
               <span class="text-xs text-gray-500">
-                {{ getSelectedChaptersInSeries(seriesItem.id) }}/{{ getTranslatedChapters(seriesItem.chapters).length }}
+                {{ getSeriesTranslationProgress(seriesItem) }}% translated • {{ getTranslatedChapters(seriesItem.chapters).length }} chapters
               </span>
+              <button
+                @click="toggleSeriesExpansion(seriesItem.id)"
+                class="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded"
+              >
+                {{ isSeriesExpanded(seriesItem.id) ? 'Collapse' : 'Expand' }}
+              </button>
             </div>
           </div>
-          <div class="divide-y divide-gray-100">
+
+          <!-- Chapter List (when expanded) -->
+          <div v-if="isSeriesExpanded(seriesItem.id)" class="divide-y divide-gray-100 bg-white">
             <label
-              v-for="chapter in getDisplayChapters(seriesItem.chapters)"
+              v-for="chapter in getFilteredChapters(seriesItem.chapters)"
               :key="chapter.id"
-              class="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
+              class="flex items-center space-x-3 p-3 pl-8 hover:bg-gray-50 cursor-pointer"
             >
               <input
                 :value="chapter.id"
-                :checked="isSelected(chapter.id)"
-                @change="handleToggle(chapter.id, ($event.target as HTMLInputElement).checked)"
-                :type="inputType"
+                :checked="isChapterSelected(chapter.id)"
+                @change="toggleChapterSelection(chapter.id, seriesItem.id, ($event.target as HTMLInputElement).checked)"
+                type="checkbox"
                 class="text-blue-600 focus:ring-blue-500"
               />
               <div class="flex-1 min-w-0">
@@ -72,54 +82,21 @@
             </label>
           </div>
         </div>
-
-        <!-- Series Selection (direct) -->
-        <div v-else class="divide-y divide-gray-100">
-          <label
-            v-for="seriesItem in displayData"
-            :key="seriesItem.id"
-            :class="isMultiSelect ?
-              'flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer' :
-              'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer mb-2'"
-          >
-            <input
-              :value="seriesItem.id"
-              :checked="isSelected(seriesItem.id)"
-              @change="handleToggle(seriesItem.id, ($event.target as HTMLInputElement).checked)"
-              :type="inputType"
-              class="text-blue-600 focus:ring-blue-500"
-            />
-            <div class="flex-1">
-              <div class="text-sm font-medium text-gray-900">{{ seriesItem.name }}</div>
-              <div class="text-xs text-gray-500">
-                {{ getSeriesTranslationProgress(seriesItem) }}% translated • {{ seriesItem.chapters.length }} chapters • {{ getSeriesWordCount(seriesItem) }} words
-              </div>
-            </div>
-          </label>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Series, Chapter } from '../types';
 
 interface Props {
   series: Series[];
-  selectedChapterId?: string;
-  selectedChapterIds?: string[];
-  selectedSeriesId?: string;
-  selectedSeriesIds?: string[];
   searchQuery?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  selectedChapterId: '',
-  selectedChapterIds: () => [],
-  selectedSeriesId: '',
-  selectedSeriesIds: () => [],
   searchQuery: ''
 });
 
@@ -136,134 +113,141 @@ const emit = defineEmits<{
   'toggleSeriesSelection': [seriesId: string];
 }>();
 
-// Determine mode based on which props are provided
-const isChapterMode = computed(() =>
-  props.selectedChapterId !== undefined || props.selectedChapterIds !== undefined
-);
+// Internal state
+const selectedSeriesIds = ref<string[]>([]);
+const selectedChapterIds = ref<string[]>([]);
+const expandedSeriesIds = ref<string[]>([]);
 
-const isMultiSelect = computed(() =>
-  props.selectedChapterIds !== undefined || props.selectedSeriesIds !== undefined
-);
+// Computed properties
+const filteredSeries = computed(() => {
+  if (!props.searchQuery) return getSeriesWithTranslations();
 
-const showSearch = computed(() =>
-  isChapterMode.value && isMultiSelect.value
-);
-
-// Dynamic computed properties
-const title = computed(() => {
-  if (isChapterMode.value) {
-    return isMultiSelect.value ? 'Select Chapters' : 'Select Chapter';
-  }
-  return 'Select Series';
+  const query = props.searchQuery.toLowerCase();
+  return getSeriesWithTranslations().filter(s => {
+    const seriesMatches = s.name.toLowerCase().includes(query);
+    const chapterMatches = s.chapters.some(c =>
+      c.title.toLowerCase().includes(query)
+    );
+    return seriesMatches || chapterMatches;
+  });
 });
 
-const inputType = computed(() => isMultiSelect.value ? 'checkbox' : 'radio');
+const totalSelectedCount = computed(() => {
+  const seriesCount = selectedSeriesIds.value.length;
+  const individualChaptersCount = selectedChapterIds.value.filter(chapterId => {
+    const chapter = getAllChapters().find(c => c.id === chapterId);
+    return chapter && !selectedSeriesIds.value.includes(chapter.seriesId || '');
+  }).length;
 
-const containerClass = computed(() => {
-  if (isChapterMode.value) {
-    return isMultiSelect.value
-      ? 'max-h-80 overflow-y-auto border border-gray-200 rounded-lg'
-      : 'max-h-64 overflow-y-auto border border-gray-200 rounded-lg';
-  }
-  return isMultiSelect.value
-    ? 'max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100'
-    : 'space-y-2';
+  return seriesCount + individualChaptersCount;
 });
 
-const selectedCount = computed(() => {
-  if (isChapterMode.value) {
-    return props.selectedChapterIds?.length || 0;
-  }
-  return props.selectedSeriesIds?.length || 0;
-});
-
-// Data filtering and display
-const displayData = computed(() => {
-  const baseData = isChapterMode.value
-    ? props.series
-    : getSeriesWithTranslations();
-
-  if (!showSearch.value || !props.searchQuery) {
-    return baseData;
-  }
-
-  // Filter for chapter search
-  return baseData.map(s => ({
-    ...s,
-    chapters: s.chapters.filter(c =>
-      c.title.toLowerCase().includes(props.searchQuery.toLowerCase())
-    )
-  })).filter(s => s.chapters.length > 0);
-});
-
-// Unified selection logic
-const isSelected = (id: string): boolean => {
-  if (isChapterMode.value) {
-    return isMultiSelect.value
-      ? (props.selectedChapterIds || []).includes(id)
-      : props.selectedChapterId === id;
-  }
-  return isMultiSelect.value
-    ? (props.selectedSeriesIds || []).includes(id)
-    : props.selectedSeriesId === id;
+// Selection logic
+const isSeriesSelected = (seriesId: string): boolean => {
+  return selectedSeriesIds.value.includes(seriesId);
 };
 
-const handleToggle = (id: string, checked: boolean) => {
-  if (isChapterMode.value) {
-    if (isMultiSelect.value) {
-      const currentIds = props.selectedChapterIds || [];
-      const newIds = checked
-        ? [...currentIds, id]
-        : currentIds.filter(selectedId => selectedId !== id);
-      emit('update:selectedChapterIds', newIds);
-    } else {
-      emit('update:selectedChapterId', id);
+const isChapterSelected = (chapterId: string): boolean => {
+  const chapter = getAllChapters().find(c => c.id === chapterId);
+  if (!chapter) return false;
+
+  // If the whole series is selected, chapter is automatically selected
+  if (selectedSeriesIds.value.includes(chapter.seriesId || '')) return true;
+
+  // Otherwise check individual chapter selection
+  return selectedChapterIds.value.includes(chapterId);
+};
+
+const isSeriesExpanded = (seriesId: string): boolean => {
+  return expandedSeriesIds.value.includes(seriesId);
+};
+
+const toggleSeriesSelection = (seriesId: string, checked: boolean) => {
+  if (checked) {
+    if (!selectedSeriesIds.value.includes(seriesId)) {
+      selectedSeriesIds.value.push(seriesId);
+    }
+    // Remove individual chapters from this series since whole series is selected
+    const seriesChapters = getTranslatedChapters(
+      props.series.find(s => s.id === seriesId)?.chapters || []
+    );
+    selectedChapterIds.value = selectedChapterIds.value.filter(
+      chapterId => !seriesChapters.some(c => c.id === chapterId)
+    );
+  } else {
+    selectedSeriesIds.value = selectedSeriesIds.value.filter(id => id !== seriesId);
+  }
+
+  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
+  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
+};
+
+const toggleChapterSelection = (chapterId: string, seriesId: string, checked: boolean) => {
+  if (checked) {
+    // If series is selected, unselect it first
+    if (selectedSeriesIds.value.includes(seriesId)) {
+      selectedSeriesIds.value = selectedSeriesIds.value.filter(id => id !== seriesId);
+      // Add all other chapters from this series
+      const seriesChapters = getTranslatedChapters(
+        props.series.find(s => s.id === seriesId)?.chapters || []
+      );
+      seriesChapters.forEach(chapter => {
+        if (chapter.id !== chapterId && !selectedChapterIds.value.includes(chapter.id)) {
+          selectedChapterIds.value.push(chapter.id);
+        }
+      });
+    }
+
+    if (!selectedChapterIds.value.includes(chapterId)) {
+      selectedChapterIds.value.push(chapterId);
     }
   } else {
-    if (isMultiSelect.value) {
-      const currentIds = props.selectedSeriesIds || [];
-      const newIds = checked
-        ? [...currentIds, id]
-        : currentIds.filter(selectedId => selectedId !== id);
-      emit('update:selectedSeriesIds', newIds);
-    } else {
-      emit('update:selectedSeriesId', id);
-    }
+    selectedChapterIds.value = selectedChapterIds.value.filter(id => id !== chapterId);
   }
+
+  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
+  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
 };
 
-const handleSelectAll = () => {
-  if (isChapterMode.value) {
-    emit('selectAllChapters');
+const toggleSeriesExpansion = (seriesId: string) => {
+  if (expandedSeriesIds.value.includes(seriesId)) {
+    expandedSeriesIds.value = expandedSeriesIds.value.filter(id => id !== seriesId);
   } else {
-    emit('selectAllSeries');
+    expandedSeriesIds.value.push(seriesId);
   }
 };
 
-const handleClearAll = () => {
-  if (isChapterMode.value) {
-    emit('clearAllChapters');
-  } else {
-    emit('clearAllSeries');
-  }
+const selectAllSeries = () => {
+  const allSeriesIds = getSeriesWithTranslations().map(s => s.id);
+  selectedSeriesIds.value = [...allSeriesIds];
+  selectedChapterIds.value = [];
+  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
+  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
 };
 
-const toggleSeriesSelection = (seriesId: string) => {
-  emit('toggleSeriesSelection', seriesId);
+const clearAllSelections = () => {
+  selectedSeriesIds.value = [];
+  selectedChapterIds.value = [];
+  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
+  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
 };
 
 // Helper functions
+const getAllChapters = (): (Chapter & { seriesId?: string })[] => {
+  return props.series.flatMap(s =>
+    s.chapters.map(c => ({ ...c, seriesId: s.id }))
+  );
+};
+
 const getTranslatedChapters = (chapters: Chapter[]) => {
   return chapters.filter(chapter =>
     chapter.originalParagraphs.some(p => p.trim())
   );
 };
 
-const getDisplayChapters = (chapters: Chapter[]) => {
+const getFilteredChapters = (chapters: Chapter[]) => {
   const translated = getTranslatedChapters(chapters);
-  if (!showSearch.value || !props.searchQuery) {
-    return translated;
-  }
+  if (!props.searchQuery) return translated;
 
   return translated.filter(c =>
     c.title.toLowerCase().includes(props.searchQuery.toLowerCase())
@@ -292,31 +276,5 @@ const getSeriesTranslationProgress = (series: Series): number => {
   );
   if (totalParagraphs === 0) return 0;
   return Math.round((translatedParagraphs / totalParagraphs) * 100);
-};
-
-const getSeriesWordCount = (series: Series): number => {
-  return series.chapters.reduce((sum, c) =>
-    sum + c.originalParagraphs.reduce((pSum, p) =>
-      pSum + p.split(' ').length, 0
-    ), 0
-  );
-};
-
-const isSeriesFullySelected = (seriesId: string): boolean => {
-  const seriesChapters = getTranslatedChapters(
-    props.series.find(s => s.id === seriesId)?.chapters || []
-  );
-  const seriesChapterIds = seriesChapters.map(c => c.id);
-  const selectedIds = props.selectedChapterIds || [];
-  return seriesChapterIds.length > 0 && seriesChapterIds.every(id => selectedIds.includes(id));
-};
-
-const getSelectedChaptersInSeries = (seriesId: string): number => {
-  const seriesChapters = getTranslatedChapters(
-    props.series.find(s => s.id === seriesId)?.chapters || []
-  );
-  const seriesChapterIds = seriesChapters.map(c => c.id);
-  const selectedIds = props.selectedChapterIds || [];
-  return seriesChapterIds.filter(id => selectedIds.includes(id)).length;
 };
 </script>

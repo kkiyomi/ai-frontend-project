@@ -367,7 +367,6 @@ export class MockAPI {
     const expiresAt = request.expirationDays 
       ? new Date(Date.now() + request.expirationDays * 24 * 60 * 60 * 1000)
       : undefined;
-    
     // Store the shared content (in a real app, this would be in a database)
     const sharedContent = await this.buildSharedContent(request, shareId, expiresAt, request.password);
     if (sharedContent) {
@@ -459,38 +458,22 @@ export class MockAPI {
   }
 
   private async buildSharedContent(
-    request: ShareRequest, 
-    shareId: string, 
-    expiresAt?: Date, 
+    request: ShareRequest,
+    shareId: string,
+    expiresAt?: Date,
     password?: string
   ): Promise<SharedContent | null> {
     let chapters: Chapter[] = [];
-    
-    switch (request.type) {
-      case 'chapter':
-        if (request.chapterIds && request.chapterIds.length > 0) {
-          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
-        }
-        break;
-      case 'chapters':
-        if (request.chapterIds && request.chapterIds.length > 0) {
-          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
-        }
-        break;
-      case 'series':
-        if (request.seriesIds && request.seriesIds.length > 0) {
-          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
-        }
-        break;
-      case 'multiple-series':
-        if (request.seriesIds && request.seriesIds.length > 0) {
-          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
-        }
-        break;
+
+    // Get chapters based on what's provided in the request
+    if (request.chapterIds && request.chapterIds.length > 0) {
+      chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
+    } else if (request.seriesIds && request.seriesIds.length > 0) {
+      chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
     }
-    
+
     if (chapters.length === 0) return null;
-    
+
     const sharedChapters: SharedChapter[] = chapters.map(chapter => {
       const series = mockSeries.find(s => s.id === chapter.seriesId);
       
@@ -503,17 +486,16 @@ export class MockAPI {
         seriesId: chapter.seriesId
       };
     });
-    
+
     return {
-      id: shareId,
-      type: request.type,
-      title: request.title || 'Shared Translation',
-      description: request.description,
-      content: sharedChapters,
-      createdAt: new Date(),
-      expiresAt,
-      isPasswordProtected: !!password,
-      password: password // Store password for demo (in real app, this would be hashed)
+        id: shareId,
+        title: request.title || 'Shared Translation',
+        description: request.description,
+        content: sharedChapters,
+        createdAt: new Date(),
+        expiresAt,
+        isPasswordProtected: !!password,
+        password: password // Store password for demo (in real app, this would be hashed)
     };
   }
 }
