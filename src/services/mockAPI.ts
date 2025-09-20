@@ -1,7 +1,23 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
 import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '../types/sharing';
-import { mockSeries, mockChapters, mockGlossaryTerms } from '../mock';
+import mockSeriesData from '../mock/series';
+import mockChaptersData from '../mock/chapters';
+import mockGlossaryTermsData from '../mock/glossaryTerms';
 
+// Create working copies that we can modify
+let mockSeries = [...mockSeriesData];
+let mockChapters = [...mockChaptersData];
+let mockGlossaryTerms = [...mockGlossaryTermsData];
+
+// Initialize series with their chapters
+const initializeSeriesWithChapters = () => {
+  mockSeries.forEach(series => {
+    series.chapters = mockChapters.filter(chapter => chapter.seriesId === series.id);
+  });
+};
+
+// Initialize on module load
+initializeSeriesWithChapters();
 // Simulate network delay for realistic testing
 const simulateDelay = (min = 500, max = 2000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -112,6 +128,9 @@ export class MockAPI {
   async getSeries(): Promise<APIResponse<typeof mockSeries>> {
     await simulateDelay(300, 800);
     
+    // Ensure series have their chapters populated
+    initializeSeriesWithChapters();
+    
     return {
       success: true,
       data: mockSeries,
@@ -195,27 +214,28 @@ export class MockAPI {
   ): Promise<APIResponse<typeof mockChapters[0]>> {
     await simulateDelay(800, 1500);
     
-    const paragraphs = content
+    const originalParagraphs = content
       .split('\n')
       .map(p => p.trim())
-      .filter(p => p.length > 0)
-      .map((text, index) => ({
-        id: `ch${Date.now()}-p${index}`,
-        originalText: text,
-        translatedText: '',
-        isEditing: false,
-        chapterId: `ch${Date.now()}`
-      }));
+      .filter(p => p.length > 0);
 
     const newChapter = {
       id: `ch${Date.now()}`,
       title,
       content,
-      paragraphs,
+      translatedContent: '',
+      originalParagraphs,
+      translatedParagraphs: [],
       seriesId
     };
     
     mockChapters.push(newChapter);
+    
+    // Update the series with the new chapter
+    const series = mockSeries.find(s => s.id === seriesId);
+    if (series) {
+      series.chapters.push(newChapter);
+    }
     
     return {
       success: true,
@@ -236,6 +256,15 @@ export class MockAPI {
     
     mockChapters[index] = { ...mockChapters[index], ...updates };
     
+    // Update the chapter in its series as well
+    const series = mockSeries.find(s => s.id === mockChapters[index].seriesId);
+    if (series) {
+      const seriesChapterIndex = series.chapters.findIndex(ch => ch.id === chapterId);
+      if (seriesChapterIndex !== -1) {
+        series.chapters[seriesChapterIndex] = mockChapters[index];
+      }
+    }
+    
     return {
       success: true,
       data: mockChapters[index],
@@ -253,7 +282,14 @@ export class MockAPI {
       };
     }
     
+    const chapter = mockChapters[index];
     mockChapters.splice(index, 1);
+    
+    // Remove the chapter from its series as well
+    const series = mockSeries.find(s => s.id === chapter.seriesId);
+    if (series) {
+      series.chapters = series.chapters.filter(ch => ch.id !== chapterId);
+    }
     
     return {
       success: true,
@@ -488,6 +524,7 @@ export class MockAPI {
     });
 
     return {
+        type: request.chapterIds ? 'chapters' : 'series',
         id: shareId,
         title: request.title || 'Shared Translation',
         description: request.description,

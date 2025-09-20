@@ -1,5 +1,4 @@
 export interface ShareRequest {
-  type: 'chapter' | 'chapters' | 'series' | 'multiple-series';
   chapterIds?: string[];
   seriesIds?: string[];
   title?: string;

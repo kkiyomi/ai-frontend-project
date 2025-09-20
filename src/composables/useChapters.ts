@@ -84,9 +84,8 @@ export function useChapters() {
 //         const loadedSeries = await Promise.all(chapterPromises);
 
         async function loadChaptersForSeries(seriesData: any[]) {
-          const ids = seriesData.map(s => s.id).join(",");
-
-          const { success, data } = await getChapters(ids);
+          // Load all chapters at once for better performance
+          const { success, data } = await getChapters();
           if (!success || !data) {
             return seriesData.map(s => ({ ...s, chapters: [] }));
           }

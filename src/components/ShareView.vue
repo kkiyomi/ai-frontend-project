@@ -249,6 +249,10 @@ onMounted(async () => {
     const response = await getSharedContent(shareId.value);
     if (response.success && response.data) {
       sharedContent.value = response.data;
+      // If not password protected, allow immediate access
+      if (!response.data.isPasswordProtected) {
+        isPasswordVerified.value = true;
+      }
     }
   }
 });
@@ -269,12 +273,17 @@ const verifyPassword = async () => {
     const storedShare = localStorage.getItem(`share-${shareId.value}`);
     if (storedShare) {
       const shareData = JSON.parse(storedShare);
-      // For demo, we'll assume password is stored (in real app, this would be hashed)
-      if (shareData.password === passwordInput.value) {
-        isPasswordVerified.value = true;
-        passwordError.value = '';
+      if (shareData.isPasswordProtected) {
+        // For demo, we'll assume password is stored (in real app, this would be hashed)
+        if (shareData.password === passwordInput.value) {
+          isPasswordVerified.value = true;
+          passwordError.value = '';
+        } else {
+          passwordError.value = 'Incorrect password. Please try again.';
+        }
       } else {
-        passwordError.value = 'Incorrect password. Please try again.';
+        // Not password protected, allow access
+        isPasswordVerified.value = true;
       }
     } else {
       passwordError.value = 'Share not found or has expired.';
