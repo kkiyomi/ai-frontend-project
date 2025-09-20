@@ -89,7 +89,6 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useChapters } from '../composables/useChapters';
 import { useSharing } from '../composables/useSharing';
-import ShareTypeSelector from './ShareTypeSelector.vue';
 import ShareContentSelector from './ShareContentSelector.vue';
 import ShareDetailsForm from './ShareDetailsForm.vue';
 import SharePreview from './SharePreview.vue';
@@ -105,7 +104,6 @@ const { series } = useChapters();
 const { createShare } = useSharing();
 
 // Create share form state
-const shareType = ref<'chapter' | 'chapters' | 'series' | 'multiple-series'>('chapter');
 const selectedChapterId = ref('');
 const selectedChapterIds = ref<string[]>([]);
 const selectedSeriesId = ref('');
