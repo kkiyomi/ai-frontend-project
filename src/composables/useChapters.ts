@@ -9,23 +9,51 @@ const currentSeriesId = ref<string | null>(null);
 const isLoading = ref<boolean>(false);
 const error = ref<string | null>(null);
 
+// Cache for loaded data to avoid redundant API calls
+let dataLoaded = false;
+let loadingPromise: Promise<void> | null = null;
+
 export function useChapters() {
-  const { getSeries, getChapters, createSeries: createSeriesAPI } = useDataAPI();
+  const { getSeries, getChapters, createSeries: createSeriesAPI, updateSeries: updateSeriesAPI, deleteSeries: deleteSeriesAPI, updateChapter: updateChapterAPI } = useDataAPI();
 
   const chapters = computed(() => 
     series.value.flatMap(s => s.chapters)
   );
 
   const currentChapter = computed(() => 
-    chapters.value.find(chapter => chapter.id === currentChapterId.value)
+    chapters.value.find(chapter => chapter.id === currentChapterId.value) || null
   );
 
   const currentSeries = computed(() =>
     series.value.find(s => s.id === currentSeriesId.value)
   );
 
+  function buildOriginalParagraphs(content: string): string[] {
+    return content.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+  }
+
+  function buildTranslatedParagraphs(translatedContent: string): string[] {
+    return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+  }
+
   // Load series and chapters from API
   const loadSeriesFromAPI = async (): Promise<void> => {
+    // Avoid multiple simultaneous loads
+    if (loadingPromise) {
+      return loadingPromise;
+    }
+    
+    // Return early if data is already loaded
+    if (dataLoaded && series.value.length > 0) {
+      return;
+    }
+
+    loadingPromise = performLoad();
+    await loadingPromise;
+    loadingPromise = null;
+  };
+
+  const performLoad = async (): Promise<void> => {
     try {
       isLoading.value = true;
       error.value = null;
@@ -33,15 +61,49 @@ export function useChapters() {
       // Fetch series data
       const seriesResponse = await getSeries();
       if (seriesResponse.success && seriesResponse.data) {
-        series.value = seriesResponse.data;
+        const seriesData = seriesResponse.data;
+        
+//         // Load chapters for all series in parallel for better performance
+//         const chapterPromises = seriesData.map(async (seriesItem) => {
+//           const chaptersResponse = await getChapters(seriesItem.id);
+//           if (chaptersResponse.success && chaptersResponse.data) {
+//             const enrichedChapters = chaptersResponse.data.map((chapter: any) => ({
+//               ...chapter,
+//               translatedContent: chapter.translatedContent || '',
+//               originalParagraphs: buildOriginalParagraphs(chapter.content),
+//               translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
+//             }));
+//             seriesItem.chapters = enrichedChapters;
+//           } else {
+//             seriesItem.chapters = [];
+//           }
+//           return seriesItem;
+//         });
+//
+//         // Wait for all chapter loading to complete
+//         const loadedSeries = await Promise.all(chapterPromises);
 
-        // Load chapters for each series
-        for (const seriesItem of series.value) {
-          const chaptersResponse = await getChapters(seriesItem.id);
-          if (chaptersResponse.success && chaptersResponse.data) {
-            seriesItem.chapters = chaptersResponse.data;
+        async function loadChaptersForSeries(seriesData: any[]) {
+          // Load all chapters at once for better performance
+          const { success, data } = await getChapters();
+          if (!success || !data) {
+            return seriesData.map(s => ({ ...s, chapters: [] }));
           }
+
+          return seriesData.map(seriesItem => ({
+            ...seriesItem,
+            chapters: (data.filter((c: any) => c.seriesId === seriesItem.id) || [])
+              .map((chapter: any) => ({
+                ...chapter,
+                translatedContent: chapter.translatedContent || '',
+                originalParagraphs: buildOriginalParagraphs(chapter.content),
+                translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
+              })),
+          }));
         }
+        const loadedSeries = await loadChaptersForSeries(seriesData)
+        series.value = loadedSeries;
+        dataLoaded = true;
 
         // Set current series and chapter if data exists
         if (series.value.length > 0) {
@@ -111,7 +173,14 @@ export function useChapters() {
     return newSeries;
   };
 
-  const removeSeries = (seriesId: string): void => {
+  const updateSeries = async (seriesId: string, updates: Partial<Series>): Promise<void> => {
+    const index = series.value.findIndex(s => s.id === seriesId);
+    if (index !== -1) {
+      series.value[index] = { ...series.value[index], ...updates };
+    }
+  };
+
+  const deleteSeries = async (seriesId: string): Promise<void> => {
     series.value = series.value.filter(s => s.id !== seriesId);
     
     // Update current series if the removed one was selected
@@ -172,21 +241,15 @@ export function useChapters() {
       }
       
       const chapterId = originalFile ? originalFile.name : `scraped-${Date.now()}`;
-      const paragraphs = content.split('\n').map(p => p.trim()).filter(p => p.length > 0).map((text, index) => ({
-        id: `${chapterId}-p${index}`,
-        originalText: text,
-        translatedText: '',
-        isEditing: false,
-        chapterId,
-      }));
 
       const chapter: Chapter = {
         id: chapterId,
         title,
         content,
-        paragraphs,
+        translatedContent: '',
+        originalParagraphs: buildOriginalParagraphs(content),
+        translatedParagraphs: [],
         seriesId: seriesId,
-        originalFile,
       };
 
       // Add chapter to the appropriate series
@@ -220,6 +283,15 @@ export function useChapters() {
     }
   };
 
+  const updateChapter = async (chapterId: string, updates: Partial<Chapter>): Promise<void> => {
+    series.value.forEach(s => {
+      const chapterIndex = s.chapters.findIndex(ch => ch.id === chapterId);
+      if (chapterIndex !== -1) {
+        s.chapters[chapterIndex] = { ...s.chapters[chapterIndex], ...updates };
+      }
+    });
+  };
+
   const removeChapter = (chapterId: string): void => {
     // Find and remove chapter from its series
     series.value.forEach(s => {
@@ -232,36 +304,28 @@ export function useChapters() {
   };
 
   const updateParagraphTranslation = (paragraphId: string, translation: string): void => {
-    const chapter = chapters.value.find(ch =>
-      ch.paragraphs.some(p => p.id === paragraphId)
-    );
-    
-    if (chapter) {
-      const paragraph = chapter.paragraphs.find(p => p.id === paragraphId);
-      if (paragraph) {
-        paragraph.translatedText = translation;
-      }
-    }
+    // This method is no longer needed with the new paragraph structure
+    // Translation updates are handled through chapter-level operations
   };
 
   const toggleParagraphEditing = (paragraphId: string): void => {
-    const chapter = chapters.value.find(ch =>
-      ch.paragraphs.some(p => p.id === paragraphId)
-    );
-    
-    if (chapter) {
-      const paragraph = chapter.paragraphs.find(p => p.id === paragraphId);
-      if (paragraph) {
-        paragraph.isEditing = !paragraph.isEditing;
-      }
-    }
+    // This method is no longer needed with the new paragraph structure
+    // Editing is handled at the chapter level
   };
 
   // Refresh data from API
   const refresh = async (): Promise<void> => {
+    // Reset loaded state to force reload
+    dataLoaded = false;
     await loadSeriesFromAPI();
   };
 
+  // Force reload data (clears cache)
+  const forceReload = async (): Promise<void> => {
+    dataLoaded = false;
+    series.value = [];
+    await loadSeriesFromAPI();
+  };
   return {
     series: computed(() => series.value),
     chapters: computed(() => chapters.value),
@@ -272,16 +336,19 @@ export function useChapters() {
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     createSeries,
-    removeSeries,
+    updateSeries,
+    deleteSeries,
     selectSeries,
     selectSeriesOnly,
     addChapter,
     addChapterFromText,
     selectChapter,
+    updateChapter,
     removeChapter,
     updateParagraphTranslation,
     toggleParagraphEditing,
     refresh,
+    forceReload,
     loadSeriesFromAPI,
   };
 }

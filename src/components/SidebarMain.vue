@@ -1,7 +1,10 @@
 <template>
-  <div ref="sidebar"
+  <div 
+    ref="sidebar"
     class="group relative bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out z-20"
-    :class="isExpanded ? 'w-80' : 'w-12'" @mouseenter="isExpanded = true">
+    :class="isExpanded ? 'w-80' : 'w-12'" 
+    @mouseenter="handleMouseEnter"
+  >
     <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length" :is-glossary-visible="isGlossaryVisible"
       @toggle-glossary="toggleGlossaryVisibility" />
 
@@ -23,17 +26,29 @@ const { isGlossaryVisible, toggleGlossaryVisibility } = useGlossary();
 const sidebar = ref<HTMLElement | null>(null);
 const isExpanded = ref(false);
 
+const handleMouseEnter = () => {
+  isExpanded.value = true;
+};
+
 const closeSidebarIfClickedOutside = (event: MouseEvent) => {
-  if (sidebar.value && !sidebar.value.contains(event.target as Node)) {
+  if (!sidebar.value || !isExpanded.value) return;
+
+  const target = event.target as HTMLElement;
+
+  // Check if the clicked element is the sidebar or any of its descendants
+  const isInsideSidebar = sidebar.value.contains(target) || sidebar.value === target;
+
+  if (!isInsideSidebar) {
     isExpanded.value = false;
   }
 };
 
 onMounted(() => {
-  document.addEventListener('click', closeSidebarIfClickedOutside);
+  // Use capture phase to ensure we catch the event before any child components
+  document.addEventListener('click', closeSidebarIfClickedOutside, true);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', closeSidebarIfClickedOutside);
+  document.removeEventListener('click', closeSidebarIfClickedOutside, true);
 });
 </script>

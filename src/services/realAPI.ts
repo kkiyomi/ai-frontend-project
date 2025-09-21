@@ -20,6 +20,19 @@ export class RealAPI {
     });
   }
 
+  async translateParagraph(
+    text: string,
+    chapterId: string,
+    paragraphIndex: number,
+    glossaryContext?: string[]
+  ): Promise<APIResponse<string>> {
+    return this.client.post<string>('/translate-paragraph', {
+      text,
+      chapterId,
+      paragraphIndex,
+      glossaryContext
+    });
+  }
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,
@@ -46,7 +59,7 @@ export class RealAPI {
   }
 
   async updateSeries(seriesId: string, updates: Partial<Series>): Promise<APIResponse<Series>> {
-    return this.client.put<Series>(`/series/${seriesId}`, updates);
+    return this.client.patch<Series>(`/series/${seriesId}`, updates);
   }
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
@@ -72,7 +85,7 @@ export class RealAPI {
   }
 
   async updateChapter(chapterId: string, updates: Partial<Chapter>): Promise<APIResponse<Chapter>> {
-    return this.client.put<Chapter>(`/chapters/${chapterId}`, updates);
+    return this.client.patch<Chapter>(`/chapters/${chapterId}`, updates);
   }
 
   async deleteChapter(chapterId: string): Promise<APIResponse<void>> {
@@ -96,19 +109,19 @@ export class RealAPI {
       additional_params += `?${params.toString()}`;
     }
     
-    return this.client.get<GlossaryTerm[]>('/glossary' + additional_params);
+    return this.client.get<GlossaryTerm[]>('/glossary-terms' + additional_params);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.post<GlossaryTerm>('/glossary', term);
+    return this.client.post<GlossaryTerm>('/glossary-terms', term);
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.put<GlossaryTerm>(`/glossary/${termId}`, updates);
+    return this.client.patch<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
   }
 
   async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
-    return this.client.delete<void>(`/glossary/${termId}`);
+    return this.client.delete<void>(`/glossary-terms/${termId}`);
   }
 
   // Sharing endpoints

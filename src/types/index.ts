@@ -10,17 +10,10 @@ export interface Chapter {
   id: string;
   title: string;
   content: string;
-  paragraphs: Paragraph[];
+  translatedContent: string;
+  originalParagraphs: string[];
+  translatedParagraphs: string[];
   seriesId: string;
-  originalFile?: File;
-}
-
-export interface Paragraph {
-  id: string;
-  originalText: string;
-  translatedText: string;
-  isEditing: boolean;
-  chapterId: string;
 }
 
 export interface GlossaryTerm {
@@ -28,7 +21,7 @@ export interface GlossaryTerm {
   term: string;
   definition: string;
   translation: string;
-  category: 'character' | 'place' | 'cultural' | 'idiom' | 'other';
+  category: string;
   frequency: number;
   isUserDefined: boolean;
   seriesId: string;

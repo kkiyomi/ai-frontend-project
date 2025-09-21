@@ -1,17 +1,19 @@
 import { ref } from 'vue';
 import type { ShareRequest, ShareResponse, SharedContent, APIResponse } from '../types';
-import { apiService } from '../services/apiService';
+import { useAPI } from './useAPI';
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 export function useSharing() {
+  const { createShare: createShareAPI, getSharedContent: getSharedContentAPI, deleteShare: deleteShareAPI } = useAPI();
+
   const createShare = async (request: ShareRequest): Promise<APIResponse<ShareResponse>> => {
     isLoading.value = true;
     error.value = null;
 
     try {
-      const response = await apiService.createShare(request);
+      const response = await createShareAPI(request);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create share';
@@ -30,7 +32,7 @@ export function useSharing() {
     error.value = null;
 
     try {
-      const response = await apiService.getSharedContent(shareId);
+      const response = await getSharedContentAPI(shareId);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load shared content';
@@ -49,7 +51,7 @@ export function useSharing() {
     error.value = null;
 
     try {
-      const response = await apiService.deleteShare(shareId);
+      const response = await deleteShareAPI(shareId);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete share';

@@ -51,9 +51,9 @@ export class APIClient {
     });
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
+  async patch<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   }

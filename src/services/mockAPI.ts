@@ -1,7 +1,23 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
 import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '../types/sharing';
-import { mockSeries, mockChapters, mockGlossaryTerms } from '../mock';
+import mockSeriesData from '../mock/series';
+import mockChaptersData from '../mock/chapters';
+import mockGlossaryTermsData from '../mock/glossaryTerms';
 
+// Create working copies that we can modify
+let mockSeries = [...mockSeriesData];
+let mockChapters = [...mockChaptersData];
+let mockGlossaryTerms = [...mockGlossaryTermsData];
+
+// Initialize series with their chapters
+const initializeSeriesWithChapters = () => {
+  mockSeries.forEach(series => {
+    series.chapters = mockChapters.filter(chapter => chapter.seriesId === series.id);
+  });
+};
+
+// Initialize on module load
+initializeSeriesWithChapters();
 // Simulate network delay for realistic testing
 const simulateDelay = (min = 500, max = 2000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -19,6 +35,7 @@ export class MockAPI {
     text: string, 
     glossaryContext?: string[]
   ): Promise<APIResponse<string>> {
+    console.log('MockAPI translateText')
     await simulateDelay();
     
     if (simulateFailure(0.05)) { // 5% failure rate
@@ -32,13 +49,38 @@ export class MockAPI {
     const contextNote = glossaryContext && glossaryContext.length > 0 
       ? ` (with context: ${glossaryContext.join(', ')})` 
       : '';
-    
+    console.log(contextNote)
+    console.log(text)
     return {
       success: true,
       data: `[Mock Translation]${contextNote} ${text}`,
     };
   }
 
+  async translateParagraph(
+    text: string,
+    chapterId: string,
+    paragraphIndex: number,
+    glossaryContext?: string[]
+  ): Promise<APIResponse<string>> {
+    await simulateDelay(300, 800);
+    
+    if (simulateFailure(0.03)) {
+      return {
+        success: false,
+        error: 'Paragraph translation failed'
+      };
+    }
+    
+    const contextNote = glossaryContext && glossaryContext.length > 0 
+      ? ` (with context: ${glossaryContext.join(', ')})` 
+      : '';
+    
+    return {
+      success: true,
+      data: `[Mock Paragraph Translation]${contextNote} ${text}`,
+    };
+  }
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,
@@ -85,6 +127,9 @@ export class MockAPI {
   // Series endpoints
   async getSeries(): Promise<APIResponse<typeof mockSeries>> {
     await simulateDelay(300, 800);
+    
+    // Ensure series have their chapters populated
+    initializeSeriesWithChapters();
     
     return {
       success: true,
@@ -169,27 +214,28 @@ export class MockAPI {
   ): Promise<APIResponse<typeof mockChapters[0]>> {
     await simulateDelay(800, 1500);
     
-    const paragraphs = content
+    const originalParagraphs = content
       .split('\n')
       .map(p => p.trim())
-      .filter(p => p.length > 0)
-      .map((text, index) => ({
-        id: `ch${Date.now()}-p${index}`,
-        originalText: text,
-        translatedText: '',
-        isEditing: false,
-        chapterId: `ch${Date.now()}`
-      }));
+      .filter(p => p.length > 0);
 
     const newChapter = {
       id: `ch${Date.now()}`,
       title,
       content,
-      paragraphs,
+      translatedContent: '',
+      originalParagraphs,
+      translatedParagraphs: [],
       seriesId
     };
     
     mockChapters.push(newChapter);
+    
+    // Update the series with the new chapter
+    const series = mockSeries.find(s => s.id === seriesId);
+    if (series) {
+      series.chapters.push(newChapter);
+    }
     
     return {
       success: true,
@@ -210,6 +256,15 @@ export class MockAPI {
     
     mockChapters[index] = { ...mockChapters[index], ...updates };
     
+    // Update the chapter in its series as well
+    const series = mockSeries.find(s => s.id === mockChapters[index].seriesId);
+    if (series) {
+      const seriesChapterIndex = series.chapters.findIndex(ch => ch.id === chapterId);
+      if (seriesChapterIndex !== -1) {
+        series.chapters[seriesChapterIndex] = mockChapters[index];
+      }
+    }
+    
     return {
       success: true,
       data: mockChapters[index],
@@ -227,7 +282,14 @@ export class MockAPI {
       };
     }
     
+    const chapter = mockChapters[index];
     mockChapters.splice(index, 1);
+    
+    // Remove the chapter from its series as well
+    const series = mockSeries.find(s => s.id === chapter.seriesId);
+    if (series) {
+      series.chapters = series.chapters.filter(ch => ch.id !== chapterId);
+    }
     
     return {
       success: true,
@@ -341,7 +403,6 @@ export class MockAPI {
     const expiresAt = request.expirationDays 
       ? new Date(Date.now() + request.expirationDays * 24 * 60 * 60 * 1000)
       : undefined;
-    
     // Store the shared content (in a real app, this would be in a database)
     const sharedContent = await this.buildSharedContent(request, shareId, expiresAt, request.password);
     if (sharedContent) {
@@ -433,61 +494,62 @@ export class MockAPI {
   }
 
   private async buildSharedContent(
-    request: ShareRequest, 
-    shareId: string, 
-    expiresAt?: Date, 
+    request: ShareRequest,
+    shareId: string,
+    expiresAt?: Date,
     password?: string
   ): Promise<SharedContent | null> {
     let chapters: Chapter[] = [];
-    
-    switch (request.type) {
-      case 'chapter':
-        if (request.chapterIds && request.chapterIds.length > 0) {
-          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
-        }
-        break;
-      case 'chapters':
-        if (request.chapterIds && request.chapterIds.length > 0) {
-          chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
-        }
-        break;
-      case 'series':
-        if (request.seriesIds && request.seriesIds.length > 0) {
-          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
-        }
-        break;
-      case 'multiple-series':
-        if (request.seriesIds && request.seriesIds.length > 0) {
-          chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
-        }
-        break;
+
+    // Get chapters from selected series (fully translated only)
+    if (request.seriesIds.length > 0) {
+      const seriesChapters = mockChapters.filter(c => 
+        request.seriesIds.includes(c.seriesId) &&
+        this.isChapterFullyTranslated(c)
+      );
+      chapters.push(...seriesChapters);
     }
     
+    // Get individual chapters (only if their series is not already selected)
+    if (request.chapterIds.length > 0) {
+      const individualChapters = mockChapters.filter(c => 
+        request.chapterIds.includes(c.id) &&
+        !request.seriesIds.includes(c.seriesId)
+      );
+      chapters.push(...individualChapters);
+    }
+
     if (chapters.length === 0) return null;
-    
+
     const sharedChapters: SharedChapter[] = chapters.map(chapter => {
       const series = mockSeries.find(s => s.id === chapter.seriesId);
       
       return {
         id: chapter.id,
         title: chapter.title,
-        originalText: chapter.paragraphs.map(p => p.originalText).join('\n\n'),
-        translatedText: chapter.paragraphs.map(p => p.translatedText).filter(t => t.trim()).join('\n\n'),
+        originalText: chapter.originalParagraphs.join('\n\n'),
+        translatedText: chapter.translatedParagraphs.filter(t => t.trim()).join('\n\n'),
         seriesName: series?.name || 'Unknown Series',
         seriesId: chapter.seriesId
       };
     });
-    
+
     return {
-      id: shareId,
-      type: request.type,
-      title: request.title || 'Shared Translation',
-      description: request.description,
-      content: sharedChapters,
-      createdAt: new Date(),
-      expiresAt,
-      isPasswordProtected: !!password,
-      password: password // Store password for demo (in real app, this would be hashed)
+        type: request.seriesIds.length > 0 ? 'series' : 'chapters',
+        id: shareId,
+        title: request.title || 'Shared Translation',
+        description: request.description,
+        content: sharedChapters,
+        createdAt: new Date(),
+        expiresAt,
+        isPasswordProtected: !!password,
+        password: password // Store password for demo (in real app, this would be hashed)
     };
+  }
+  
+  private isChapterFullyTranslated(chapter: Chapter): boolean {
+    if (chapter.originalParagraphs.length === 0) return false;
+    const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
+    return translatedCount === chapter.originalParagraphs.length;
   }
 }

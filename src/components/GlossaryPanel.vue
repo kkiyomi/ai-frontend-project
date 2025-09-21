@@ -22,6 +22,20 @@
         Series: {{ currentSeries.name }} (series-level terms)
       </p>
       
+      <!-- Highlight Terms Toggle -->
+      <div class="mt-3">
+        <button
+          @click="toggleHighlight"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium"
+          :class="isHighlightEnabled ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+          </svg>
+          <span>{{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}</span>
+        </button>
+      </div>
+      
       <!-- Add Term Button -->
       <div class="mt-3">
         <button
@@ -79,26 +93,34 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
           ></textarea>
         </div>
-        <div class="flex items-center space-x-3">
+        <div>
           <select
             v-model="newTerm.category"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
-            <option value="character">Character</option>
-            <option value="place">Place</option>
-            <option value="cultural">Cultural</option>
-            <option value="idiom">Idiom</option>
-            <option value="other">Other</option>
+            <option value="">Select category...</option>
+            <option value="Character">Character</option>
+            <option value="Place">Place</option>
+            <option value="Cultural">Cultural</option>
+            <option value="Other">Other</option>
           </select>
-          <button
-            type="submit"
-            :disabled="!newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-            :class="{ 'opacity-50 cursor-not-allowed': !newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError }"
-          >
-            Add
-          </button>
+          <input
+            v-if="newTerm.category === '' || !['Character', 'Place', 'Cultural', 'Idiom', 'Other'].includes(newTerm.category)"
+            v-model="newTerm.category"
+            type="text"
+            placeholder="Enter custom category"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2"
+          />
         </div>
+        
+        <button
+          type="submit"
+          :disabled="!newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError"
+          class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          :class="{ 'opacity-50 cursor-not-allowed': !newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError }"
+        >
+          Add Term
+        </button>
       </form>
     </div>
 
@@ -202,17 +224,12 @@
                   rows="2"
                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
                 ></textarea>
+                <select
+                  v-model="term.category"
+                  placeholder="Category"
+                  class="w-full px-2 py-1 border border-gray-300 rounded text-sm mt-1"
+                />
                 <div class="flex items-center space-x-2">
-                  <select
-                    v-model="term.category"
-                    class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                  >
-                    <option value="character">Character</option>
-                    <option value="place">Place</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="idiom">Idiom</option>
-                    <option value="other">Other</option>
-                  </select>
                   <button
                     @click="saveTermEdit(term)"
                     class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
@@ -273,6 +290,7 @@ import type { GlossaryTerm } from '../types';
 const { 
   glossaryTerms, 
   isLoading,
+  isHighlightEnabled,
   termsByCategory, 
   loadGlossaryTerms,
   addTerm, 
@@ -280,7 +298,8 @@ const {
   removeTerm, 
   suggestTermsFromText,
   termExistsInSeries,
-  toggleGlossaryVisibility 
+  toggleGlossaryVisibility,
+  toggleHighlight
 } = useGlossary();
 
 const { currentChapter, currentSeries } = useChapters();
@@ -289,7 +308,7 @@ const newTerm = ref({
   term: '',
   translation: '',
   definition: '',
-  category: 'character' as const,
+  category: 'Character',
   isUserDefined: true,
 });
 
@@ -323,7 +342,7 @@ const handleAddTerm = async () => {
     term: '',
     translation: '',
     definition: '',
-    category: 'character',
+    category: 'Character',
     isUserDefined: true,
   };
   
@@ -339,7 +358,7 @@ const cancelAddForm = () => {
     term: '',
     translation: '',
     definition: '',
-    category: 'character',
+    category: 'Character',
     isUserDefined: true,
   };
   
@@ -389,8 +408,7 @@ const generateSuggestions = () => {
   
   // Simulate async operation
   setTimeout(() => {
-    const allText = currentChapter.value!.paragraphs
-      .map(p => p.originalText)
+    const allText = currentChapter.value!.originalParagraphs
       .join(' ');
     
     suggestions.value = suggestTermsFromText(allText);
@@ -400,13 +418,13 @@ const generateSuggestions = () => {
 
 const getCategoryIcon = (category: string): string => {
   const icons = {
-    character: '👤',
-    place: '📍',
-    cultural: '🏛️',
-    idiom: '💭',
-    other: '📝',
+    'Character': '👤',
+    'Place': '📍',
+    'Cultural': '🏛️',
+    'Idiom': '💭',
+    'Other': '📝',
   };
-  return icons[category as keyof typeof icons] || '📝';
+  return icons[category] || '📝';
 };
 
 // Load glossary terms when component mounts or chapter changes

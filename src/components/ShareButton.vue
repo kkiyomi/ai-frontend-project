@@ -33,7 +33,7 @@ const showModal = ref(false);
 
 const hasContent = computed(() => {
   return chapters.value.some(chapter => 
-    chapter.paragraphs.some(p => p.translatedText.trim())
+    chapter.translatedContent
   );
 });
 
