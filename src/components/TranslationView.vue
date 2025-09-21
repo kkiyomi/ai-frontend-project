@@ -66,6 +66,7 @@
           v-if="contentMode === 'all'"
           title="Original Text"
           :fullText="getFullOriginalText()"
+          :paragraphs="currentChapter.originalParagraphs"
           mode="full"
           type="original"
           :editingParagraphs="editingOriginalParagraphs"
@@ -222,7 +223,7 @@ const cancelParagraphOriginalEdit = (index: number) => {
 
 const saveFullOriginalText = async (text: string) => {
   fullOriginalText.value = text;
-  await saveFullOriginalText();
+  await saveFullOriginalTextInternal();
 };
 
 const toggleParagraphTranslatedEditing = async (index: number) => {

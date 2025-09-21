@@ -168,9 +168,9 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2">
                       <span class="font-medium text-gray-900 text-sm">{{ term.term }}</span>
-                      <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                        {{ getCategoryIcon(term.category) }}
-                      </span>
+                      <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full"> -->
+                      <!--   {{ getCategoryIcon(term.category) }} -->
+                      <!-- </span> -->
                       <span v-if="!term.chapterId" class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
                         Series
                       </span>
@@ -416,16 +416,16 @@ const generateSuggestions = () => {
   }, 1000);
 };
 
-const getCategoryIcon = (category: string): string => {
-  const icons = {
-    'Character': '👤',
-    'Place': '📍',
-    'Cultural': '🏛️',
-    'Idiom': '💭',
-    'Other': '📝',
-  };
-  return icons[category] || '📝';
-};
+// const getCategoryIcon = (category: string): string => {
+//   const icons = {
+//     'Character': '👤',
+//     'Place': '📍',
+//     'Cultural': '🏛️',
+//     'Idiom': '💭',
+//     'Other': '📝',
+//   };
+//   return icons[category] || '📝';
+// };
 
 // Load glossary terms when component mounts or chapter changes
 onMounted(() => {
