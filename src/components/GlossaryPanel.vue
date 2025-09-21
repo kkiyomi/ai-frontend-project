@@ -416,16 +416,16 @@ const generateSuggestions = () => {
   }, 1000);
 };
 
-const getCategoryIcon = (category: string): string => {
-  const icons = {
-    'Character': '👤',
-    'Place': '📍',
-    'Cultural': '🏛️',
-    'Idiom': '💭',
-    'Other': '📝',
-  };
-  return icons[category] || '📝';
-};
+// const getCategoryIcon = (category: string): string => {
+//   const icons = {
+//     'Character': '👤',
+//     'Place': '📍',
+//     'Cultural': '🏛️',
+//     'Idiom': '💭',
+//     'Other': '📝',
+//   };
+//   return icons[category] || '📝';
+// };
 
 // Load glossary terms when component mounts or chapter changes
 onMounted(() => {

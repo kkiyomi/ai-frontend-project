@@ -149,14 +149,14 @@ const saveEdit = () => {
   isEditing.value = false;
 };
 
-const getCategoryIcon = (category: string): string => {
-  const icons = {
-    'Character': '👤',
-    'Place': '📍',
-    'Cultural': '🏛️',
-    'Idiom': '💭',
-    'Other': '📝',
-  };
-  return icons[category] || '📝';
-};
+// const getCategoryIcon = (category: string): string => {
+//   const icons = {
+//     'Character': '👤',
+//     'Place': '📍',
+//     'Cultural': '🏛️',
+//     'Idiom': '💭',
+//     'Other': '📝',
+//   };
+//   return icons[category] || '📝';
+// };
 </script>
