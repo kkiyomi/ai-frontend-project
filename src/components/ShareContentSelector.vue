@@ -241,7 +241,7 @@ const getAllChapters = (): (Chapter & { seriesId?: string })[] => {
 
 const getTranslatedChapters = (chapters: Chapter[]) => {
   return chapters.filter(chapter =>
-    chapter.originalParagraphs.some(p => p.trim())
+    chapter.translatedParagraphs.some(p => p.trim())
   );
 };
 
@@ -257,7 +257,7 @@ const getFilteredChapters = (chapters: Chapter[]) => {
 const getSeriesWithTranslations = () => {
   return props.series.filter(s =>
     s.chapters.some(chapter =>
-      chapter.originalParagraphs.some(p => p.trim())
+      chapter.translatedParagraphs.some(p => p.trim())
     )
   );
 };
