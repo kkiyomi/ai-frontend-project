@@ -21,14 +21,10 @@
           <!-- Content Selection -->
           <ShareContentSelector
             :series="series"
-            :selectedChapterId="selectedChapterId"
             :selectedChapterIds="selectedChapterIds"
-            :selectedSeriesId="selectedSeriesId"
             :selectedSeriesIds="selectedSeriesIds"
             :searchQuery="chapterSearchQuery"
-            @update:selectedChapterId="selectedChapterId = $event"
             @update:selectedChapterIds="selectedChapterIds = $event"
-            @update:selectedSeriesId="selectedSeriesId = $event"
             @update:selectedSeriesIds="selectedSeriesIds = $event"
             @update:searchQuery="chapterSearchQuery = $event"
             @selectAllChapters="selectAllChapters"
@@ -245,14 +241,6 @@ const getSeriesTranslationProgress = (series: Series): number => {
   );
   if (totalParagraphs === 0) return 0;
   return Math.round((translatedParagraphs / totalParagraphs) * 100);
-};
-
-const getSeriesWordCount = (series: Series): number => {
-  return series.chapters.reduce((sum, c) =>
-    sum + c.originalParagraphs.reduce((pSum, p) =>
-      pSum + (p.translatedText || p.originalText).split(' ').length, 0
-    ), 0
-  );
 };
 
 const getDefaultTitle = (): string => {

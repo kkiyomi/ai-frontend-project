@@ -10,9 +10,9 @@
         <div class="flex-1">
           <div class="flex items-center space-x-2">
             <span class="font-semibold text-gray-900">{{ term.term }}</span>
-            <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-              {{ getCategoryIcon(term.category) }}
-            </span>
+            <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full"> -->
+            <!--   {{ getCategoryIcon(term.category) }} -->
+            <!-- </span> -->
           </div>
           <p class="text-sm text-green-600 font-medium mt-1">{{ term.translation }}</p>
           <p v-if="term.definition" class="text-xs text-gray-500 mt-1">{{ term.definition }}</p>
