@@ -35,13 +35,6 @@
           {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
         </button>
         <button
-          @click="$emit('toggleHighlight')"
-          class="px-4 py-2 rounded-lg transition-colors text-sm font-medium border"
-          :class="isHighlightEnabled ? 'bg-green-100 text-green-700 border-green-300' : 'bg-gray-100 text-gray-700 border-gray-300'"
-        >
-          {{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}
-        </button>
-        <button
           @click="$emit('translateAll')"
           :disabled="isTranslating"
           class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
@@ -73,7 +66,6 @@ interface Props {
   isEditingOriginal: boolean;
   layoutMode: 'split' | 'full';
   contentMode: 'all' | 'translated';
-  isHighlightEnabled: boolean;
   isTranslating: boolean;
   translationProgress: number;
 }
@@ -84,7 +76,6 @@ defineEmits<{
   toggleEditMode: [];
   toggleLayoutMode: [];
   toggleContentMode: [];
-  toggleHighlight: [];
   translateAll: [];
 }>();
 </script>

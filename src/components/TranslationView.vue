@@ -6,13 +6,11 @@
       :isEditingOriginal="isEditingOriginal"
       :layoutMode="layoutMode"
       :contentMode="contentMode"
-      :isHighlightEnabled="isHighlightEnabled"
       :isTranslating="isTranslating"
       :translationProgress="translationProgress"
       @toggleEditMode="toggleEditMode"
       @toggleLayoutMode="toggleLayoutMode"
       @toggleContentMode="toggleContentMode"
-      @toggleHighlight="toggleHighlight"
       @translateAll="translateAllParagraphs"
     />
 

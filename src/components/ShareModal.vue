@@ -104,9 +104,7 @@ const { series } = useChapters();
 const { createShare } = useSharing();
 
 // Create share form state
-const selectedChapterId = ref('');
 const selectedChapterIds = ref<string[]>([]);
-const selectedSeriesId = ref('');
 const selectedSeriesIds = ref<string[]>([]);
 const shareTitle = ref('');
 const shareDescription = ref('');
@@ -150,60 +148,48 @@ const loadExistingShares = () => {
 
 // Computed properties
 const hasValidSelection = computed((): boolean => {
-  // Check if any chapter selection exists
-  if (selectedChapterId.value || selectedChapterIds.value.length > 0) {
-    return selectedChapterId.value ? !!selectedChapterId.value : selectedChapterIds.value.length > 0;
-  }
-
-  // Check if any series selection exists
-  if (selectedSeriesId.value || selectedSeriesIds.value.length > 0) {
-    return selectedSeriesId.value ? !!selectedSeriesId.value : selectedSeriesIds.value.length > 0;
-  }
-
-  return false;
+  return selectedChapterIds.value.length > 0 || selectedSeriesIds.value.length > 0;
 });
 
 const getSelectedChapters = (): Chapter[] => {
-  // Single chapter
-  if (selectedChapterId.value) {
-    const chapter = getAllChapters().find(c => c.id === selectedChapterId.value);
-    return chapter ? [chapter] : [];
-  }
+  const chaptersFromSeries = series.value
+    .filter(s => selectedSeriesIds.value.includes(s.id))
+    .flatMap(s => s.chapters.filter(c => isChapterFullyTranslated(c)));
+  
+  const individualChapters = getAllChapters().filter(c => 
+    selectedChapterIds.value.includes(c.id) && 
+    !selectedSeriesIds.value.includes(c.seriesId)
+  );
+  
+  return [...chaptersFromSeries, ...individualChapters];
+};
 
-  // Multiple chapters
-  if (selectedChapterIds.value.length > 0) {
-    return getAllChapters().filter(c => selectedChapterIds.value.includes(c.id));
-  }
+const isChapterFullyTranslated = (chapter: Chapter): boolean => {
+  if (chapter.originalParagraphs.length === 0) return false;
+  const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
+  return translatedCount === chapter.originalParagraphs.length;
+};
 
-  // Single series
-  if (selectedSeriesId.value) {
-    const selectedSeries = series.value.find(s => s.id === selectedSeriesId.value);
-    return selectedSeries ? selectedSeries.chapters : [];
-  }
-
-  // Multiple series
-  if (selectedSeriesIds.value.length > 0) {
-    return series.value
-      .filter(s => selectedSeriesIds.value.includes(s.id))
-      .flatMap(s => s.chapters);
+const getSeriesCount = (): number => {
+  const seriesFromSelection = selectedSeriesIds.value.length;
+  const seriesFromChapters = new Set(
+    selectedChapterIds.value
+      .map(chapterId => getAllChapters().find(c => c.id === chapterId)?.seriesId)
+      .filter(seriesId => seriesId && !selectedSeriesIds.value.includes(seriesId))
+  ).size;
+  
+  return seriesFromSelection + seriesFromChapters;
   }
 
   return [];
 };
 
-const getSeriesCount = (chapters: Chapter[]): number => {
-  if (selectedChapterId.value || selectedSeriesId.value) return 1;
-  if (selectedChapterIds.value.length > 0) {
-    return new Set(chapters.map(c => c.seriesId)).size;
-  }
-  return selectedSeriesIds.value.length;
-};
 
 const shareStats = computed((): ShareStats | null => {
   if (!hasValidSelection.value) return null;
 
   const chapters: Chapter[] = getSelectedChapters();
-  const seriesCount: number = getSeriesCount(chapters);
+  const seriesCount: number = getSeriesCount();
 
   const totalParagraphs: number = chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
   const translatedParagraphs: number = chapters.reduce(
@@ -273,27 +259,19 @@ const getSeriesWordCount = (series: Series): number => {
 };
 
 const getDefaultTitle = (): string => {
-  const isChapterMode: boolean = selectedChapterId.value !== undefined || selectedChapterIds.value !== undefined;
-  const isMultiSelect: boolean = selectedChapterIds.value !== undefined || selectedSeriesIds.value !== undefined;
-
-  if (isChapterMode) {
-    if (isMultiSelect) {
-      // Multiple chapters
-      return `${selectedChapterIds.value.length} Chapters - Translation`;
-    } else {
-      // Single chapter
-      const chapter = getAllChapters().find(c => c.id === selectedChapterId.value);
-      return chapter ? `${chapter.title} - Translation` : 'Chapter Translation';
-    }
+  if (selectedSeriesIds.value.length > 0 && selectedChapterIds.value.length === 0) {
+    // Only series selected
+    return selectedSeriesIds.value.length === 1 
+      ? `${series.value.find(s => s.id === selectedSeriesIds.value[0])?.name || 'Series'} - Complete Translation`
+      : `${selectedSeriesIds.value.length} Series - Translation Collection`;
+  } else if (selectedSeriesIds.value.length === 0 && selectedChapterIds.value.length > 0) {
+    // Only chapters selected
+    return selectedChapterIds.value.length === 1
+      ? `${getAllChapters().find(c => c.id === selectedChapterIds.value[0])?.title || 'Chapter'} - Translation`
+      : `${selectedChapterIds.value.length} Chapters - Translation`;
   } else {
-    if (isMultiSelect) {
-      // Multiple series
-      return `${selectedSeriesIds.value.length} Series - Translation Collection`;
-    } else {
-      // Single series
-      const selectedSeries = series.value.find(s => s.id === selectedSeriesId.value);
-      return selectedSeries ? `${selectedSeries.name} - Complete Translation` : 'Series Translation';
-    }
+    // Mixed selection
+    return 'Mixed Content - Translation';
   }
 };
 
@@ -302,10 +280,15 @@ const getContentSummary = (): string => {
   
   const { totalChapters, totalSeries, translationProgress } = shareStats.value;
   
-  if (totalSeries === 1) {
-    return `${totalChapters} chapter${totalChapters !== 1 ? 's' : ''} (${translationProgress}% translated)`;
+  if (selectedSeriesIds.value.length > 0 && selectedChapterIds.value.length === 0) {
+    // Only series selected
+    return `${totalChapters} chapters from ${totalSeries} series (${translationProgress}% translated)`;
+  } else if (selectedSeriesIds.value.length === 0 && selectedChapterIds.value.length > 0) {
+    // Only chapters selected
+    return `${totalChapters} individual chapters (${translationProgress}% translated)`;
   } else {
-    return `${totalChapters} chapters across ${totalSeries} series (${translationProgress}% translated)`;
+    // Mixed selection
+    return `${totalChapters} chapters from ${totalSeries} series (${translationProgress}% translated)`;
   }
 };
 
@@ -350,25 +333,13 @@ const handleShare = async () => {
 
   isCreatingShare.value = true;
 
-  const isChapterMode: boolean = selectedChapterId.value !== undefined || selectedChapterIds.value !== undefined;
-  const isMultiSelect: boolean = selectedChapterIds.value !== undefined || selectedSeriesIds.value !== undefined;
-
-  let chapterIds: string[] | undefined;
-  let seriesIds: string[] | undefined;
-
-  if (isChapterMode) {
-    chapterIds = isMultiSelect ? selectedChapterIds.value : [selectedChapterId.value];
-  } else {
-    seriesIds = isMultiSelect ? selectedSeriesIds.value : [selectedSeriesId.value];
-  }
-
   const request: ShareRequest = {
+    chapterIds: selectedChapterIds.value,
+    seriesIds: selectedSeriesIds.value,
     title: shareTitle.value || getDefaultTitle(),
     description: shareDescription.value || undefined,
     expirationDays: shareExpiration.value === '0' ? undefined : parseInt(shareExpiration.value),
-    password: sharePasswordProtected.value ? sharePassword.value : undefined,
-    chapterIds,
-    seriesIds
+    password: sharePasswordProtected.value ? sharePassword.value : undefined
   };
 
   try {

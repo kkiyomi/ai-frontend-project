@@ -219,17 +219,13 @@ const toggleSeriesExpansion = (seriesId: string) => {
 
 const selectAllSeries = () => {
   const allSeriesIds = getSeriesWithTranslations().map(s => s.id);
-  selectedSeriesIds.value = [...allSeriesIds];
-  selectedChapterIds.value = [];
-  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
-  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
+  emit('update:selectedSeriesIds', allSeriesIds);
+  emit('update:selectedChapterIds', []);
 };
 
 const clearAllSelections = () => {
-  selectedSeriesIds.value = [];
-  selectedChapterIds.value = [];
-  emit('update:selectedSeriesIds', [...selectedSeriesIds.value]);
-  emit('update:selectedChapterIds', [...selectedChapterIds.value]);
+  emit('update:selectedSeriesIds', []);
+  emit('update:selectedChapterIds', []);
 };
 
 // Helper functions

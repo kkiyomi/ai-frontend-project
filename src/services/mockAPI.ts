@@ -501,11 +501,22 @@ export class MockAPI {
   ): Promise<SharedContent | null> {
     let chapters: Chapter[] = [];
 
-    // Get chapters based on what's provided in the request
-    if (request.chapterIds && request.chapterIds.length > 0) {
-      chapters = mockChapters.filter(c => request.chapterIds!.includes(c.id));
-    } else if (request.seriesIds && request.seriesIds.length > 0) {
-      chapters = mockChapters.filter(c => request.seriesIds!.includes(c.seriesId));
+    // Get chapters from selected series (fully translated only)
+    if (request.seriesIds.length > 0) {
+      const seriesChapters = mockChapters.filter(c => 
+        request.seriesIds.includes(c.seriesId) &&
+        this.isChapterFullyTranslated(c)
+      );
+      chapters.push(...seriesChapters);
+    }
+    
+    // Get individual chapters (only if their series is not already selected)
+    if (request.chapterIds.length > 0) {
+      const individualChapters = mockChapters.filter(c => 
+        request.chapterIds.includes(c.id) &&
+        !request.seriesIds.includes(c.seriesId)
+      );
+      chapters.push(...individualChapters);
     }
 
     if (chapters.length === 0) return null;
@@ -524,7 +535,7 @@ export class MockAPI {
     });
 
     return {
-        type: request.chapterIds ? 'chapters' : 'series',
+        type: request.seriesIds.length > 0 ? 'series' : 'chapters',
         id: shareId,
         title: request.title || 'Shared Translation',
         description: request.description,
@@ -534,5 +545,11 @@ export class MockAPI {
         isPasswordProtected: !!password,
         password: password // Store password for demo (in real app, this would be hashed)
     };
+  }
+  
+  private isChapterFullyTranslated(chapter: Chapter): boolean {
+    if (chapter.originalParagraphs.length === 0) return false;
+    const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
+    return translatedCount === chapter.originalParagraphs.length;
   }
 }

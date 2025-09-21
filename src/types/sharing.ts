@@ -1,6 +1,6 @@
 export interface ShareRequest {
-  chapterIds?: string[];
-  seriesIds?: string[];
+  chapterIds: string[];
+  seriesIds: string[];
   title?: string;
   description?: string;
   expirationDays?: number;
