@@ -14,6 +14,7 @@ export interface Chapter {
   originalParagraphs: string[];
   translatedParagraphs: string[];
   seriesId: string;
+  isTranslated?: boolean;
 }
 
 export interface GlossaryTerm {
