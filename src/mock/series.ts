@@ -3,8 +3,8 @@ import type { Series } from '../types';
 const mockSeries: Series[] = [
   {
     id: 's1',
-    name: 'The Chronicles of Elderbrook',
-    description: 'A fantasy adventure following young Aria as she discovers her magical abilities',
+    name: 'Swallowed Star 2: Origin Continent',
+    description: 'Luo Feng, accompanied by Boundary Beast Morosa, traversed reincarnation and arrived at the Origin Continent…',
     createdAt: new Date('2024-01-15'),
     chapters: [] // Will be populated by mockAPI
   },

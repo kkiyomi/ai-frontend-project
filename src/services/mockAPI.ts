@@ -388,7 +388,8 @@ export class MockAPI {
   // Sharing endpoints
   async createShare(request: ShareRequest): Promise<APIResponse<ShareResponse>> {
     await simulateDelay(800, 1500);
-    
+    console.log('mockAPI createShare')
+
     if (simulateFailure(0.02)) {
       return {
         success: false,
@@ -398,13 +399,15 @@ export class MockAPI {
     
     const shareId = `share-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const shareUrl = `${window.location.origin}/share/${shareId}`;
-    
+    console.log(shareUrl)
+
     // Calculate expiration date
     const expiresAt = request.expirationDays 
       ? new Date(Date.now() + request.expirationDays * 24 * 60 * 60 * 1000)
       : undefined;
     // Store the shared content (in a real app, this would be in a database)
     const sharedContent = await this.buildSharedContent(request, shareId, expiresAt, request.password);
+    console.log(sharedContent)
     if (sharedContent) {
       // In a real app, you'd store this in a database
       localStorage.setItem(`share-${shareId}`, JSON.stringify(sharedContent));
@@ -500,6 +503,10 @@ export class MockAPI {
     password?: string
   ): Promise<SharedContent | null> {
     let chapters: Chapter[] = [];
+    console.log('mockAPI buildSharedContent')
+    console.log(request)
+    console.log(shareId)
+    console.log(mockChapters)
 
     // Get chapters from selected series (fully translated only)
     if (request.seriesIds.length > 0) {
@@ -509,7 +516,8 @@ export class MockAPI {
       );
       chapters.push(...seriesChapters);
     }
-    
+    console.log(chapters)
+
     // Get individual chapters (only if their series is not already selected)
     if (request.chapterIds.length > 0) {
       const individualChapters = mockChapters.filter(c => 
@@ -518,6 +526,7 @@ export class MockAPI {
       );
       chapters.push(...individualChapters);
     }
+    console.log(chapters)
 
     if (chapters.length === 0) return null;
 
@@ -527,12 +536,13 @@ export class MockAPI {
       return {
         id: chapter.id,
         title: chapter.title,
-        originalText: chapter.originalParagraphs.join('\n\n'),
-        translatedText: chapter.translatedParagraphs.filter(t => t.trim()).join('\n\n'),
+        originalText: chapter.content,
+        translatedText: chapter.translatedContent,
         seriesName: series?.name || 'Unknown Series',
         seriesId: chapter.seriesId
       };
     });
+    console.log(sharedChapters)
 
     return {
         type: request.seriesIds.length > 0 ? 'series' : 'chapters',
@@ -548,8 +558,6 @@ export class MockAPI {
   }
   
   private isChapterFullyTranslated(chapter: Chapter): boolean {
-    if (chapter.originalParagraphs.length === 0) return false;
-    const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
-    return translatedCount === chapter.originalParagraphs.length;
+    return chapter.isTranslated || false;
   }
 }

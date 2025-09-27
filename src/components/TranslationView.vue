@@ -351,7 +351,7 @@ const saveAllOriginalChanges = async () => {
 
 const getFullOriginalText = (): string => {
   if (!currentChapter.value) return '';
-  return currentChapter.value.originalParagraphs.join('\n\n');
+  return currentChapter.value.originalParagraphs.join('<br>');
 };
 
 const getFullTranslatedText = (): string => {
@@ -360,7 +360,7 @@ const getFullTranslatedText = (): string => {
   
   if (translations.length === 0) return '';
   
-  return currentChapter.value.translatedParagraphs.join('\n\n');
+  return currentChapter.value.translatedParagraphs.join('<br>');
 };
 
 const translateAllParagraphs = async () => {

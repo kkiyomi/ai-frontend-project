@@ -310,7 +310,7 @@ const formatTextForDisplay = (text: string): string => {
   return text
     .split('\n')
     .filter(line => line.trim())
-    .map(line => `<p>${line.trim()}</p>`)
+    .map(line => `<p>${line.trim()}</p><br>`)
     .join('');
 };
 
