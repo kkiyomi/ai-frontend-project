@@ -1,16 +1,10 @@
-import type { APIResponse } from '../types';
-
+// API Client - moved from services/apiClient.js
 export class APIClient {
-  private baseURL: string;
-
-  constructor(baseURL: string) {
-    this.baseURL = baseURL.replace(/\/$/, ''); // Remove trailing slash
+  constructor(baseURL) {
+    this.baseURL = baseURL.replace(/\/$/, '');
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<APIResponse<T>> {
+  async request(endpoint, options = {}) {
     try {
       const url = `${this.baseURL}${endpoint}`;
       const response = await fetch(url, {
@@ -18,7 +12,7 @@ export class APIClient {
           'Content-Type': 'application/json',
           ...options.headers,
         },
-        credentials: 'include', // Include cookies for session
+        credentials: 'include',
         ...options,
       });
 
@@ -40,25 +34,25 @@ export class APIClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<APIResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
-    return this.request<T>(endpoint, {
+  async post(endpoint, data) {
+    return this.request(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
-    return this.request<T>(endpoint, {
+  async patch(endpoint, data) {
+    return this.request(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async delete<T>(endpoint: string): Promise<APIResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
   }
 }

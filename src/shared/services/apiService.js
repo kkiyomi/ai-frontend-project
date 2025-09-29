@@ -1,25 +1,22 @@
-import { MockAPI } from './mockAPI';
-import { RealAPI } from './realAPI';
-import { shouldUseMockAPI } from '../utils/environment';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+// Cross-domain API service - handles all API communication
+import { MockAPI } from './mockAPI.js';
+import { RealAPI } from './realAPI.js';
+import { shouldUseMockAPI } from './environmentService.js';
 
 // Singleton pattern for API service
 class APIService {
-  private static instance: APIService | null = null;
-  private apiInstance: MockAPI | RealAPI | null = null;
-  private initializationPromise: Promise<void> | null = null;
+  static instance = null;
+  apiInstance = null;
+  initializationPromise = null;
 
-  private constructor() {}
-
-  static getInstance(): APIService {
+  static getInstance() {
     if (!APIService.instance) {
       APIService.instance = new APIService();
     }
     return APIService.instance;
   }
 
-  private async initializeAPI(): Promise<void> {
+  async initializeAPI() {
     if (this.apiInstance) return;
 
     const useMock = await shouldUseMockAPI();
@@ -28,35 +25,36 @@ class APIService {
       console.log('🔧 Using mock API for development');
       this.apiInstance = new MockAPI();
     } else {
-      console.log('🌐 Using real API:', API_BASE_URL);
-      this.apiInstance = new RealAPI(API_BASE_URL);
+      console.log('🌐 Using real API:', import.meta.env.VITE_API_BASE_URL);
+      this.apiInstance = new RealAPI(import.meta.env.VITE_API_BASE_URL);
     }
   }
 
-  private async getAPI(): Promise<MockAPI | RealAPI> {
+  async getAPI() {
     if (!this.initializationPromise) {
       this.initializationPromise = this.initializeAPI();
     }
     await this.initializationPromise;
-    return this.apiInstance!;
+    return this.apiInstance;
   }
 
   // Translation methods
-  async translateText(text: string, glossaryContext?: string[]) {
+  async translateText(text, glossaryContext) {
     const api = await this.getAPI();
     return api.translateText(text, glossaryContext);
   }
 
-  async translateParagraph(text: string, chapterId: string, paragraphIndex: number, glossaryContext?: string[]) {
+  async translateParagraph(text, chapterId, paragraphIndex, glossaryContext) {
     const api = await this.getAPI();
-    return (api as any).translateParagraph?.(text, chapterId, paragraphIndex, glossaryContext) || api.translateText(text, glossaryContext);
+    return api.translateParagraph?.(text, chapterId, paragraphIndex, glossaryContext) || api.translateText(text, glossaryContext);
   }
-  async retranslateWithGlossary(originalText: string, currentTranslation: string, glossaryTerms: string[]) {
+
+  async retranslateWithGlossary(originalText, currentTranslation, glossaryTerms) {
     const api = await this.getAPI();
     return api.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
   }
 
-  async suggestGlossaryTerms(text: string) {
+  async suggestGlossaryTerms(text) {
     const api = await this.getAPI();
     return api.suggestGlossaryTerms(text);
   }
@@ -67,82 +65,82 @@ class APIService {
     return api.getSeries();
   }
 
-  async createSeries(name: string, description?: string) {
+  async createSeries(name, description) {
     const api = await this.getAPI();
     return api.createSeries(name, description);
   }
 
-  async updateSeries(seriesId: string, updates: any) {
+  async updateSeries(seriesId, updates) {
     const api = await this.getAPI();
     return api.updateSeries(seriesId, updates);
   }
 
-  async deleteSeries(seriesId: string) {
+  async deleteSeries(seriesId) {
     const api = await this.getAPI();
     return api.deleteSeries(seriesId);
   }
 
   // Chapter methods
-  async getChapters(seriesId?: string) {
+  async getChapters(seriesId) {
     const api = await this.getAPI();
     return api.getChapters(seriesId);
   }
 
-  async createChapter(title: string, content: string, seriesId: string) {
+  async createChapter(title, content, seriesId) {
     const api = await this.getAPI();
     return api.createChapter(title, content, seriesId);
   }
 
-  async updateChapter(chapterId: string, updates: any) {
+  async updateChapter(chapterId, updates) {
     const api = await this.getAPI();
     return api.updateChapter(chapterId, updates);
   }
 
-  async deleteChapter(chapterId: string) {
+  async deleteChapter(chapterId) {
     const api = await this.getAPI();
     return api.deleteChapter(chapterId);
   }
 
   // Glossary methods
-  async getGlossaryTerms(seriesId?: string, chapterId?: string) {
+  async getGlossaryTerms(seriesId, chapterId) {
     const api = await this.getAPI();
     return api.getGlossaryTerms(seriesId, chapterId);
   }
 
-  async createGlossaryTerm(term: any) {
+  async createGlossaryTerm(term) {
     const api = await this.getAPI();
     return api.createGlossaryTerm(term);
   }
 
-  async updateGlossaryTerm(termId: string, updates: any) {
+  async updateGlossaryTerm(termId, updates) {
     const api = await this.getAPI();
     return api.updateGlossaryTerm(termId, updates);
   }
 
-  async deleteGlossaryTerm(termId: string) {
+  async deleteGlossaryTerm(termId) {
     const api = await this.getAPI();
     return api.deleteGlossaryTerm(termId);
   }
 
   // Sharing methods
-  async createShare(request: any) {
+  async createShare(request) {
     const api = await this.getAPI();
     return api.createShare(request);
   }
 
-  async getSharedContent(shareId: string) {
+  async getSharedContent(shareId) {
     const api = await this.getAPI();
     return api.getSharedContent(shareId);
   }
 
-  async deleteShare(shareId: string) {
+  async deleteShare(shareId) {
     const api = await this.getAPI();
     return api.deleteShare(shareId);
   }
 
-  async verifySharePassword(shareId: string, password: string) {
+  async verifySharePassword(shareId, password) {
     const api = await this.getAPI();
-    return (api as any).verifySharePassword?.(shareId, password);
+    return api.verifySharePassword?.(shareId, password);
   }
 }
 

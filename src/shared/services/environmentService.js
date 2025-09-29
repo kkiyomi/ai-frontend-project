@@ -1,13 +1,11 @@
-// Environment utilities for debugging and configuration
-
+// Environment service - moved from utils/environment.js
 export const isDevelopment = import.meta.env.DEV;
 export const isProduction = import.meta.env.PROD;
 export const useMockAPI = 2 == (1 + 1);
 export const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 export let isUserLoggedIn = false;
 
-// Check if user is logged in to the real API
-export const checkUserSession = async (): Promise<boolean> => {
+export const checkUserSession = async () => {
   if (!apiBaseURL || useMockAPI === false) {
     isUserLoggedIn = false;
     return false;
@@ -15,7 +13,7 @@ export const checkUserSession = async (): Promise<boolean> => {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const response = await fetch(`${apiBaseURL}/check_session`, {
       method: 'GET',
@@ -23,7 +21,7 @@ export const checkUserSession = async (): Promise<boolean> => {
         'Content-Type': 'application/json',
       },
       signal: controller.signal,
-      credentials: 'include', // Include cookies for session
+      credentials: 'include',
     });
 
     clearTimeout(timeoutId);
@@ -37,26 +35,22 @@ export const checkUserSession = async (): Promise<boolean> => {
       return false;
     }
   } catch (error) {
-    // Timeout, network error, or other issues
     console.log('Session check failed, using mock API:', error instanceof Error ? error.message : 'Unknown error');
     isUserLoggedIn = false;
     return false;
   }
 };
 
-// Determine which API to use based on session status
-export const shouldUseMockAPI = async (): Promise<boolean> => {
+export const shouldUseMockAPI = async () => {
   if (!useMockAPI) {
-    // If explicitly set to use real API, check session
     const loggedIn = await checkUserSession();
-    return !loggedIn; // Use mock if not logged in
+    return !loggedIn;
   }
   
-  // If useMockAPI is true, still check if user is logged in to real API
   const loggedIn = await checkUserSession();
-  return !loggedIn; // Use real API if logged in, otherwise mock
+  return !loggedIn;
 };
-// Debug helper to log current environment configuration
+
 export const logEnvironmentConfig = async () => {
   if (isDevelopment) {
     const shouldUseMock = await shouldUseMockAPI();
@@ -72,7 +66,6 @@ export const logEnvironmentConfig = async () => {
   }
 };
 
-// Helper to get environment-specific settings
 export const getEnvironmentConfig = () => ({
   isDevelopment,
   isProduction,

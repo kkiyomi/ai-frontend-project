@@ -1,3 +1,4 @@
+<!-- Move ShareView to collaboration domain -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Password Protection Modal -->
@@ -226,30 +227,30 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useSharing } from '../composables/useSharing';
-import type { SharedContent, SharedChapter } from '../types/sharing';
+import { useCollaborationStore } from '../store.js';
 
 const route = useRoute();
-const { getSharedContent, isLoading, error } = useSharing();
+const collaborationStore = useCollaborationStore();
 
-const sharedContent = ref<SharedContent | null>(null);
-const viewMode = ref<'split' | 'translation' | 'original'>('translation');
+const sharedContent = ref(null);
+const viewMode = ref('translation');
 const isPasswordVerified = ref(false);
 const passwordInput = ref('');
 const passwordError = ref('');
 const isVerifyingPassword = ref(false);
 
-const shareId = computed(() => route.params.shareId as string);
+const shareId = computed(() => route.params.shareId);
+const isLoading = computed(() => collaborationStore.isLoading);
+const error = computed(() => collaborationStore.error);
 
 onMounted(async () => {
   if (shareId.value) {
-    const response = await getSharedContent(shareId.value);
+    const response = await collaborationStore.getSharedContent(shareId.value);
     if (response.success && response.data) {
       sharedContent.value = response.data;
-      // If not password protected, allow immediate access
       if (!response.data.isPasswordProtected) {
         isPasswordVerified.value = true;
       }
@@ -264,17 +265,12 @@ const verifyPassword = async () => {
   passwordError.value = '';
   
   try {
-    // In a real implementation, you would verify the password with the backend
-    // For now, we'll simulate password verification
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // For demo purposes, we'll check against a stored password in localStorage
-    // In production, this would be handled securely on the backend
     const storedShare = localStorage.getItem(`share-${shareId.value}`);
     if (storedShare) {
       const shareData = JSON.parse(storedShare);
       if (shareData.isPasswordProtected) {
-        // For demo, we'll assume password is stored (in real app, this would be hashed)
         if (shareData.password === passwordInput.value) {
           isPasswordVerified.value = true;
           passwordError.value = '';
@@ -282,7 +278,6 @@ const verifyPassword = async () => {
           passwordError.value = 'Incorrect password. Please try again.';
         }
       } else {
-        // Not password protected, allow access
         isPasswordVerified.value = true;
       }
     } else {
@@ -295,7 +290,7 @@ const verifyPassword = async () => {
   }
 };
 
-const formatDate = (date?: Date): string => {
+const formatDate = (date) => {
   if (!date) return '';
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -306,7 +301,7 @@ const formatDate = (date?: Date): string => {
   });
 };
 
-const formatTextForDisplay = (text: string): string => {
+const formatTextForDisplay = (text) => {
   return text
     .split('\n')
     .filter(line => line.trim())
@@ -314,7 +309,7 @@ const formatTextForDisplay = (text: string): string => {
     .join('');
 };
 
-const getUniqueSeriesCount = (): number => {
+const getUniqueSeriesCount = () => {
   if (!sharedContent.value) return 0;
   const seriesIds = new Set(sharedContent.value.content.map(c => c.seriesId));
   return seriesIds.size;
@@ -339,7 +334,7 @@ const getTranslationStats = () => {
   return { totalParagraphs, translatedParagraphs, progress };
 };
 
-const getChapterStats = (chapter: SharedChapter) => {
+const getChapterStats = (chapter) => {
   const originalParagraphs = chapter.originalText.split('\n').filter(p => p.trim()).length;
   const translatedParagraphs = chapter.translatedText.split('\n').filter(p => p.trim()).length;
   const progress = originalParagraphs > 0 ? Math.round((Math.min(translatedParagraphs, originalParagraphs) / originalParagraphs) * 100) : 0;
@@ -350,7 +345,6 @@ const getChapterStats = (chapter: SharedChapter) => {
 const copyShareLink = async () => {
   try {
     await navigator.clipboard.writeText(window.location.href);
-    // You could add a toast notification here
     console.log('Share link copied to clipboard');
   } catch (err) {
     console.error('Failed to copy link:', err);

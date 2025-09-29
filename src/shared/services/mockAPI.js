@@ -1,8 +1,7 @@
-import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
-import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '../types/sharing';
-import mockSeriesData from '../mock/series';
-import mockChaptersData from '../mock/chapters';
-import mockGlossaryTermsData from '../mock/glossaryTerms';
+// Mock API implementation - moved from services/mockAPI.js
+import mockSeriesData from '../../mock/series.js';
+import mockChaptersData from '../../mock/chapters.js';
+import mockGlossaryTermsData from '../../mock/glossaryTerms.js';
 
 // Create working copies that we can modify
 let mockSeries = [...mockSeriesData];
@@ -18,51 +17,42 @@ const initializeSeriesWithChapters = () => {
 
 // Initialize on module load
 initializeSeriesWithChapters();
+
 // Simulate network delay for realistic testing
-const simulateDelay = (min = 500, max = 2000): Promise<void> => {
+const simulateDelay = (min = 500, max = 2000) => {
   const delay = Math.random() * (max - min) + min;
   return new Promise(resolve => setTimeout(resolve, delay));
 };
 
 // Simulate occasional failures for robust error handling testing
-const simulateFailure = (failureRate = 0.1): boolean => {
+const simulateFailure = (failureRate = 0.1) => {
   return Math.random() < failureRate;
 };
 
 export class MockAPI {
   // Translation endpoints
-  async translateText(
-    text: string, 
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    console.log('MockAPI translateText')
+  async translateText(text, glossaryContext) {
+    console.log('MockAPI translateText');
     await simulateDelay();
     
-    if (simulateFailure(0.05)) { // 5% failure rate
+    if (simulateFailure(0.05)) {
       return {
         success: false,
         error: 'Translation service temporarily unavailable'
       };
     }
     
-    // Create a more realistic mock translation
     const contextNote = glossaryContext && glossaryContext.length > 0 
       ? ` (with context: ${glossaryContext.join(', ')})` 
       : '';
-    console.log(contextNote)
-    console.log(text)
+    
     return {
       success: true,
       data: `[Mock Translation]${contextNote} ${text}`,
     };
   }
 
-  async translateParagraph(
-    text: string,
-    chapterId: string,
-    paragraphIndex: number,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
+  async translateParagraph(text, chapterId, paragraphIndex, glossaryContext) {
     await simulateDelay(300, 800);
     
     if (simulateFailure(0.03)) {
@@ -81,11 +71,8 @@ export class MockAPI {
       data: `[Mock Paragraph Translation]${contextNote} ${text}`,
     };
   }
-  async retranslateWithGlossary(
-    originalText: string,
-    currentTranslation: string,
-    glossaryTerms: string[]
-  ): Promise<APIResponse<string>> {
+
+  async retranslateWithGlossary(originalText, currentTranslation, glossaryTerms) {
     await simulateDelay(800, 1500);
     
     if (simulateFailure(0.03)) {
@@ -101,12 +88,11 @@ export class MockAPI {
     };
   }
 
-  async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
+  async suggestGlossaryTerms(text) {
     await simulateDelay(500, 1000);
     
-    // Extract potential terms from text (simple word frequency analysis)
     const words = text.toLowerCase().match(/\b\w{4,}\b/g) || [];
-    const frequency: Record<string, number> = {};
+    const frequency = {};
     
     words.forEach(word => {
       frequency[word] = (frequency[word] || 0) + 1;
@@ -125,10 +111,9 @@ export class MockAPI {
   }
 
   // Series endpoints
-  async getSeries(): Promise<APIResponse<typeof mockSeries>> {
+  async getSeries() {
     await simulateDelay(300, 800);
     
-    // Ensure series have their chapters populated
     initializeSeriesWithChapters();
     
     return {
@@ -137,7 +122,7 @@ export class MockAPI {
     };
   }
 
-  async createSeries(name: string, description?: string): Promise<APIResponse<typeof mockSeries[0]>> {
+  async createSeries(name, description) {
     await simulateDelay(500, 1000);
     
     const newSeries = {
@@ -156,7 +141,7 @@ export class MockAPI {
     };
   }
 
-  async updateSeries(seriesId: string, updates: Partial<Series>): Promise<APIResponse<Series>> {
+  async updateSeries(seriesId, updates) {
     await simulateDelay(300, 600);
     
     const index = mockSeries.findIndex(s => s.id === seriesId);
@@ -175,7 +160,7 @@ export class MockAPI {
     };
   }
 
-  async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
+  async deleteSeries(seriesId) {
     await simulateDelay(300, 600);
     
     const index = mockSeries.findIndex(s => s.id === seriesId);
@@ -194,7 +179,7 @@ export class MockAPI {
   }
 
   // Chapter endpoints
-  async getChapters(seriesId?: string): Promise<APIResponse<typeof mockChapters>> {
+  async getChapters(seriesId) {
     await simulateDelay(200, 600);
     
     const chapters = seriesId 
@@ -207,11 +192,7 @@ export class MockAPI {
     };
   }
 
-  async createChapter(
-    title: string, 
-    content: string, 
-    seriesId: string
-  ): Promise<APIResponse<typeof mockChapters[0]>> {
+  async createChapter(title, content, seriesId) {
     await simulateDelay(800, 1500);
     
     const originalParagraphs = content
@@ -231,7 +212,6 @@ export class MockAPI {
     
     mockChapters.push(newChapter);
     
-    // Update the series with the new chapter
     const series = mockSeries.find(s => s.id === seriesId);
     if (series) {
       series.chapters.push(newChapter);
@@ -243,7 +223,7 @@ export class MockAPI {
     };
   }
 
-  async updateChapter(chapterId: string, updates: Partial<Chapter>): Promise<APIResponse<Chapter>> {
+  async updateChapter(chapterId, updates) {
     await simulateDelay(300, 600);
     
     const index = mockChapters.findIndex(ch => ch.id === chapterId);
@@ -256,7 +236,6 @@ export class MockAPI {
     
     mockChapters[index] = { ...mockChapters[index], ...updates };
     
-    // Update the chapter in its series as well
     const series = mockSeries.find(s => s.id === mockChapters[index].seriesId);
     if (series) {
       const seriesChapterIndex = series.chapters.findIndex(ch => ch.id === chapterId);
@@ -271,7 +250,7 @@ export class MockAPI {
     };
   }
 
-  async deleteChapter(chapterId: string): Promise<APIResponse<void>> {
+  async deleteChapter(chapterId) {
     await simulateDelay(300, 600);
     
     const index = mockChapters.findIndex(ch => ch.id === chapterId);
@@ -285,7 +264,6 @@ export class MockAPI {
     const chapter = mockChapters[index];
     mockChapters.splice(index, 1);
     
-    // Remove the chapter from its series as well
     const series = mockSeries.find(s => s.id === chapter.seriesId);
     if (series) {
       series.chapters = series.chapters.filter(ch => ch.id !== chapterId);
@@ -297,19 +275,17 @@ export class MockAPI {
   }
 
   // Glossary endpoints
-  async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
+  async getGlossaryTerms(seriesId, chapterId) {
     await simulateDelay(200, 500);
     
     let filteredTerms = [...mockGlossaryTerms];
     
     if (chapterId) {
-      // Filter by specific chapter OR series-level terms (no chapterId)
       filteredTerms = filteredTerms.filter(term => 
         term.chapterId === chapterId || 
         (term.seriesId === seriesId && !term.chapterId)
       );
     } else if (seriesId) {
-      // Filter by series
       filteredTerms = filteredTerms.filter(term => term.seriesId === seriesId);
     }
     
@@ -319,10 +295,9 @@ export class MockAPI {
     };
   }
 
-  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
+  async createGlossaryTerm(term) {
     await simulateDelay(400, 800);
     
-    // Check if term already exists in the series
     const existingTerm = mockGlossaryTerms.find(
       t => t.term.toLowerCase() === term.term.toLowerCase() && t.seriesId === term.seriesId
     );
@@ -334,7 +309,7 @@ export class MockAPI {
       };
     }
     
-    const newTerm: GlossaryTerm = {
+    const newTerm = {
       ...term,
       id: `term${Date.now()}`,
       frequency: 1,
@@ -348,7 +323,7 @@ export class MockAPI {
     };
   }
 
-  async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {
+  async updateGlossaryTerm(termId, updates) {
     await simulateDelay(300, 600);
     
     const index = mockGlossaryTerms.findIndex(t => t.id === termId);
@@ -367,7 +342,7 @@ export class MockAPI {
     };
   }
 
-  async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
+  async deleteGlossaryTerm(termId) {
     await simulateDelay(300, 600);
     
     const index = mockGlossaryTerms.findIndex(t => t.id === termId);
@@ -386,9 +361,9 @@ export class MockAPI {
   }
 
   // Sharing endpoints
-  async createShare(request: ShareRequest): Promise<APIResponse<ShareResponse>> {
+  async createShare(request) {
     await simulateDelay(800, 1500);
-    console.log('mockAPI createShare')
+    console.log('mockAPI createShare');
 
     if (simulateFailure(0.02)) {
       return {
@@ -399,17 +374,13 @@ export class MockAPI {
     
     const shareId = `share-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const shareUrl = `${window.location.origin}/share/${shareId}`;
-    console.log(shareUrl)
 
-    // Calculate expiration date
     const expiresAt = request.expirationDays 
       ? new Date(Date.now() + request.expirationDays * 24 * 60 * 60 * 1000)
       : undefined;
-    // Store the shared content (in a real app, this would be in a database)
+
     const sharedContent = await this.buildSharedContent(request, shareId, expiresAt, request.password);
-    console.log(sharedContent)
     if (sharedContent) {
-      // In a real app, you'd store this in a database
       localStorage.setItem(`share-${shareId}`, JSON.stringify(sharedContent));
     }
     
@@ -423,10 +394,9 @@ export class MockAPI {
     };
   }
 
-  async getSharedContent(shareId: string): Promise<APIResponse<SharedContent>> {
+  async getSharedContent(shareId) {
     await simulateDelay(300, 800);
     
-    // In a real app, this would query a database
     const stored = localStorage.getItem(`share-${shareId}`);
     if (!stored) {
       return {
@@ -436,9 +406,8 @@ export class MockAPI {
     }
     
     try {
-      const sharedContent = JSON.parse(stored) as SharedContent;
+      const sharedContent = JSON.parse(stored);
       
-      // Check if expired
       if (sharedContent.expiresAt && new Date() > new Date(sharedContent.expiresAt)) {
         localStorage.removeItem(`share-${shareId}`);
         return {
@@ -459,7 +428,7 @@ export class MockAPI {
     }
   }
 
-  async verifySharePassword(shareId: string, password: string): Promise<APIResponse<boolean>> {
+  async verifySharePassword(shareId, password) {
     await simulateDelay(500, 1000);
     
     const stored = localStorage.getItem(`share-${shareId}`);
@@ -486,7 +455,7 @@ export class MockAPI {
     }
   }
 
-  async deleteShare(shareId: string): Promise<APIResponse<void>> {
+  async deleteShare(shareId) {
     await simulateDelay(200, 500);
     
     localStorage.removeItem(`share-${shareId}`);
@@ -496,19 +465,9 @@ export class MockAPI {
     };
   }
 
-  private async buildSharedContent(
-    request: ShareRequest,
-    shareId: string,
-    expiresAt?: Date,
-    password?: string
-  ): Promise<SharedContent | null> {
-    let chapters: Chapter[] = [];
-    console.log('mockAPI buildSharedContent')
-    console.log(request)
-    console.log(shareId)
-    console.log(mockChapters)
+  async buildSharedContent(request, shareId, expiresAt, password) {
+    let chapters = [];
 
-    // Get chapters from selected series (fully translated only)
     if (request.seriesIds.length > 0) {
       const seriesChapters = mockChapters.filter(c => 
         request.seriesIds.includes(c.seriesId) &&
@@ -516,9 +475,7 @@ export class MockAPI {
       );
       chapters.push(...seriesChapters);
     }
-    console.log(chapters)
 
-    // Get individual chapters (only if their series is not already selected)
     if (request.chapterIds.length > 0) {
       const individualChapters = mockChapters.filter(c => 
         request.chapterIds.includes(c.id) &&
@@ -526,11 +483,10 @@ export class MockAPI {
       );
       chapters.push(...individualChapters);
     }
-    console.log(chapters)
 
     if (chapters.length === 0) return null;
 
-    const sharedChapters: SharedChapter[] = chapters.map(chapter => {
+    const sharedChapters = chapters.map(chapter => {
       const series = mockSeries.find(s => s.id === chapter.seriesId);
       
       return {
@@ -542,22 +498,21 @@ export class MockAPI {
         seriesId: chapter.seriesId
       };
     });
-    console.log(sharedChapters)
 
     return {
-        type: request.seriesIds.length > 0 ? 'series' : 'chapters',
-        id: shareId,
-        title: request.title || 'Shared Translation',
-        description: request.description,
-        content: sharedChapters,
-        createdAt: new Date(),
-        expiresAt,
-        isPasswordProtected: !!password,
-        password: password // Store password for demo (in real app, this would be hashed)
+      type: request.seriesIds.length > 0 ? 'series' : 'chapters',
+      id: shareId,
+      title: request.title || 'Shared Translation',
+      description: request.description,
+      content: sharedChapters,
+      createdAt: new Date(),
+      expiresAt,
+      isPasswordProtected: !!password,
+      password: password
     };
   }
   
-  private isChapterFullyTranslated(chapter: Chapter): boolean {
+  isChapterFullyTranslated(chapter) {
     return chapter.isTranslated || false;
   }
 }
