@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Custom reading styles */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .paragraph-hover {
+    @apply hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200;
+  }
+  
+  .glossary-highlight {
+    @apply bg-green-100 border-b-2 border-green-500 cursor-pointer;
+  }
+  
+  .sidebar-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .reading-text {
+    @apply font-serif leading-relaxed text-base;
+  }
+}
