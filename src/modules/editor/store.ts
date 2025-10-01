@@ -1,0 +1,278 @@
+/**
+ * Editor Module - Pinia Store
+ *
+ * Manages editor state including current chapter, editing modes, and unsaved changes.
+ *
+ * Usage Example:
+ * ```typescript
+ * import { useEditorStore } from '@/modules/editor';
+ *
+ * const editor = useEditorStore();
+ * await editor.loadChapter('ch-123');
+ * editor.startEditingParagraph(0, 'original');
+ * await editor.saveParagraph(0, 'Updated content', 'original');
+ * ```
+ *
+ * Integration in pages:
+ * ```vue
+ * <script setup>
+ * import { useEditorStore } from '@/modules/editor';
+ *
+ * const editor = useEditorStore();
+ *
+ * onMounted(() => {
+ *   editor.loadChapter(route.params.chapterId);
+ * });
+ * </script>
+ * ```
+ */
+
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import { editorAPI } from './api';
+import type { Chapter, EditorState, LayoutMode, ContentMode } from './types';
+
+export const useEditorStore = defineStore('editor', () => {
+  // State
+  const currentChapter = ref<Chapter | null>(null);
+  const currentChapterId = ref<string | null>(null);
+  const isEditingOriginal = ref(false);
+  const editingOriginalParagraphs = ref<Set<number>>(new Set());
+  const editingTranslatedParagraphs = ref<Set<number>>(new Set());
+  const hasUnsavedChanges = ref(false);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+
+  // View preferences (persisted to localStorage)
+  const layoutMode = ref<LayoutMode>('split');
+  const contentMode = ref<ContentMode>('all');
+
+  // Computed
+  const editorState = computed<EditorState>(() => ({
+    currentChapterId: currentChapterId.value,
+    isEditingOriginal: isEditingOriginal.value,
+    editingOriginalParagraphs: editingOriginalParagraphs.value,
+    editingTranslatedParagraphs: editingTranslatedParagraphs.value,
+    hasUnsavedChanges: hasUnsavedChanges.value,
+  }));
+
+  // Actions
+
+  /**
+   * Load a chapter into the editor
+   */
+  async function loadChapter(chapterId: string) {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      const response = await editorAPI.getChapter(chapterId);
+
+      if (response.success && response.data) {
+        currentChapter.value = response.data;
+        currentChapterId.value = chapterId;
+        hasUnsavedChanges.value = false;
+
+        // Reset editing states
+        isEditingOriginal.value = false;
+        editingOriginalParagraphs.value.clear();
+        editingTranslatedParagraphs.value.clear();
+      } else {
+        error.value = response.error || 'Failed to load chapter';
+      }
+    } catch (err) {
+      error.value = 'An error occurred while loading the chapter';
+      console.error('Error loading chapter:', err);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Update the current chapter (local state only)
+   */
+  function updateLocalChapter(updates: Partial<Chapter>) {
+    if (currentChapter.value) {
+      currentChapter.value = { ...currentChapter.value, ...updates };
+      hasUnsavedChanges.value = true;
+    }
+  }
+
+  /**
+   * Save chapter changes to the API
+   */
+  async function saveChapter() {
+    if (!currentChapter.value) return;
+
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      const response = await editorAPI.updateChapter(
+        currentChapter.value.id,
+        currentChapter.value
+      );
+
+      if (response.success && response.data) {
+        currentChapter.value = response.data;
+        hasUnsavedChanges.value = false;
+      } else {
+        error.value = response.error || 'Failed to save chapter';
+      }
+    } catch (err) {
+      error.value = 'An error occurred while saving the chapter';
+      console.error('Error saving chapter:', err);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Toggle editing mode for the entire original text
+   */
+  function toggleEditingOriginal() {
+    isEditingOriginal.value = !isEditingOriginal.value;
+    if (!isEditingOriginal.value) {
+      saveChapter();
+    }
+  }
+
+  /**
+   * Start editing a specific paragraph
+   */
+  function startEditingParagraph(index: number, type: 'original' | 'translated') {
+    if (type === 'original') {
+      editingOriginalParagraphs.value.add(index);
+    } else {
+      editingTranslatedParagraphs.value.add(index);
+    }
+  }
+
+  /**
+   * Stop editing a specific paragraph
+   */
+  function stopEditingParagraph(index: number, type: 'original' | 'translated') {
+    if (type === 'original') {
+      editingOriginalParagraphs.value.delete(index);
+    } else {
+      editingTranslatedParagraphs.value.delete(index);
+    }
+  }
+
+  /**
+   * Save a paragraph's content
+   */
+  async function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
+    if (!currentChapter.value) return;
+
+    if (type === 'original') {
+      currentChapter.value.originalParagraphs[index] = content;
+      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+    } else {
+      currentChapter.value.translatedParagraphs[index] = content;
+      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    }
+
+    hasUnsavedChanges.value = true;
+    stopEditingParagraph(index, type);
+    await saveChapter();
+  }
+
+  /**
+   * Cancel editing a paragraph
+   */
+  function cancelParagraphEdit(index: number, type: 'original' | 'translated') {
+    stopEditingParagraph(index, type);
+  }
+
+  /**
+   * Update full original text (for full-text editing mode)
+   */
+  async function saveFullOriginalText(text: string) {
+    if (!currentChapter.value) return;
+
+    const paragraphs = text
+      .split('\n\n')
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+
+    currentChapter.value.content = text;
+    currentChapter.value.originalParagraphs = paragraphs;
+
+    hasUnsavedChanges.value = true;
+    await saveChapter();
+  }
+
+  /**
+   * Toggle layout mode (split vs full)
+   */
+  function toggleLayoutMode() {
+    layoutMode.value = layoutMode.value === 'split' ? 'full' : 'split';
+    localStorage.setItem('editor:layoutMode', layoutMode.value);
+  }
+
+  /**
+   * Toggle content mode (all vs translated only)
+   */
+  function toggleContentMode() {
+    contentMode.value = contentMode.value === 'all' ? 'translated' : 'all';
+    localStorage.setItem('editor:contentMode', contentMode.value);
+  }
+
+  /**
+   * Load view preferences from localStorage
+   */
+  function loadViewPreferences() {
+    const savedLayout = localStorage.getItem('editor:layoutMode') as LayoutMode;
+    const savedContent = localStorage.getItem('editor:contentMode') as ContentMode;
+
+    if (savedLayout) layoutMode.value = savedLayout;
+    if (savedContent) contentMode.value = savedContent;
+  }
+
+  /**
+   * Clear the current chapter from the editor
+   */
+  function clearChapter() {
+    currentChapter.value = null;
+    currentChapterId.value = null;
+    hasUnsavedChanges.value = false;
+    isEditingOriginal.value = false;
+    editingOriginalParagraphs.value.clear();
+    editingTranslatedParagraphs.value.clear();
+    error.value = null;
+  }
+
+  // Initialize view preferences
+  loadViewPreferences();
+
+  return {
+    // State
+    currentChapter: computed(() => currentChapter.value),
+    currentChapterId: computed(() => currentChapterId.value),
+    isEditingOriginal: computed(() => isEditingOriginal.value),
+    editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
+    editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
+    hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
+    isLoading: computed(() => isLoading.value),
+    error: computed(() => error.value),
+    layoutMode: computed(() => layoutMode.value),
+    contentMode: computed(() => contentMode.value),
+    editorState,
+
+    // Actions
+    loadChapter,
+    updateLocalChapter,
+    saveChapter,
+    toggleEditingOriginal,
+    startEditingParagraph,
+    stopEditingParagraph,
+    saveParagraph,
+    cancelParagraphEdit,
+    saveFullOriginalText,
+    toggleLayoutMode,
+    toggleContentMode,
+    loadViewPreferences,
+    clearChapter,
+  };
+});
