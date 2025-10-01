@@ -24,7 +24,7 @@
  * ```
  */
 
-export { APIClient, apiClient } from './services/index';
+export { apiClient } from './services/index';
 
 export type { APIResponse } from './types';
 

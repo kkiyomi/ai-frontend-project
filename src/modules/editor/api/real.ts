@@ -82,5 +82,3 @@ export class EditorRealAPI {
     return apiClient.post<Chapter[]>('/chapters/batch-update', { updates });
   }
 }
-
-export const editorRealAPI = new EditorRealAPI();

@@ -14,5 +14,3 @@ import { APIClient } from './apiClient';
 import { apiBaseURL } from '../utils/environment';
 
 export const apiClient = new APIClient(apiBaseURL);
-
-export { APIClient } from './apiClient';

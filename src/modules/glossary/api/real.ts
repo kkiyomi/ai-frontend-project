@@ -8,15 +8,10 @@
  * glossary endpoints - each feature module owns its own API definitions.
  */
 
-import { APIClient, type APIResponse } from '@/modules/core';
+import { apiClient, type APIResponse } from '@/modules/core';
 import type { GlossaryTerm } from '../types';
 
 export class GlossaryRealAPI {
-  private client: APIClient;
-
-  constructor(baseURL: string) {
-    this.client = new APIClient(baseURL);
-  }
 
   async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
     const params = new URLSearchParams();
@@ -32,18 +27,18 @@ export class GlossaryRealAPI {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return this.client.get<GlossaryTerm[]>(`/glossary-terms${query}`);
+    return apiClient.get<GlossaryTerm[]>(`/glossary-terms${query}`);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.post<GlossaryTerm>('/glossary-terms', term);
+    return apiClient.post<GlossaryTerm>('/glossary-terms', term);
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {
-    return this.client.patch<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
+    return apiClient.patch<GlossaryTerm>(`/glossary-terms/${termId}`, updates);
   }
 
   async deleteGlossaryTerm(termId: string): Promise<APIResponse<void>> {
-    return this.client.delete<void>(`/glossary-terms/${termId}`);
+    return apiClient.delete<void>(`/glossary-terms/${termId}`);
   }
 }

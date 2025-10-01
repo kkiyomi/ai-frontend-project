@@ -176,5 +176,3 @@ export class EditorMockAPI {
     };
   }
 }
-
-export const editorMockAPI = new EditorMockAPI();
