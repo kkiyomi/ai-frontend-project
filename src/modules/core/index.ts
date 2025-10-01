@@ -1,34 +1,32 @@
 /**
- * Core Module - Public API
+ * Core Module - Infrastructure Only
  *
- * Provides shared infrastructure for all feature modules:
- * - API communication (mock/real switching, caching, deduplication)
- * - Common types
- * - Environment utilities
+ * IMPORTANT: This module provides ONLY generic infrastructure for HTTP communication.
+ * It does NOT know about any domain concepts (Series, Glossary, Chapters, etc.)
  *
- * Integration Guide:
+ * Core provides:
+ * - APIClient: Generic HTTP client with GET/POST/PATCH/DELETE methods
+ * - Environment utilities: Development vs production detection
+ * - Generic types: APIResponse<T> for wrapping all API responses
+ *
+ * Feature modules (like Glossary) should:
+ * 1. Import APIClient from Core
+ * 2. Define their own domain-specific endpoints
+ * 3. Handle their own mock vs real API switching
+ *
+ * Integration Example:
  * ```typescript
- * import { useAPI, type APIResponse } from '@/modules/core';
+ * // In a feature module
+ * import { APIClient, type APIResponse } from '@/modules/core';
  *
- * const { getGlossaryTerms, createGlossaryTerm } = useAPI();
+ * const client = new APIClient('http://api.example.com');
+ * const response = await client.get<MyType>('/my-endpoint');
  * ```
  */
 
-export { useAPI, useDataAPI } from './composables/useAPI';
-
-export { apiService } from './services/apiService';
 export { APIClient } from './services/apiClient';
-export { MockAPI } from './services/mockAPI';
-export { RealAPI } from './services/realAPI';
 
-export type { APIResponse, Series, Chapter, TranslationState } from './types';
-export type {
-  ShareRequest,
-  ShareResponse,
-  SharedContent,
-  SharedChapter,
-  ShareStats
-} from './types/sharing';
+export type { APIResponse } from './types';
 
 export {
   isDevelopment,

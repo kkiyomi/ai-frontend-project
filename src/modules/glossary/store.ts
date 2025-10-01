@@ -1,8 +1,13 @@
-import { ref, computed } from 'vue';
-import { createGlossaryAPI } from './api';
-import type { GlossaryTerm } from './types';
+/**
+ * Glossary Module - Store
+ *
+ * Reactive state management for glossary terms.
+ * Uses the Glossary API layer which handles mock/real switching internally.
+ */
 
-const api = createGlossaryAPI();
+import { ref, computed } from 'vue';
+import { glossaryAPI } from './api';
+import type { GlossaryTerm } from './types';
 
 const terms = ref<GlossaryTerm[]>([]);
 const isLoading = ref(false);
@@ -34,7 +39,7 @@ async function loadTerms(seriesId?: string, chapterId?: string) {
   currentChapterId.value = chapterId;
 
   try {
-    const response = await api.getGlossaryTerms(seriesId, chapterId);
+    const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId);
     if (response.success && response.data) {
       let filteredTerms: GlossaryTerm[];
       if (chapterId) {
@@ -47,7 +52,7 @@ async function loadTerms(seriesId?: string, chapterId?: string) {
       terms.value = filteredTerms;
     }
   } catch (error) {
-    console.error('Error loading glossary terms:', error);
+    console.error('[Glossary Store] Error loading glossary terms:', error);
   } finally {
     isLoading.value = false;
   }
@@ -55,46 +60,43 @@ async function loadTerms(seriesId?: string, chapterId?: string) {
 
 async function addTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>) {
   try {
-    const response = await api.createGlossaryTerm(term);
+    const response = await glossaryAPI.createGlossaryTerm(term);
     if (response.success && response.data) {
       terms.value.push(response.data);
-      api.clearCache();
     } else {
-      console.error('Failed to create glossary term:', response.error);
+      console.error('[Glossary Store] Failed to create glossary term:', response.error);
     }
   } catch (error) {
-    console.error('Error creating glossary term:', error);
+    console.error('[Glossary Store] Error creating glossary term:', error);
   }
 }
 
 async function updateTerm(termId: string, updates: Partial<GlossaryTerm>) {
   try {
-    const response = await api.updateGlossaryTerm(termId, updates);
+    const response = await glossaryAPI.updateGlossaryTerm(termId, updates);
     if (response.success && response.data) {
       const index = terms.value.findIndex(term => term.id === termId);
       if (index !== -1) {
         terms.value[index] = response.data;
       }
-      api.clearCache();
     } else {
-      console.error('Failed to update glossary term:', response.error);
+      console.error('[Glossary Store] Failed to update glossary term:', response.error);
     }
   } catch (error) {
-    console.error('Error updating glossary term:', error);
+    console.error('[Glossary Store] Error updating glossary term:', error);
   }
 }
 
 async function removeTerm(termId: string) {
   try {
-    const response = await api.deleteGlossaryTerm(termId);
+    const response = await glossaryAPI.deleteGlossaryTerm(termId);
     if (response.success) {
       terms.value = terms.value.filter(term => term.id !== termId);
-      api.clearCache();
     } else {
-      console.error('Failed to delete glossary term:', response.error);
+      console.error('[Glossary Store] Failed to delete glossary term:', response.error);
     }
   } catch (error) {
-    console.error('Error deleting glossary term:', error);
+    console.error('[Glossary Store] Error deleting glossary term:', error);
   }
 }
 
@@ -108,11 +110,11 @@ async function termExistsInSeries(termText: string): Promise<boolean> {
   if (!currentSeriesId.value) return false;
 
   try {
-    const response = await api.getGlossaryTerms(currentSeriesId.value);
+    const response = await glossaryAPI.getGlossaryTerms(currentSeriesId.value);
     const seriesTerms = response.success && response.data ? response.data : [];
     return seriesTerms.some(term => term.term.toLowerCase() === termText.toLowerCase());
   } catch (error) {
-    console.error('Error loading series terms:', error);
+    console.error('[Glossary Store] Error loading series terms:', error);
     return false;
   }
 }

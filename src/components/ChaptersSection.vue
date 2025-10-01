@@ -95,7 +95,8 @@ import SelectedSeriesView from './SelectedSeriesView.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import { useChapters } from '../composables/useChapters';
-import { useDataAPI, type Series, type Chapter } from '@/modules/core';
+import { useDataAPI } from '../composables/useAPI';
+import type { Series, Chapter } from '../types';
 
 const {
   series,

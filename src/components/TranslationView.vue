@@ -117,7 +117,7 @@ import TextColumn from './TextColumn.vue';
 import { useChapters } from '../composables/useChapters';
 import { useTranslation } from '../composables/useTranslation';
 import { useGlossaryStore, type GlossaryTerm } from '@/modules/glossary';
-import { useDataAPI, useAPI } from '@/modules/core';
+import { useDataAPI, useAPI } from '../composables/useAPI';
 import { saveLayoutMode, loadLayoutMode, saveContentMode, loadContentMode } from '../utils/localStorage';
 
 const {

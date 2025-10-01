@@ -1,37 +1,41 @@
 /**
  * Glossary Module - Public API
  *
- * Manages glossary terms for translation consistency:
- * - Store: Reactive state management for terms
- * - Components: UI for viewing/editing terms
- * - Directive: Auto-highlighting terms in text
- * - API: CRUD operations through Core module
+ * The Glossary module manages translation consistency through glossary terms.
  *
- * Integration Guide:
+ * Features:
+ * - Store: Reactive state management for glossary terms
+ * - Components: UI for viewing/editing glossary terms with popup tooltips
+ * - Directive: Auto-highlighting of terms in translated text
+ * - API: CRUD operations with automatic mock/real switching
+ *
+ * Integration Example:
  * ```typescript
- * // In main.ts or app setup
+ * // In main.ts
  * import { vGlossary } from '@/modules/glossary';
  * app.directive('glossary', vGlossary);
  *
  * // In components
- * import { useGlossaryStore } from '@/modules/glossary';
- * import { GlossaryPanel } from '@/modules/glossary';
+ * import { useGlossaryStore, GlossaryPanel } from '@/modules/glossary';
  *
  * const glossary = useGlossaryStore();
- * glossary.loadTerms(seriesId, chapterId);
+ * await glossary.loadTerms(seriesId, chapterId);
  * ```
  *
- * Using the v-glossary directive:
+ * Using the v-glossary directive for auto-highlighting:
  * ```vue
  * <template>
  *   <div v-glossary>{{ translatedText }}</div>
  * </template>
  * ```
- * The directive automatically highlights glossary terms and shows tooltips.
+ *
+ * API Configuration:
+ * - Mock mode: Set VITE_USE_MOCK_API=true in .env
+ * - Real mode: Set VITE_USE_MOCK_API=false and configure VITE_API_BASE_URL
+ * - Glossary module handles switching internally via Core's environment utils
  */
 
 export { useGlossaryStore } from './store';
-export { createGlossaryAPI } from './api';
 export { vGlossary } from './directive';
 
 export { default as GlossaryPanel } from './components/GlossaryPanel.vue';
