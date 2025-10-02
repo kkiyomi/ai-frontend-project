@@ -93,11 +93,13 @@ const emit = defineEmits<{
   cancelParagraphEdit: [index: number];
 }>();
 
-const editableFullText = ref(props.fullText || '');
-
-// Update editable text when fullText prop changes
-watch(() => props.fullText, (newText) => {
-  editableFullText.value = newText || '';
+const editableFullText = computed({
+  get: () =>
+    (props.fullText ?? "").replace(/<br\s*\/?>/gi, "\n\n"),
+  set: (val: string) => {
+    // convert newlines back to <br> before emitting
+    emit("saveFullText", val.replace(/\n+/g, "<br>"));
+  },
 });
 
 const headerClass = computed(() => {
