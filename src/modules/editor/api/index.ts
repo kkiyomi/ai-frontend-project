@@ -3,7 +3,7 @@ import { EditorMockAPI } from './mock';
 import { EditorRealAPI } from './real';
 import { AutoEnrichChapters } from '../utils';
 import type { APIResponse } from '@/modules/core';
-import type { EditorTerm } from '../types';
+import type { Chapter } from '../types';
 
 class EditorAPIService {
   private static instance: EditorAPIService | null = null;

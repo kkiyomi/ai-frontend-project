@@ -1,5 +1,5 @@
-import { Chapter } from "../types/Chapter";
-import { APIResponse } from "../types/APIResponse";
+import type { Chapter } from './types';
+import type { APIResponse } from '@/modules/core';
 
 /**
  * Splits text into trimmed non-empty paragraphs

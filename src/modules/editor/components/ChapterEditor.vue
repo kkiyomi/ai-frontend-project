@@ -27,8 +27,8 @@
       :isEditingOriginal="isEditingOriginal"
       :layoutMode="layoutMode"
       :contentMode="contentMode"
-      :isTranslating="false"
-      :translationProgress="0"
+      :isTranslating="isTranslating"
+      :translationProgress="translationProgress"
       @toggleEditMode="editor.toggleEditingOriginal()"
       @toggleLayoutMode="editor.toggleLayoutMode()"
       @toggleContentMode="editor.toggleContentMode()"
@@ -128,11 +128,15 @@ interface Props {
   chapterId?: string | null;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
+  isTranslating?: boolean;
+  translationProgress?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   chapterId: null,
   isHighlightEnabled: false,
+  isTranslating: false,
+  translationProgress: 0,
 });
 
 const emit = defineEmits<{

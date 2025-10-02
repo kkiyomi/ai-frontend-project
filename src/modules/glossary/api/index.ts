@@ -41,7 +41,7 @@ class GlossaryAPIService {
       this.apiInstance = new GlossaryMockAPI();
     } else {
       console.log('[Glossary] Using real API:', apiBaseURL);
-      this.apiInstance = new GlossaryRealAPI(apiBaseURL);
+      this.apiInstance = new GlossaryRealAPI();
     }
   }
 

@@ -13,6 +13,8 @@
       :chapterId="currentChapterId?.toString() || null"
       :highlightTermsInText="glossary.highlightTermsInText"
       :isHighlightEnabled="glossary.isHighlightEnabled.value"
+      :isTranslating="translation.isTranslating.value"
+      :translationProgress="translation.translationProgress.value"
       @translateAll="translateAllParagraphs"
       @chapterUpdated="handleChapterUpdate"
     />
@@ -31,9 +33,9 @@
 import { ref, onMounted, watch } from 'vue';
 import { ChapterEditor } from '@/modules/editor';
 import { useGlossaryStore, GlossaryTermPopup, type GlossaryTerm } from '@/modules/glossary';
+import { useTranslationStore } from '@/modules/translation';
 import { useChapters } from '../composables/useChapters';
-import { useTranslation } from '../composables/useTranslation';
-import { useDataAPI, useAPI } from '../composables/useAPI';
+import { useDataAPI } from '../composables/useAPI';
 
 const {
   currentChapter,
@@ -41,10 +43,12 @@ const {
   updateChapter
 } = useChapters();
 
+const translation = useTranslationStore();
 const {
   isTranslating,
   translationProgress,
-} = useTranslation();
+  translateParagraph: translateText,
+} = translation;
 
 const glossary = useGlossaryStore();
 const {
@@ -52,7 +56,6 @@ const {
   updateTerm
 } = glossary;
 const { updateChapter: updateChapterAPI } = useDataAPI();
-const { translateText } = useAPI();
 
 const showGlossaryPopup = ref(false);
 const hoveredTerm = ref<GlossaryTerm | null>(null);
@@ -71,16 +74,14 @@ const translateAllParagraphs = async () => {
   const fullText = currentChapter.value.content;
 
   try {
-    const response = await translateText(fullText, glossaryContext);
+    const translatedText = await translateText(fullText, glossaryContext);
 
-    if (response.success && response.data) {
-      const updatedChapter = {
-        ...currentChapter.value,
-        translatedContent: response.data,
-        translatedParagraphs: response.data.split('\n').map(p => p.trim()).filter(p => p.length > 0)
-      };
-      await updateChapter(currentChapter.value.id, updatedChapter);
-    }
+    const updatedChapter = {
+      ...currentChapter.value,
+      translatedContent: translatedText,
+      translatedParagraphs: translatedText.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
+    };
+    await updateChapter(currentChapter.value.id, updatedChapter);
   } catch (error) {
     console.error('Error translating all paragraphs:', error);
   }
