@@ -15,10 +15,11 @@ export interface ShareResponse {
 
 export interface SharedContent {
   id: string;
-  type: 'chapter' | 'chapters' | 'series' | 'multiple-series';
   title: string;
   description?: string;
   content: SharedChapter[];
+  chapterIds?: string[];
+  seriesIds?: string[];
   createdAt: Date;
   expiresAt?: Date;
   isPasswordProtected: boolean;
