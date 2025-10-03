@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ShareButton } from '@/modules/sharing';
-import type { Chapter } from '../types';
+import type { Chapter } from '@/modules/editor/types';
 
 interface Props {
   currentChapter: Chapter | null;

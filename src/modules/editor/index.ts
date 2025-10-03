@@ -53,7 +53,6 @@ export { useEditorStore } from './store';
 export { default as ChapterEditor } from './components/ChapterEditor.vue';
 export { default as ParagraphEditor } from './components/ParagraphEditor.vue';
 export { default as TextColumn } from './components/TextColumn.vue';
-export { default as TranslationHeader } from './components/TranslationHeader.vue';
 
 // API
 export { editorAPI } from './api';

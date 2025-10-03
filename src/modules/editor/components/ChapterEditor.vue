@@ -22,18 +22,6 @@
 -->
 <template>
   <div class="flex-1 flex flex-col h-full bg-white">
-    <TranslationHeader
-      :currentChapter="currentChapter"
-      :isEditingOriginal="isEditingOriginal"
-      :layoutMode="layoutMode"
-      :contentMode="contentMode"
-      :isTranslating="isTranslating"
-      :translationProgress="translationProgress"
-      @toggleEditMode="editor.toggleEditingOriginal()"
-      @toggleLayoutMode="editor.toggleLayoutMode()"
-      @toggleContentMode="editor.toggleContentMode()"
-      @translateAll="$emit('translateAll')"
-    />
 
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">
@@ -121,7 +109,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useEditorStore } from '../store';
-import TranslationHeader from './TranslationHeader.vue';
 import TextColumn from './TextColumn.vue';
 
 interface Props {

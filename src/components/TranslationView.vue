@@ -9,6 +9,19 @@
 -->
 <template>
   <div class="flex-1 flex flex-col h-full bg-white">
+    <TranslationHeader
+      :currentChapter="currentChapter"
+      :isEditingOriginal="editor.isEditingOriginal"
+      :layoutMode="editor.layoutMode"
+      :contentMode="editor.contentMode"
+      :isTranslating="translation.isTranslating.value"
+      :translationProgress="translation.translationProgress.value"
+      @toggleEditMode="editor.toggleEditingOriginal()"
+      @toggleLayoutMode="editor.toggleLayoutMode()"
+      @toggleContentMode="editor.toggleContentMode()"
+      @translateAll="translateAllParagraphs"
+    />
+
     <ChapterEditor
       :chapterId="currentChapterId?.toString() || null"
       :highlightTermsInText="glossary.highlightTermsInText"
@@ -30,12 +43,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { ChapterEditor } from '@/modules/editor';
+import { ref, onMounted, computed } from 'vue';
+import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import { useGlossaryStore, GlossaryTermPopup, type GlossaryTerm } from '@/modules/glossary';
 import { useTranslationStore } from '@/modules/translation';
 import { useChapters } from '../composables/useChapters';
 import { useDataAPI } from '../composables/useAPI';
+import TranslationHeader from './TranslationHeader.vue';
 
 const {
   currentChapter,
@@ -43,6 +57,7 @@ const {
   updateChapter
 } = useChapters();
 
+const editor = useEditorStore();
 const translation = useTranslationStore();
 const {
   isTranslating,
