@@ -348,27 +348,6 @@ This war was already lost. If they continued fighting, only more progenitors wou
     translatedParagraphs: [],
     isTranslated: true,
     seriesId: 's1'
-  },
-  {
-    id: 'ch2',
-    title: 'Chapter 2: The Test',
-    content: `The wizard's tower loomed before Aria, its spiraling architecture defying conventional understanding.
-
-Ancient runes glowed softly along the stone walls, pulsing with an otherworldly energy that made her skin tingle.
-
-"Enter, young seeker," came a voice from within, though no one was visible at the entrance.
-
-Aria took a deep breath and crossed the threshold, her destiny awaiting within.`,
-    translatedContent: `La torre del mago se alzaba ante Aria, su arquitectura espiral desafiando la comprensión convencional.
-
-Las runas ancestrales brillaban suavemente a lo largo de las paredes de piedra, pulsando con una energía sobrenatural que hacía que su piel hormigueara.
-
-"Entra, joven buscadora", llegó una voz desde adentro, aunque nadie era visible en la entrada.
-
-Aria respiró profundamente y cruzó el umbral, su destino la esperaba adentro.`,
-    originalParagraphs: [],
-    translatedParagraphs: [],
-    seriesId: 's1'
   }
 ];
 
