@@ -72,7 +72,7 @@
         
         <!-- Stats -->
         <div v-if="sharedContent" class="mt-4 flex items-center space-x-6 text-sm text-gray-500">
-          <span>{{ sharedContent.content.length }} chapter{{ sharedContent.content.length !== 1 ? 's' : '' }}</span>
+          <span>{{ displayChapters.length }} chapter{{ displayChapters.length !== 1 ? 's' : '' }}</span>
           <span>{{ getUniqueSeriesCount() }} series</span>
           <span>{{ getTranslationStats().translatedParagraphs }}/{{ getTranslationStats().totalParagraphs }} paragraphs translated</span>
           <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
@@ -138,7 +138,7 @@
       <!-- Chapters -->
       <div class="space-y-8">
         <div
-          v-for="(chapter, index) in sharedContent.content"
+          v-for="(chapter, index) in displayChapters"
           :key="chapter.id"
           class="bg-white rounded-lg border border-gray-200 overflow-hidden"
         >
@@ -148,7 +148,7 @@
               <div>
                 <h2 class="text-lg font-semibold text-gray-900">{{ chapter.title }}</h2>
                 <p class="text-sm text-gray-500 mt-1">
-                  From: {{ chapter.seriesName }} • Chapter {{ index + 1 }} of {{ sharedContent.content.length }}
+                  From: {{ chapter.seriesName }} • Chapter {{ index + 1 }} of {{ displayChapters.length }}
                 </p>
               </div>
               <div class="text-sm text-gray-500">
@@ -231,15 +231,28 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
-import type { SharedContent, SharedChapter } from '../types';
+import { useChapters } from '@/composables/useChapters';
+import type { SharedContent } from '../types';
+import type { Chapter } from '@/types';
+
+interface DisplayChapter {
+  id: string;
+  title: string;
+  originalText: string;
+  translatedText: string;
+  seriesName: string;
+  seriesId: string;
+}
 
 const route = useRoute();
 const sharingStore = useSharingStore();
+const { series, chapters } = useChapters();
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const sharedContent = ref<SharedContent | null>(null);
+const displayChapters = ref<DisplayChapter[]>([]);
 const viewMode = ref<'split' | 'translation' | 'original'>('translation');
 const isPasswordVerified = ref(false);
 const passwordInput = ref('');
@@ -252,7 +265,6 @@ onMounted(async () => {
   if (shareId.value) {
     isLoading.value = true;
     const response = await sharingAPI.getSharedContent(shareId.value);
-    isLoading.value = false;
 
     if (response.success && response.data) {
       sharedContent.value = response.data;
@@ -260,11 +272,47 @@ onMounted(async () => {
       if (!response.data.isPasswordProtected) {
         isPasswordVerified.value = true;
       }
+
+      // Load chapter data based on IDs
+      loadChapterData(response.data);
     } else {
       error.value = response.error || 'Failed to load shared content';
     }
+
+    isLoading.value = false;
   }
 });
+
+const loadChapterData = (content: SharedContent) => {
+  const allChapters = chapters.value;
+  const seriesMap = series.value;
+
+  // Get chapters from chapterIds
+  const chaptersFromIds = content.chapterIds
+    .map(id => allChapters.find(ch => ch.id === id))
+    .filter((ch): ch is Chapter => ch !== undefined);
+
+  // Get chapters from seriesIds
+  const chaptersFromSeries = content.seriesIds
+    .flatMap(seriesId => {
+      const s = seriesMap.find(sr => sr.id === seriesId);
+      return s ? s.chapters : [];
+    });
+
+  // Combine and convert to display format
+  const allSelectedChapters = [...chaptersFromIds, ...chaptersFromSeries];
+  displayChapters.value = allSelectedChapters.map(ch => {
+    const seriesInfo = seriesMap.find(s => s.id === ch.seriesId);
+    return {
+      id: ch.id,
+      title: ch.title,
+      originalText: ch.originalParagraphs.join('\n'),
+      translatedText: ch.translatedParagraphs.join('\n'),
+      seriesName: seriesInfo?.name || 'Unknown Series',
+      seriesId: ch.seriesId
+    };
+  });
+};
 
 const verifyPassword = async () => {
   if (!passwordInput.value.trim()) return;
@@ -325,30 +373,33 @@ const formatTextForDisplay = (text: string): string => {
 
 const getUniqueSeriesCount = (): number => {
   if (!sharedContent.value) return 0;
-  const seriesIds = new Set(sharedContent.value.content.map(c => c.seriesId));
+  const seriesIds = new Set([
+    ...sharedContent.value.seriesIds,
+    ...displayChapters.value.map(c => c.seriesId)
+  ]);
   return seriesIds.size;
 };
 
 const getTranslationStats = () => {
-  if (!sharedContent.value) return { totalParagraphs: 0, translatedParagraphs: 0, progress: 0 };
-  
+  if (displayChapters.value.length === 0) return { totalParagraphs: 0, translatedParagraphs: 0, progress: 0 };
+
   let totalParagraphs = 0;
   let translatedParagraphs = 0;
-  
-  sharedContent.value.content.forEach(chapter => {
+
+  displayChapters.value.forEach(chapter => {
     const originalParagraphs = chapter.originalText.split('\n').filter(p => p.trim()).length;
     const translatedParagraphsCount = chapter.translatedText.split('\n').filter(p => p.trim()).length;
-    
+
     totalParagraphs += originalParagraphs;
     translatedParagraphs += Math.min(translatedParagraphsCount, originalParagraphs);
   });
-  
+
   const progress = totalParagraphs > 0 ? Math.round((translatedParagraphs / totalParagraphs) * 100) : 0;
-  
+
   return { totalParagraphs, translatedParagraphs, progress };
 };
 
-const getChapterStats = (chapter: SharedChapter) => {
+const getChapterStats = (chapter: DisplayChapter) => {
   const originalParagraphs = chapter.originalText.split('\n').filter(p => p.trim()).length;
   const translatedParagraphs = chapter.translatedText.split('\n').filter(p => p.trim()).length;
   const progress = originalParagraphs > 0 ? Math.round((Math.min(translatedParagraphs, originalParagraphs) / originalParagraphs) * 100) : 0;

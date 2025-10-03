@@ -42,4 +42,4 @@ export interface APIResponse<T> {
 }
 
 // Re-export sharing types from module
-export type { ShareRequest, ShareResponse, SharedContent, SharedChapter, ShareStats } from '@/modules/sharing';
+export type { ShareRequest, ShareResponse, SharedContent, ShareStats } from '@/modules/sharing';

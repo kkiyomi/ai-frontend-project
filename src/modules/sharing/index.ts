@@ -93,6 +93,5 @@ export type {
   ShareRequest,
   ShareResponse,
   SharedContent,
-  SharedChapter,
   ShareStats,
 } from './types';

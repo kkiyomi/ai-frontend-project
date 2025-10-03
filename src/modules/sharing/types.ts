@@ -17,23 +17,12 @@ export interface SharedContent {
   id: string;
   title: string;
   description?: string;
-  content: SharedChapter[];
-  chapterIds?: string[];
-  seriesIds?: string[];
+  chapterIds: string[];
+  seriesIds: string[];
   createdAt: Date;
   expiresAt?: Date;
   isPasswordProtected: boolean;
   password?: string;
-  type?: 'series' | 'chapters';
-}
-
-export interface SharedChapter {
-  id: string;
-  title: string;
-  originalText: string;
-  translatedText: string;
-  seriesName: string;
-  seriesId: string;
 }
 
 export interface ShareStats {

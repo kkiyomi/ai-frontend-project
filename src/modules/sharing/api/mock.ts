@@ -32,7 +32,6 @@ export class MockSharingAPI {
       id: shareId,
       title: request.title || 'Shared Translation',
       description: request.description,
-      content: [], // Would be populated with actual chapter data
       chapterIds: request.chapterIds,
       seriesIds: request.seriesIds,
       createdAt: new Date(),
@@ -153,7 +152,8 @@ export class MockSharingAPI {
     const share = result.data;
     const stats = {
       views: Math.floor(Math.random() * 100),
-      totalChapters: share.content.length,
+      totalChapters: share.chapterIds.length,
+      totalSeries: share.seriesIds.length,
       createdAt: share.createdAt,
       expiresAt: share.expiresAt,
     };
@@ -161,6 +161,22 @@ export class MockSharingAPI {
     return {
       success: true,
       data: stats,
+    };
+  }
+
+  /**
+   * Gets chapters by IDs (mock)
+   */
+  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
+    await simulateDelay(300, 800);
+
+    // In a real app, this would fetch from the database
+    // For mock, we'll return empty array or fetch from localStorage
+    const chapters: any[] = [];
+
+    return {
+      success: true,
+      data: chapters,
     };
   }
 

@@ -1,5 +1,5 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
-import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '@/modules/sharing';
+import type { ShareRequest, ShareResponse, SharedContent } from '@/modules/sharing';
 import mockSeriesData from '../mock/series';
 import mockChaptersData from '../mock/chapters';
 import mockGlossaryTermsData from '../mock/glossaryTerms';
@@ -502,58 +502,16 @@ export class MockAPI {
     expiresAt?: Date,
     password?: string
   ): Promise<SharedContent | null> {
-    let chapters: Chapter[] = [];
-    console.log('mockAPI buildSharedContent')
-    console.log(request)
-    console.log(shareId)
-    console.log(mockChapters)
-
-    // Get chapters from selected series (fully translated only)
-    if (request.seriesIds.length > 0) {
-      const seriesChapters = mockChapters.filter(c => 
-        request.seriesIds.includes(c.seriesId) &&
-        this.isChapterFullyTranslated(c)
-      );
-      chapters.push(...seriesChapters);
-    }
-    console.log(chapters)
-
-    // Get individual chapters (only if their series is not already selected)
-    if (request.chapterIds.length > 0) {
-      const individualChapters = mockChapters.filter(c => 
-        request.chapterIds.includes(c.id) &&
-        !request.seriesIds.includes(c.seriesId)
-      );
-      chapters.push(...individualChapters);
-    }
-    console.log(chapters)
-
-    if (chapters.length === 0) return null;
-
-    const sharedChapters: SharedChapter[] = chapters.map(chapter => {
-      const series = mockSeries.find(s => s.id === chapter.seriesId);
-      
-      return {
-        id: chapter.id,
-        title: chapter.title,
-        originalText: chapter.content,
-        translatedText: chapter.translatedContent,
-        seriesName: series?.name || 'Unknown Series',
-        seriesId: chapter.seriesId
-      };
-    });
-    console.log(sharedChapters)
-
     return {
-        type: request.seriesIds.length > 0 ? 'series' : 'chapters',
-        id: shareId,
-        title: request.title || 'Shared Translation',
-        description: request.description,
-        content: sharedChapters,
-        createdAt: new Date(),
-        expiresAt,
-        isPasswordProtected: !!password,
-        password: password // Store password for demo (in real app, this would be hashed)
+      id: shareId,
+      title: request.title || 'Shared Translation',
+      description: request.description,
+      chapterIds: request.chapterIds,
+      seriesIds: request.seriesIds,
+      createdAt: new Date(),
+      expiresAt,
+      isPasswordProtected: !!password,
+      password: password // Store password for demo (in real app, this would be hashed)
     };
   }
   

@@ -64,6 +64,13 @@ export class RealSharingAPI {
   }
 
   /**
+   * Gets chapters by IDs
+   */
+  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
+    return apiClient.post<any[]>('/api/chapters/batch', { chapterIds });
+  }
+
+  /**
    * Lists all shares (if authenticated)
    */
   async listShares(): Promise<APIResponse<SharedContent[]>> {
