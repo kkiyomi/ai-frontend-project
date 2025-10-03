@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import ShareButton from '@/components/ShareButton.vue';
+import { ShareButton } from '@/modules/sharing';
 import type { Chapter } from '../types';
 
 interface Props {

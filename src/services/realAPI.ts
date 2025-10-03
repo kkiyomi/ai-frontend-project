@@ -1,5 +1,5 @@
 import type { APIResponse, GlossaryTerm, Series, Chapter } from '../types';
-import type { ShareRequest, ShareResponse, SharedContent } from '../types/sharing';
+import type { ShareRequest, ShareResponse, SharedContent } from '@/modules/sharing';
 import { APIClient } from './apiClient';
 
 export class RealAPI {

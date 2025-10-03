@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { Series, Chapter } from '../types';
+import type { Series, Chapter } from '@/types';
 
 interface Props {
   series: Series[];

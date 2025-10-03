@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
-import ShareView from '../components/ShareView.vue';
+import { ShareView } from '@/modules/sharing';
 
 const routes = [
   {

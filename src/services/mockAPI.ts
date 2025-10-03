@@ -1,5 +1,5 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
-import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '../types/sharing';
+import type { ShareRequest, ShareResponse, SharedContent, SharedChapter } from '@/modules/sharing';
 import mockSeriesData from '../mock/series';
 import mockChaptersData from '../mock/chapters';
 import mockGlossaryTermsData from '../mock/glossaryTerms';

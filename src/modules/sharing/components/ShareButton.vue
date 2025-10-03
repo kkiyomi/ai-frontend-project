@@ -21,18 +21,19 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useChapters } from '../composables/useChapters';
-import { useSharing } from '../composables/useSharing';
+import { useChapters } from '@/composables/useChapters';
+import { useSharingStore } from '../store';
+import { sharingAPI } from '../api';
 import ShareModal from './ShareModal.vue';
-import type { ShareRequest } from '../types/sharing';
+import type { ShareRequest } from '../types';
 
 const { series, chapters } = useChapters();
-const { createShare } = useSharing();
+const sharingStore = useSharingStore();
 
 const showModal = ref(false);
 
 const hasContent = computed(() => {
-  return chapters.value.some(chapter => 
+  return chapters.value.some(chapter =>
     chapter.translatedContent
   );
 });
@@ -49,15 +50,24 @@ const closeShareModal = () => {
 
 const handleShare = async (shareRequest: ShareRequest) => {
   try {
-    const result = await createShare(shareRequest);
+    sharingStore.setCreatingShare(true);
+    sharingStore.setShareError(null);
+
+    const result = await sharingAPI.createShare(shareRequest);
+
     if (result.success && result.data) {
-      // Show success message or copy link to clipboard
       await navigator.clipboard.writeText(result.data.shareUrl);
       console.log('Share link copied to clipboard:', result.data.shareUrl);
+    } else {
+      sharingStore.setShareError(result.error || 'Failed to create share');
     }
+
     closeShareModal();
   } catch (error) {
     console.error('Failed to create share:', error);
+    sharingStore.setShareError(error instanceof Error ? error.message : 'Unknown error');
+  } finally {
+    sharingStore.setCreatingShare(false);
   }
 };
 </script>

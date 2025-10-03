@@ -41,5 +41,5 @@ export interface APIResponse<T> {
   error?: string;
 }
 
-// Re-export sharing types
-export type { ShareRequest, ShareResponse, SharedContent, SharedChapter, ShareStats } from './sharing';
+// Re-export sharing types from module
+export type { ShareRequest, ShareResponse, SharedContent, SharedChapter, ShareStats } from '@/modules/sharing';

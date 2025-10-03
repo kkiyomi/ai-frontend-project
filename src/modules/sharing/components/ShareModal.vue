@@ -83,13 +83,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useChapters } from '../composables/useChapters';
-import { useSharing } from '../composables/useSharing';
+import { useChapters } from '@/composables/useChapters';
+import { useSharingStore } from '../store';
+import { sharingAPI } from '../api';
 import ShareContentSelector from './ShareContentSelector.vue';
 import ShareDetailsForm from './ShareDetailsForm.vue';
 import SharePreview from './SharePreview.vue';
-import type { ShareRequest, SharedContent, ShareStats } from '../types/sharing';
-import type { Chapter, Series } from '../types';
+import type { ShareRequest, SharedContent, ShareStats } from '../types';
+import type { Chapter, Series } from '@/types';
 
 const emit = defineEmits<{
   close: [];
@@ -97,7 +98,7 @@ const emit = defineEmits<{
 }>();
 
 const { series } = useChapters();
-const { createShare } = useSharing();
+const sharingStore = useSharingStore();
 
 // Create share form state
 const selectedChapterIds = ref<string[]>([]);
@@ -328,9 +329,18 @@ const handleShare = async () => {
   };
 
   try {
-    const result = await createShare(request);
+    const result = await sharingAPI.createShare(request);
     if (result.success && result.data) {
       await navigator.clipboard.writeText(result.data.shareUrl);
+      sharingStore.addRecentShare({
+        id: result.data.shareId,
+        title: request.title || getDefaultTitle(),
+        description: request.description,
+        content: [],
+        createdAt: new Date(),
+        expiresAt: result.data.expiresAt,
+        isPasswordProtected: !!request.password,
+      });
       emit('close');
     }
   } catch (error) {

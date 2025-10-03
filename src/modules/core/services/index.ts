@@ -10,6 +10,8 @@
  * ```
  */
 
+export { APIClient } from './apiClient';
+
 import { APIClient } from './apiClient';
 import { apiBaseURL } from '../utils/environment';
 

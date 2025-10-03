@@ -4,6 +4,10 @@ export const isDevelopment = import.meta.env.DEV;
 export const isProduction = import.meta.env.PROD;
 export const useMockAPI = 2 == (1 + 1);
 export const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+
+export const isMockMode = (): boolean => {
+  return useMockAPI || isDevelopment;
+};
 export let isUserLoggedIn = false;
 
 // Check if user is logged in to the real API

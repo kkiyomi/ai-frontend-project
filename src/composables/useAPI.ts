@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import type { APIResponse, GlossaryTerm } from '../types';
-import type { ShareRequest } from '../types/sharing';
+import type { ShareRequest } from '@/modules/sharing';
 import { apiService } from '../services/apiService';
 
 // Cache for API responses to avoid duplicate calls

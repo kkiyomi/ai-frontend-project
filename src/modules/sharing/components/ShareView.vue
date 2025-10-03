@@ -229,11 +229,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useSharing } from '../composables/useSharing';
-import type { SharedContent, SharedChapter } from '../types/sharing';
+import { useSharingStore } from '../store';
+import { sharingAPI } from '../api';
+import type { SharedContent, SharedChapter } from '../types';
 
 const route = useRoute();
-const { getSharedContent, isLoading, error } = useSharing();
+const sharingStore = useSharingStore();
+
+const isLoading = ref(false);
+const error = ref<string | null>(null);
 
 const sharedContent = ref<SharedContent | null>(null);
 const viewMode = ref<'split' | 'translation' | 'original'>('translation');
@@ -246,13 +250,18 @@ const shareId = computed(() => route.params.shareId as string);
 
 onMounted(async () => {
   if (shareId.value) {
-    const response = await getSharedContent(shareId.value);
+    isLoading.value = true;
+    const response = await sharingAPI.getSharedContent(shareId.value);
+    isLoading.value = false;
+
     if (response.success && response.data) {
       sharedContent.value = response.data;
-      // If not password protected, allow immediate access
+      sharingStore.setActiveShare(response.data);
       if (!response.data.isPasswordProtected) {
         isPasswordVerified.value = true;
       }
+    } else {
+      error.value = response.error || 'Failed to load shared content';
     }
   }
 });

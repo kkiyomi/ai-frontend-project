@@ -23,7 +23,8 @@ export interface SharedContent {
   createdAt: Date;
   expiresAt?: Date;
   isPasswordProtected: boolean;
-  password?: string; // Only stored in mock API for demo purposes
+  password?: string;
+  type?: 'series' | 'chapters';
 }
 
 export interface SharedChapter {
