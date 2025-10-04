@@ -1,74 +1,143 @@
-import { APIClient } from '@/modules/core/services/apiClient';
 import type { APIResponse } from '@/modules/core/types';
 import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
 
 export class RealSeriesAPI {
-  private client: APIClient;
+  private baseURL: string;
 
-  constructor(client: APIClient) {
-    this.client = client;
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
   }
 
   async getSeries(): Promise<APIResponse<Series[]>> {
-    const response = await this.client.get<Series[]>('/series', {
-      tags: ['series'],
-      ttl: 2 * 60 * 1000
-    });
+    try {
+      const response = await fetch(`${this.baseURL}/series`);
 
-    if (response.success && response.data) {
-      response.data = response.data.map(s => ({
-        ...s,
-        createdAt: new Date(s.createdAt)
-      }));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        data: data.map((s: any) => ({
+          ...s,
+          createdAt: new Date(s.createdAt)
+        }))
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch series'
+      };
     }
-
-    return response;
   }
 
   async getSeriesById(seriesId: string): Promise<APIResponse<Series>> {
-    const response = await this.client.get<Series>(`/series/${seriesId}`, {
-      tags: ['series', `series-${seriesId}`],
-      ttl: 2 * 60 * 1000
-    });
+    try {
+      const response = await fetch(`${this.baseURL}/series/${seriesId}`);
 
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        data: {
+          ...data,
+          createdAt: new Date(data.createdAt)
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch series'
+      };
     }
-
-    return response;
   }
 
   async createSeries(request: CreateSeriesRequest): Promise<APIResponse<Series>> {
-    const response = await this.client.post<Series>('/series', request);
+    try {
+      const response = await fetch(`${this.baseURL}/series`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      });
 
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
-      this.client.invalidateByTag('series');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        data: {
+          ...data,
+          createdAt: new Date(data.createdAt)
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create series'
+      };
     }
-
-    return response;
   }
 
   async updateSeries(seriesId: string, request: UpdateSeriesRequest): Promise<APIResponse<Series>> {
-    const response = await this.client.patch<Series>(`/series/${seriesId}`, request);
+    try {
+      const response = await fetch(`${this.baseURL}/series/${seriesId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      });
 
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
-      this.client.invalidateByTag('series');
-      this.client.invalidateByTag(`series-${seriesId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        success: true,
+        data: {
+          ...data,
+          createdAt: new Date(data.createdAt)
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update series'
+      };
     }
-
-    return response;
   }
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
-    const response = await this.client.delete<void>(`/series/${seriesId}`);
+    try {
+      const response = await fetch(`${this.baseURL}/series/${seriesId}`, {
+        method: 'DELETE'
+      });
 
-    if (response.success) {
-      this.client.invalidateByTag('series');
-      this.client.invalidateByTag(`series-${seriesId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return {
+        success: true
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete series'
+      };
     }
-
-    return response;
   }
 }

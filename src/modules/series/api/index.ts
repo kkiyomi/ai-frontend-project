@@ -1,4 +1,3 @@
-import { APIClient } from '@/modules/core/services/apiClient';
 import { apiBaseURL, isMockMode } from '@/modules/core/utils/environment';
 import { MockSeriesAPI } from './mock';
 import { RealSeriesAPI } from './real';
@@ -47,8 +46,7 @@ class SeriesAPI implements SeriesAPIInterface {
       this.api = new MockSeriesAPI();
     } else {
       console.log('🌐 Series API: Using real backend at', apiBaseURL);
-      const client = new APIClient(apiBaseURL);
-      this.api = new RealSeriesAPI(client);
+      this.api = new RealSeriesAPI(apiBaseURL);
     }
   }
 
