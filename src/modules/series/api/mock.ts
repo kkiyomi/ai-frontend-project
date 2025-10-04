@@ -1,22 +1,6 @@
 import type { APIResponse } from '@/modules/core/types';
 import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
-
-const mockSeriesData: Series[] = [
-  {
-    id: 's1',
-    name: 'Swallowed Star 2: Origin Continent',
-    description: 'Luo Feng, accompanied by Boundary Beast Morosa, traversed reincarnation and arrived at the Origin Continent…',
-    createdAt: new Date('2024-01-15'),
-    chapterIds: []
-  },
-  {
-    id: 's2',
-    name: 'Tales of the Ancient Realm',
-    description: 'Epic stories from a world where magic and technology coexist',
-    createdAt: new Date('2024-02-01'),
-    chapterIds: []
-  }
-];
+import mockSeriesData from '@/mock/series';
 
 export class SeriesMockAPI {
   private series: Series[] = [...mockSeriesData];
