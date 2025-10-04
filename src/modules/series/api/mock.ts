@@ -18,7 +18,7 @@ const mockSeriesData: Series[] = [
   }
 ];
 
-export class MockSeriesAPI {
+export class SeriesMockAPI {
   private series: Series[] = [...mockSeriesData];
 
   async getSeries(): Promise<APIResponse<Series[]>> {

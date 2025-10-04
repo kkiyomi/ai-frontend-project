@@ -1,74 +1,82 @@
-import { apiBaseURL, isMockMode } from '@/modules/core/utils/environment';
-import { MockSeriesAPI } from './mock';
-import { RealSeriesAPI } from './real';
-import type { APIResponse } from '@/modules/core/types';
-import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
-
 /**
- * Series API - handles all series-related network requests
+ * Series Module - API Layer
  *
- * HOW TO USE:
+ * This file handles switching between mock and real APIs for the Series module.
  *
- * 1. Import the seriesAPI singleton:
- *    import { seriesAPI } from '@/modules/series';
+ * To switch between mock and real APIs:
+ * 1. Set VITE_USE_MOCK_API=true in .env for mock mode
+ * 2. Set VITE_USE_MOCK_API=false in .env for real API mode
+ * 3. Set VITE_API_BASE_URL to your backend URL when using real API
  *
- * 2. Call methods directly:
- *    const response = await seriesAPI.getSeries();
- *    if (response.success) {
- *      console.log(response.data);
- *    }
- *
- * TOGGLE BETWEEN MOCK AND REAL API:
- *
- * The API automatically switches based on the environment configuration
- * in src/modules/core/utils/environment.ts
- *
- * - To use MOCK API: Set `useMockAPI = true` in environment.ts
- * - To use REAL API: Set `useMockAPI = false` in environment.ts
- *
- * You can also check at runtime: isMockMode() returns true if using mock data
+ * The decision is made at runtime based on environment configuration.
  */
 
-interface SeriesAPIInterface {
-  getSeries(): Promise<APIResponse<Series[]>>;
-  getSeriesById(seriesId: string): Promise<APIResponse<Series>>;
-  createSeries(request: CreateSeriesRequest): Promise<APIResponse<Series>>;
-  updateSeries(seriesId: string, request: UpdateSeriesRequest): Promise<APIResponse<Series>>;
-  deleteSeries(seriesId: string): Promise<APIResponse<void>>;
-}
+import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
+import { SeriesMockAPI } from './mock';
+import { SeriesRealAPI } from './real';
+import type { APIResponse } from '@/modules/core';
+import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
 
-class SeriesAPI implements SeriesAPIInterface {
-  private api: MockSeriesAPI | RealSeriesAPI;
+class SeriesAPIService {
+  private static instance: SeriesAPIService | null = null;
+  private apiInstance: SeriesMockAPI | SeriesRealAPI | null = null;
+  private initializationPromise: Promise<void> | null = null;
 
-  constructor() {
-    if (isMockMode()) {
-      console.log('🔧 Series API: Using mock data');
-      this.api = new MockSeriesAPI();
+  private constructor() {}
+
+  static getInstance(): SeriesAPIService {
+    if (!SeriesAPIService.instance) {
+      SeriesAPIService.instance = new SeriesAPIService();
+    }
+    return SeriesAPIService.instance;
+  }
+
+  private async initializeAPI(): Promise<void> {
+    if (this.apiInstance) return;
+
+    const useMock = await shouldUseMockAPI();
+
+    if (useMock) {
+      console.log('[Series] Using mock API for development');
+      this.apiInstance = new SeriesMockAPI();
     } else {
-      console.log('🌐 Series API: Using real backend at', apiBaseURL);
-      this.api = new RealSeriesAPI(apiBaseURL);
+      console.log('[Series] Using real API:', apiBaseURL);
+      this.apiInstance = new SeriesRealAPI();
     }
   }
 
+  private async getAPI(): Promise<SeriesMockAPI | SeriesRealAPI> {
+    if (!this.initializationPromise) {
+      this.initializationPromise = this.initializeAPI();
+    }
+    await this.initializationPromise;
+    return this.apiInstance!;
+  }
+
   async getSeries(): Promise<APIResponse<Series[]>> {
-    return this.api.getSeries();
+    const api = await this.getAPI();
+    return api.getSeries();
   }
 
   async getSeriesById(seriesId: string): Promise<APIResponse<Series>> {
-    return this.api.getSeriesById(seriesId);
+    const api = await this.getAPI();
+    return api.getSeriesById(seriesId);
   }
 
   async createSeries(request: CreateSeriesRequest): Promise<APIResponse<Series>> {
-    return this.api.createSeries(request);
+    const api = await this.getAPI();
+    return api.createSeries(request);
   }
 
   async updateSeries(seriesId: string, request: UpdateSeriesRequest): Promise<APIResponse<Series>> {
-    return this.api.updateSeries(seriesId, request);
+    const api = await this.getAPI();
+    return api.updateSeries(seriesId, request);
   }
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
-    return this.api.deleteSeries(seriesId);
+    const api = await this.getAPI();
+    return api.deleteSeries(seriesId);
   }
 }
 
-export const seriesAPI = new SeriesAPI();
+export const seriesAPI = SeriesAPIService.getInstance();
