@@ -1,9 +1,9 @@
 import type { APIResponse } from '@/modules/core/types';
 import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
-import mockSeriesData from '@/mock/series';
+import mockSeries from '@/mock/series';
 
 export class SeriesMockAPI {
-  private series: Series[] = [...mockSeriesData];
+  private series: Series[] = [...mockSeries];
 
   async getSeries(): Promise<APIResponse<Series[]>> {
     await this.simulateDelay();
