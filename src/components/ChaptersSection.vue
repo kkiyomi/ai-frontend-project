@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import SeriesHeader from './SeriesHeader.vue';
-import SeriesCard from './SeriesCard.vue';
+import { SeriesCard } from '@/modules/series';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';

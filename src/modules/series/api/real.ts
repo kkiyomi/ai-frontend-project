@@ -13,46 +13,19 @@ import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types'
 
 export class SeriesRealAPI {
   async getSeries(): Promise<APIResponse<Series[]>> {
-    const response = await apiClient.get<Series[]>('/series');
-
-    if (response.success && response.data) {
-      response.data = response.data.map(s => ({
-        ...s,
-        createdAt: new Date(s.createdAt)
-      }));
-    }
-
-    return response;
+    return apiClient.get<Series[]>('/series');
   }
 
   async getSeriesById(seriesId: string): Promise<APIResponse<Series>> {
-    const response = await apiClient.get<Series>(`/series/${seriesId}`);
-
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
-    }
-
-    return response;
+    return apiClient.get<Series>(`/series/${seriesId}`);
   }
 
   async createSeries(request: CreateSeriesRequest): Promise<APIResponse<Series>> {
-    const response = await apiClient.post<Series>('/series', request);
-
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
-    }
-
-    return response;
+    return apiClient.post<Series>('/series', request);
   }
 
   async updateSeries(seriesId: string, request: UpdateSeriesRequest): Promise<APIResponse<Series>> {
-    const response = await apiClient.patch<Series>(`/series/${seriesId}`, request);
-
-    if (response.success && response.data) {
-      response.data.createdAt = new Date(response.data.createdAt);
-    }
-
-    return response;
+    return apiClient.patch<Series>(`/series/${seriesId}`, request);
   }
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
