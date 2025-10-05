@@ -7,7 +7,7 @@ const mockSeries: Series[] = [
     description: 'Luo Feng, accompanied by Boundary Beast Morosa, traversed reincarnation and arrived at the Origin Continent…',
     createdAt: new Date('2024-01-15'),
     chapterIds: [],
-    chapters: [] // Will be populated by mockAPI
+    chapters: []
   },
   {
     id: 's2',
@@ -15,7 +15,7 @@ const mockSeries: Series[] = [
     description: 'Epic stories from a world where magic and technology coexist',
     createdAt: new Date('2024-02-01'),
     chapterIds: [],
-    chapters: [] // Will be populated by mockAPI
+    chapters: []
   }
 ];
 

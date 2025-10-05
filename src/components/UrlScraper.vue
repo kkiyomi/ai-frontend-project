@@ -95,8 +95,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
+import { useChaptersStore } from '@/modules/chapters';
 
-const { addChapterFromText } = useChapters();
+const { currentSeriesId } = useChapters();
+const chaptersStore = useChaptersStore();
 
 const showScraper = ref(false);
 const url = ref('');
@@ -156,10 +158,16 @@ Each paragraph would be separated and ready for the translation process.`;
 
 const createChapterFromScraped = async () => {
   if (!scrapedContent.value) return;
-  
+
   try {
     const chapterTitle = extractTitleFromUrl(url.value);
-    await addChapterFromText(scrapedContent.value, chapterTitle);
+    const seriesId = currentSeriesId.value;
+    if (!seriesId) {
+      statusMessage.value = 'Please select a series first';
+      statusType.value = 'error';
+      return;
+    }
+    await chaptersStore.addChapterFromText(scrapedContent.value, chapterTitle, seriesId);
     
     // Reset form
     url.value = '';

@@ -3,7 +3,7 @@ export interface Series {
   name: string;
   description?: string;
   createdAt: Date;
-  chapters?: Chapter[];
+  chapters: Chapter[];
   chapterIds?: string[];
 }
 

@@ -40,8 +40,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useChapters } from '../composables/useChapters';
+import { useChaptersStore } from '@/modules/chapters';
 
-const { series, currentSeriesId, addChapter } = useChapters();
+const { series, currentSeriesId } = useChapters();
+const chaptersStore = useChaptersStore();
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
@@ -69,7 +71,9 @@ const handleFileUpload = async (event: Event) => {
     try {
         for (const file of Array.from(files)) {
             console.log('addChapter');
-            await addChapter(file, selectedSeriesForUpload.value || undefined);
+            if (selectedSeriesForUpload.value) {
+                await chaptersStore.addChapter(file, selectedSeriesForUpload.value);
+            }
         }
     } catch (error) {
         console.error('Error uploading files:', error);

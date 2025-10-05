@@ -25,9 +25,9 @@
           <SeriesCard
             v-for="seriesItem in series"
             :key="seriesItem.id"
-            :series="seriesItem"
+            :series="toSeriesCardProps(seriesItem)"
             @select="toggleSeriesSelection"
-            @edit="editSeries"
+            @edit="(s) => editSeries(seriesItem)"
             @delete="onRemoveSeries"
           />
         </div>
@@ -90,12 +90,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import SeriesHeader from './SeriesHeader.vue';
-import { SeriesCard } from '@/modules/series';
+import { SeriesCard, type Series as SeriesCardType } from '@/modules/series';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import { useChapters } from '../composables/useChapters';
 import { useDataAPI } from '../composables/useAPI';
+import { useChaptersStore } from '@/modules/chapters';
 import type { Series, Chapter } from '../types';
 
 const {
@@ -113,13 +114,24 @@ const {
   updateChapter
 } = useChapters();
 
-const { 
-  updateSeries: updateSeriesAPI, 
-  deleteSeries: deleteSeriesAPI, 
-  createChapter: createChapterAPI, 
+const {
+  updateSeries: updateSeriesAPI,
+  deleteSeries: deleteSeriesAPI,
+  createChapter: createChapterAPI,
   updateChapter: updateChapterAPI,
   deleteChapter: deleteChapterAPI
 } = useDataAPI();
+
+const chaptersStore = useChaptersStore();
+
+// Helper function to convert global Series to SeriesCard props
+const toSeriesCardProps = (series: Series): SeriesCardType => ({
+  id: series.id,
+  name: series.name,
+  description: series.description,
+  createdAt: series.createdAt,
+  chapterIds: series.chapters.map(ch => ch.id)
+});
 
 // Component state
 const showAddChapterForm = ref(false);
@@ -213,16 +225,17 @@ const handleCreateChapter = async (title: string) => {
 
   try {
     const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
-    
-    const response = await createChapterAPI(title, emptyContent, currentSeriesId.value);
-    
-    if (response.success && response.data) {
-      await addChapterFromText(emptyContent, title, currentSeriesId.value);
-    } else {
-      console.error('Failed to create chapter:', response.error);
+
+    const newChapter = await chaptersStore.createChapter({
+      title,
+      content: emptyContent,
+      seriesId: currentSeriesId.value
+    });
+
+    if (newChapter) {
       await addChapterFromText(emptyContent, title, currentSeriesId.value);
     }
-    
+
     showAddChapterForm.value = false;
   } catch (error) {
     console.error('Error creating chapter:', error);
@@ -235,13 +248,8 @@ const cancelAddChapter = () => {
 
 const handleChapterEdit = async (chapter: Chapter) => {
   try {
-    const response = await updateChapterAPI(chapter.id, { title: chapter.title.trim() });
-    
-    if (response.success) {
-      await updateChapter(chapter.id, { title: chapter.title.trim() });
-    } else {
-      console.error('Failed to update chapter:', response.error);
-    }
+    await chaptersStore.updateChapter(chapter.id, { title: chapter.title.trim() });
+    await updateChapter(chapter.id, { title: chapter.title.trim() });
   } catch (error) {
     console.error('Error updating chapter:', error);
   }
@@ -266,18 +274,13 @@ const closeDeleteChapterModal = () => {
 
 const confirmDeleteChapter = async () => {
   if (!deletingChapter.value) return;
-  
+
   isDeletingChapter.value = true;
-  
+
   try {
-    const response = await deleteChapterAPI(deletingChapter.value.id);
-    
-    if (response.success) {
-      removeChapter(deletingChapter.value.id);
-      closeDeleteChapterModal();
-    } else {
-      console.error('Failed to delete chapter:', response.error);
-    }
+    await chaptersStore.deleteChapter(deletingChapter.value.id);
+    removeChapter(deletingChapter.value.id);
+    closeDeleteChapterModal();
   } catch (error) {
     console.error('Error deleting chapter:', error);
   } finally {

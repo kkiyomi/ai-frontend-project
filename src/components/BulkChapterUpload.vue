@@ -94,7 +94,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useChapters } from '../composables/useChapters';
+import { useChaptersStore } from '@/modules/chapters';
 
 interface Props {
     seriesId: string;
@@ -102,7 +102,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { addChapter } = useChapters();
+const chaptersStore = useChaptersStore();
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);
@@ -157,7 +157,7 @@ const handleFileUpload = async (event: Event) => {
 
         try {
             console.log('addChapter');
-            await addChapter(file, props.seriesId);
+            await chaptersStore.addChapter(file, props.seriesId);
             uploadResults.value.success.push(file.name);
         } catch (error) {
             uploadResults.value.errors.push({
