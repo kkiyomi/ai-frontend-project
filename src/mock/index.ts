@@ -1,34 +1,42 @@
-// mock/index.ts
+// src/mock/index.ts
 // =====================================================
 // Central export point for all mock data
+// Loads mock_data_* folders dynamically via utils.ts
 // =====================================================
 
 import baseSeries from './series';
 import baseChapters from './chapters';
 import baseGlossaryTerms from './glossaryTerms';
+import { loadDynamicMockData } from './utils';
+import type { Series, Chapter, GlossaryTerm } from '../types';
 
-// === Novel-specific mock data ===
-import weirdGameSeriesData from './mock_data_Weird Game Awakening a Bug-Level Talent from the Start/series';
-import weirdGameChaptersData from './mock_data_Weird Game Awakening a Bug-Level Talent from the Start/chapters';
-import weirdGameGlossaryData from './mock_data_Weird Game Awakening a Bug-Level Talent from the Start/glossary';
+// =====================================================
+// Load dynamic mock data (browser-safe, no Node APIs)
+// =====================================================
+const dynamicData = loadDynamicMockData();
 
-console.log('weirdGameSeriesData')
-console.log(baseSeries)
-console.log(weirdGameSeriesData)
-const mockSeries: Series[]  = [...baseSeries, ...weirdGameSeriesData].map(s => ({
+// =====================================================
+// Merge base and dynamic data
+// =====================================================
+const mockSeries: Series[] = [...baseSeries, ...dynamicData.series].map(s => ({
   ...s,
-  createdAt: new Date(s.createdAt), // ensure all are Date objects
+  createdAt: new Date(s.createdAt),
   chapters: s.chapters || [],
 }));
-console.log(mockSeries)
-const mockChapters: Chapter[]  = [...baseChapters, ...weirdGameChaptersData];
-const mockGlossaryTerms: GlossaryTerm[]  = [...baseGlossaryTerms, ...weirdGameGlossaryData];
 
+const mockChapters: Chapter[] = [...baseChapters, ...dynamicData.chapters];
+const mockGlossaryTerms: GlossaryTerm[] = [
+  ...baseGlossaryTerms,
+  ...dynamicData.glossaryTerms,
+];
+
+// =====================================================
+// Export
+// =====================================================
 export default {
   mockSeries,
   mockChapters,
   mockGlossaryTerms,
 };
 
-// Re-export types for convenience
-export type { Series, Chapter, GlossaryTerm } from '../types';
+export type { Series, Chapter, GlossaryTerm };
