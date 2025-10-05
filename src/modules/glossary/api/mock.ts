@@ -10,9 +10,9 @@
 
 import type { APIResponse } from '@/modules/core';
 import type { GlossaryTerm } from '../types';
-import mockGlossaryTermsData from '@/mock/glossaryTerms';
+import mockData from '@/mock';
 
-let mockGlossaryTerms = [...mockGlossaryTermsData];
+let mockGlossaryTerms = [...mockData.mockGlossaryTerms];
 
 const simulateDelay = (min = 200, max = 500): Promise<void> => {
   const delay = Math.random() * (max - min) + min;

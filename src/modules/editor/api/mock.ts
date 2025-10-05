@@ -7,10 +7,9 @@
 
 import type { APIResponse } from '@/modules/core';
 import type { Chapter } from '../types';
-import mockChaptersData from '@/mock/chapters';
+import mockData from '@/mock';
 
-// Create a working copy that we can modify
-let mockChapters = [...mockChaptersData];
+let mockChapters = [...mockData.mockChapters];
 
 // Simulate network delay
 const simulateDelay = (min = 300, max = 800): Promise<void> => {

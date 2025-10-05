@@ -1,13 +1,10 @@
 import type { APIResponse, Series, Chapter, GlossaryTerm} from '../types';
 import type { ShareRequest, ShareResponse, SharedContent } from '@/modules/sharing';
-import mockSeriesData from '../mock/series';
-import mockChaptersData from '../mock/chapters';
-import mockGlossaryTermsData from '../mock/glossaryTerms';
+import mockData from '@/mock';
 
-// Create working copies that we can modify
-let mockSeries = [...mockSeriesData];
-let mockChapters = [...mockChaptersData];
-let mockGlossaryTerms = [...mockGlossaryTermsData];
+let mockSeries = [...mockData.mockSeries];
+let mockChapters = [...mockData.mockChapters];
+let mockGlossaryTerms = [...mockData.mockGlossaryTerms];
 
 // Initialize series with their chapters
 const initializeSeriesWithChapters = () => {
