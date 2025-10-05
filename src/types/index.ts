@@ -28,6 +28,7 @@ export interface GlossaryTerm {
   isUserDefined: boolean;
   seriesId: string;
   chapterId?: string; // Optional - if null, it's a series-level term
+  chapterIds?: string[];
 }
 
 export interface TranslationState {

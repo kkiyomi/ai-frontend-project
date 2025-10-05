@@ -21,13 +21,13 @@ export function loadDynamicMockData(): {
   const glossaryModules = import.meta.glob('./mock_data_*/glossary.{ts,js}', { eager: true });
 
   const series: Series[] = Object.values(seriesModules)
-    .flatMap((m: any) => m.default || []);
+    .flatMap((m: any) => m.mockSeries || []);
 
   const chapters: Chapter[] = Object.values(chaptersModules)
-    .flatMap((m: any) => m.default || []);
+    .flatMap((m: any) => m.mockChapters || []);
 
   const glossaryTerms: GlossaryTerm[] = Object.values(glossaryModules)
-    .flatMap((m: any) => m.default || []);
+    .flatMap((m: any) => m.mockGlossary || []);
 
   console.log(`✅ Loaded dynamic mock data: ${series.length} series, ${chapters.length} chapters, ${glossaryTerms.length} glossary terms.`);
 
