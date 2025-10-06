@@ -284,8 +284,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useGlossaryStore } from '../store';
-import { useChapters } from '@/composables/useChapters';
 import type { GlossaryTerm } from '../types';
+import type { Chapter, Series } from '@/types';
+
+interface Props {
+  currentChapter?: Chapter | null;
+  currentSeries?: Series | null;
+}
+
+const props = defineProps<Props>();
 
 const store = useGlossaryStore();
 
@@ -304,8 +311,6 @@ const {
   toggleHighlight
 } = store;
 
-const { currentChapter, currentSeries } = useChapters();
-
 const newTerm = ref({
   term: '',
   translation: '',
@@ -323,22 +328,23 @@ const termExistsError = ref('');
 const handleAddTerm = async () => {
   console.log('handleAddTerm');
   if (!newTerm.value.term.trim() || !newTerm.value.translation.trim()) return;
-  
+  if (!props.currentSeries) return;
+
   // Check if term already exists in series
   const exists = await termExistsInSeries(newTerm.value.term.trim());
   if (exists) {
     termExistsError.value = 'This term already exists in the current series';
     return;
   }
-  
+
   await addTerm({
     term: newTerm.value.term.trim(),
     translation: newTerm.value.translation.trim(),
     definition: newTerm.value.definition.trim(),
     category: newTerm.value.category,
     isUserDefined: true,
-    seriesId: currentSeries.value!.id,
-    chapterId: currentChapter.value?.id,
+    seriesId: props.currentSeries.id,
+    chapterId: props.currentChapter?.id,
   });
   
   // Reset form
@@ -406,15 +412,15 @@ const onRemoveTerm = async (termId: string) => {
 };
 
 const generateSuggestions = () => {
-  if (!currentChapter.value || !currentSeries.value) return;
-  
+  if (!props.currentChapter || !props.currentSeries) return;
+
   isGeneratingSuggestions.value = true;
-  
+
   // Simulate async operation
   setTimeout(() => {
-    const allText = currentChapter.value!.originalParagraphs
+    const allText = props.currentChapter!.originalParagraphs
       .join(' ');
-    
+
     suggestions.value = suggestTermsFromText(allText);
     isGeneratingSuggestions.value = false;
   }, 1000);
@@ -433,20 +439,20 @@ const generateSuggestions = () => {
 
 // Load glossary terms when component mounts or chapter changes
 onMounted(() => {
-  if (currentSeries.value) {
-    loadGlossaryTerms(currentSeries.value.id, currentChapter.value?.id);
+  if (props.currentSeries) {
+    loadGlossaryTerms(props.currentSeries.id, props.currentChapter?.id);
   }
-  if (currentChapter.value && currentSeries.value) {
+  if (props.currentChapter && props.currentSeries) {
     generateSuggestions();
   }
 });
 
 // Watch for chapter or series changes and reload glossary
-watch([() => currentChapter.value?.id, () => currentSeries.value?.id], () => {
-  if (currentSeries.value) {
-    loadGlossaryTerms(currentSeries.value.id, currentChapter.value?.id);
+watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
+  if (props.currentSeries) {
+    loadGlossaryTerms(props.currentSeries.id, props.currentChapter?.id);
   }
-  if (currentChapter.value && currentSeries.value) {
+  if (props.currentChapter && props.currentSeries) {
     generateSuggestions();
   }
 });

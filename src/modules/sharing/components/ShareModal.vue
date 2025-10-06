@@ -83,7 +83,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useChapters } from '@/composables/useChapters';
 import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
 import ShareContentSelector from './ShareContentSelector.vue';
@@ -92,12 +91,17 @@ import SharePreview from './SharePreview.vue';
 import type { ShareRequest, SharedContent, ShareStats } from '../types';
 import type { Chapter, Series } from '@/types';
 
+interface Props {
+  series: Series[];
+}
+
+const props = defineProps<Props>();
+
 const emit = defineEmits<{
   close: [];
   share: [request: ShareRequest];
 }>();
 
-const { series } = useChapters();
 const sharingStore = useSharingStore();
 
 // Create share form state
@@ -149,15 +153,15 @@ const hasValidSelection = computed((): boolean => {
 });
 
 const getSelectedChapters = (): Chapter[] => {
-  const chaptersFromSeries = series.value
+  const chaptersFromSeries = props.series
     .filter(s => selectedSeriesIds.value.includes(s.id))
     .flatMap(s => s.chapters.filter(c => isChapterFullyTranslated(c)));
-  
-  const individualChapters = getAllChapters().filter(c => 
-    selectedChapterIds.value.includes(c.id) && 
+
+  const individualChapters = getAllChapters().filter(c =>
+    selectedChapterIds.value.includes(c.id) &&
     !selectedSeriesIds.value.includes(c.seriesId)
   );
-  
+
   return [...chaptersFromSeries, ...individualChapters];
 };
 
@@ -202,7 +206,7 @@ const shareStats = computed((): ShareStats | null => {
 
 // Helper functions
 const getAllChapters = () => {
-  return series.value.flatMap(s => s.chapters);
+  return props.series.flatMap(s => s.chapters);
 };
 
 const getTranslatedChapters = (chapters: Chapter[]) => {
@@ -221,8 +225,8 @@ const getFilteredChapters = (chapters: Chapter[]) => {
 };
 
 const getSeriesWithTranslations = () => {
-  return series.value.filter(s =>
-    s.chapters.some(chapter => 
+  return props.series.filter(s =>
+    s.chapters.some(chapter =>
       chapter.originalParagraphs.some(p => p.trim())
     )
   );
@@ -247,8 +251,8 @@ const getSeriesTranslationProgress = (series: Series): number => {
 const getDefaultTitle = (): string => {
   if (selectedSeriesIds.value.length > 0 && selectedChapterIds.value.length === 0) {
     // Only series selected
-    return selectedSeriesIds.value.length === 1 
-      ? `${series.value.find(s => s.id === selectedSeriesIds.value[0])?.name || 'Series'} - Complete Translation`
+    return selectedSeriesIds.value.length === 1
+      ? `${props.series.find(s => s.id === selectedSeriesIds.value[0])?.name || 'Series'} - Complete Translation`
       : `${selectedSeriesIds.value.length} Series - Translation Collection`;
   } else if (selectedSeriesIds.value.length === 0 && selectedChapterIds.value.length > 0) {
     // Only chapters selected
@@ -299,7 +303,7 @@ const clearAllSeries = () => {
 
 const toggleSeriesSelection = (seriesId: string) => {
   const seriesChapters = getTranslatedChapters(
-    series.value.find(s => s.id === seriesId)?.chapters || []
+    props.series.find(s => s.id === seriesId)?.chapters || []
   );
   const seriesChapterIds = seriesChapters.map(c => c.id);
   

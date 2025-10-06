@@ -15,7 +15,10 @@
       </div>
       
       <div v-if="currentChapter" class="flex items-center space-x-2">
-        <ShareButton />
+        <ShareButton
+          :chapters="allChapters"
+          :series="allSeries"
+        />
         <button
           @click="$emit('toggleEditMode')"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
@@ -58,8 +61,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { ShareButton } from '@/modules/sharing';
+import { useChaptersStore } from '@/modules/chapters';
+import { useSeriesStore } from '@/modules/series';
 import type { Chapter } from '@/modules/editor/types';
+import type { Series } from '@/types';
 
 interface Props {
   currentChapter: Chapter | null;
@@ -71,6 +78,17 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const chaptersStore = useChaptersStore();
+const seriesStore = useSeriesStore();
+
+const allChapters = computed(() => chaptersStore.chapters);
+const allSeries = computed(() => {
+  return seriesStore.series.map(s => ({
+    ...s,
+    chapters: chaptersStore.getChaptersBySeriesId(s.id)
+  }));
+});
 
 defineEmits<{
   toggleEditMode: [];

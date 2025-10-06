@@ -231,9 +231,15 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
-import { useChapters } from '@/composables/useChapters';
 import type { SharedContent } from '../types';
-import type { Chapter } from '@/types';
+import type { Chapter, Series } from '@/types';
+
+interface Props {
+  chapters: Chapter[];
+  series: Series[];
+}
+
+const props = defineProps<Props>();
 
 interface DisplayChapter {
   id: string;
@@ -246,7 +252,6 @@ interface DisplayChapter {
 
 const route = useRoute();
 const sharingStore = useSharingStore();
-const { series, chapters } = useChapters();
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
@@ -284,8 +289,8 @@ onMounted(async () => {
 });
 
 const loadChapterData = (content: SharedContent) => {
-  const allChapters = chapters.value;
-  const seriesMap = series.value;
+  const allChapters = props.chapters;
+  const seriesMap = props.series;
 
   // Get chapters from chapterIds
   const chaptersFromIds = content.chapterIds

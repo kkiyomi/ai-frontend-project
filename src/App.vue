@@ -18,7 +18,10 @@
         <div
           class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
           @click.stop>
-          <GlossaryPanel />
+          <GlossaryPanel
+            :currentChapter="currentChapter"
+            :currentSeries="currentSeries"
+          />
         </div>
       </div>
     </div>
@@ -26,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
@@ -38,6 +41,15 @@ const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossa
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+
+const currentChapter = computed(() => chaptersStore.currentChapter);
+const currentSeries = computed(() => {
+  if (!seriesStore.selectedSeries) return null;
+  return {
+    ...seriesStore.selectedSeries,
+    chapters: chaptersStore.getChaptersBySeriesId(seriesStore.selectedSeries.id)
+  };
+});
 
 onMounted(async () => {
   await seriesStore.fetchSeries();

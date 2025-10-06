@@ -12,8 +12,9 @@
     <span>Share</span>
   </button>
   
-  <ShareModal 
-    v-if="showModal" 
+  <ShareModal
+    v-if="showModal"
+    :series="series"
     @close="closeShareModal"
     @share="handleShare"
   />
@@ -21,19 +22,25 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useChapters } from '@/composables/useChapters';
 import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
 import ShareModal from './ShareModal.vue';
 import type { ShareRequest } from '../types';
+import type { Chapter, Series } from '@/types';
 
-const { series, chapters } = useChapters();
+interface Props {
+  chapters: Chapter[];
+  series: Series[];
+}
+
+const props = defineProps<Props>();
+
 const sharingStore = useSharingStore();
 
 const showModal = ref(false);
 
 const hasContent = computed(() => {
-  return chapters.value.some(chapter =>
+  return props.chapters.some(chapter =>
     chapter.translatedContent
   );
 });
