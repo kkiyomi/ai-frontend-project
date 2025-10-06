@@ -80,12 +80,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import SeriesHeader from './SeriesHeader.vue';
 import { SeriesCard, useSeriesStore, type Series as SeriesModuleType } from '@/modules/series';
+import { useChaptersStore } from '@/modules/chapters';
+import SeriesHeader from './SeriesHeader.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
-import { useChaptersStore } from '@/modules/chapters';
 import type { Series, Chapter } from '../types';
 
 const seriesStore = useSeriesStore();

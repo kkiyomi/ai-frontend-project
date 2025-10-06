@@ -9,7 +9,7 @@
 import { computed, onMounted } from 'vue';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
-import ShareView from './ShareView.vue';
+import { ShareView } from '@/modules/sharing';
 import type { Series } from '@/types';
 
 const chaptersStore = useChaptersStore();

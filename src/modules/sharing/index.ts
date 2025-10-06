@@ -78,12 +78,12 @@
 export { useSharingStore } from './store';
 
 // API
-export { sharingAPI, realSharingAPI, mockSharingAPI } from './api';
+export { sharingAPI } from './api';
 
 // Components
 export { default as ShareButton } from './components/ShareButton.vue';
 export { default as ShareModal } from './components/ShareModal.vue';
-export { default as ShareView } from './components/ShareViewWrapper.vue';
+export { default as ShareView } from './components/ShareView.vue';
 export { default as ShareContentSelector } from './components/ShareContentSelector.vue';
 export { default as ShareDetailsForm } from './components/ShareDetailsForm.vue';
 export { default as SharePreview } from './components/SharePreview.vue';

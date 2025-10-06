@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import App from '../App.vue';
-import { ShareView } from '@/modules/sharing';
+import ShareViewPage from '../components/ShareViewPage.vue';
 
 const routes = [
   {
@@ -11,7 +11,7 @@ const routes = [
   {
     path: '/share/:shareId',
     name: 'Share',
-    component: ShareView,
+    component: ShareViewPage,
     props: true
   }
 ];
