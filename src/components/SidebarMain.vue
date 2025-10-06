@@ -14,13 +14,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import SidebarCollapsed from './SidebarCollapsed.vue';
 import SidebarExpanded from './SidebarExpanded.vue';
-import { useChapters } from '../composables/useChapters';
+import { useChaptersStore } from '@/modules/chapters';
 import { useGlossaryStore } from '@/modules/glossary';
 
-const { chapters } = useChapters();
+const chaptersStore = useChaptersStore();
+const chapters = computed(() => chaptersStore.chapters);
 const glossary = useGlossaryStore();
 const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
 

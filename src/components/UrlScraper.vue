@@ -93,12 +93,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useChapters } from '../composables/useChapters';
+import { ref, computed } from 'vue';
+import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 
-const { currentSeriesId } = useChapters();
+const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+
+const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 
 const showScraper = ref(false);
 const url = ref('');

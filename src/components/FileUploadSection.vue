@@ -6,7 +6,7 @@
             <select v-model="selectedSeriesForUpload"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                 <option v-for="seriesItem in series" :key="seriesItem.id" :value="seriesItem.id">
-                    {{ seriesItem.name }} ({{ seriesItem.chapters.length }} chapters)
+                    {{ seriesItem.name }} ({{ seriesItem.chapterIds.length }} chapters)
                 </option>
             </select>
         </div>
@@ -38,12 +38,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useChapters } from '../composables/useChapters';
+import { ref, computed } from 'vue';
+import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 
-const { series, currentSeriesId } = useChapters();
+const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+
+const series = computed(() => seriesStore.series);
+const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 
 const fileInput = ref<HTMLInputElement>();
 const isUploading = ref(false);

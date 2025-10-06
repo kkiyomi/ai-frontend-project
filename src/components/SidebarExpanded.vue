@@ -31,9 +31,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import FileUploadSection from './FileUploadSection.vue';
 import ChaptersSection from './ChaptersSection.vue';
-import { useChapters } from '../composables/useChapters';
+import { useSeriesStore } from '@/modules/series';
+import { useChaptersStore } from '@/modules/chapters';
 
 interface Props {
     isGlossaryVisible: boolean;
@@ -44,18 +46,22 @@ defineEmits<{
     'toggle-glossary': [];
 }>();
 
-const { series, currentSeriesId } = useChapters();
+const seriesStore = useSeriesStore();
+const chaptersStore = useChaptersStore();
+
+const series = computed(() => seriesStore.series);
+const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 
 const getTotalStats = (): string => {
-    const totalParagraphs = series.value.reduce(
-        (sum, s) => sum + s.chapters.reduce((chSum, chapter) => chSum + chapter.originalParagraphs.length, 0),
+    const allChapters = chaptersStore.chapters;
+
+    const totalParagraphs = allChapters.reduce(
+        (sum, chapter) => sum + chapter.originalParagraphs.length,
         0
     );
-    const translatedParagraphs = series.value.reduce(
-        (sum, s) => sum + s.chapters.reduce(
-            (chSum, chapter) => chSum + chapter.translatedParagraphs.filter((p) => p.trim()).length,
-            0
-        ),
+
+    const translatedParagraphs = allChapters.reduce(
+        (sum, chapter) => sum + chapter.translatedParagraphs.filter((p) => p.trim()).length,
         0
     );
 
