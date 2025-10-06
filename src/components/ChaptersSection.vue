@@ -1,7 +1,6 @@
 <template>
   <div class="flex-1 overflow-y-auto">
-    <!-- Series Management Header -->
-    <SeriesHeader 
+    <SeriesHeader
       :showAddChapterForm="showAddChapterForm"
       @createSeries="handleCreateSeries"
       @createChapter="handleCreateChapter"
@@ -9,18 +8,14 @@
       @showAddChapter="showAddChapterForm = true"
     />
 
-    <!-- Series List -->
     <div class="p-4">
-      <!-- Empty State -->
       <div v-if="series.length === 0" class="text-center py-8">
         <div class="text-4xl mb-3">📚</div>
         <p class="text-sm text-gray-500">No series created yet</p>
         <p class="text-xs text-gray-400 mt-1">Create a series to organize your chapters</p>
       </div>
 
-      <!-- Series Groups -->
       <div v-else class="space-y-4">
-        <!-- Show all series when none selected -->
         <div v-if="!currentSeriesId" class="space-y-4">
           <SeriesCard
             v-for="seriesItem in series"
@@ -32,7 +27,6 @@
           />
         </div>
 
-        <!-- Show only selected series when one is selected -->
         <SelectedSeriesView
           v-else-if="currentSeries"
           :key="currentSeries.id"
@@ -50,7 +44,6 @@
     </div>
   </div>
 
-  <!-- Series Edit Modal -->
   <SeriesEditModal
     v-if="showEditModal && editingSeries"
     :series="editingSeries"
@@ -58,7 +51,6 @@
     @save="handleSeriesEdit"
   />
 
-  <!-- Delete Confirmation Modal -->
   <ConfirmationModal
     v-if="showDeleteModal && deletingSeries"
     title="Delete Series"
@@ -72,7 +64,6 @@
     @cancel="closeDeleteModal"
   />
 
-  <!-- Chapter Delete Confirmation Modal -->
   <ConfirmationModal
     v-if="showDeleteChapterModal && deletingChapter"
     title="Delete Chapter"
@@ -88,44 +79,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import SeriesHeader from './SeriesHeader.vue';
-import { SeriesCard, type Series as SeriesCardType } from '@/modules/series';
+import { SeriesCard, useSeriesStore, type Series as SeriesModuleType } from '@/modules/series';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
-import { useChapters } from '../composables/useChapters';
-import { useDataAPI } from '../composables/useAPI';
 import { useChaptersStore } from '@/modules/chapters';
 import type { Series, Chapter } from '../types';
 
-const {
-  series,
-  currentChapterId,
-  currentSeriesId,
-  currentSeries,
-  createSeries,
-  updateSeries,
-  deleteSeries,
-  selectSeriesOnly,
-  selectChapter,
-  removeChapter,
-  addChapterFromText,
-  updateChapter
-} = useChapters();
-
-const {
-  updateSeries: updateSeriesAPI,
-  deleteSeries: deleteSeriesAPI,
-  createChapter: createChapterAPI,
-  updateChapter: updateChapterAPI,
-  deleteChapter: deleteChapterAPI
-} = useDataAPI();
-
+const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
-// Helper function to convert global Series to SeriesCard props
-const toSeriesCardProps = (series: Series): SeriesCardType => ({
+onMounted(async () => {
+  await seriesStore.fetchSeries();
+  await chaptersStore.loadChapters();
+});
+
+const series = computed(() => {
+  return seriesStore.series.map(s => ({
+    ...s,
+    chapters: chaptersStore.getChaptersBySeriesId(s.id) || []
+  }));
+});
+
+const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
+const currentChapterId = computed(() => chaptersStore.currentChapterId);
+const currentSeries = computed(() => {
+  if (!currentSeriesId.value) return null;
+  const s = seriesStore.series.find(series => series.id === currentSeriesId.value);
+  if (!s) return null;
+  return {
+    ...s,
+    chapters: chaptersStore.getChaptersBySeriesId(s.id) || []
+  };
+});
+
+const toSeriesCardProps = (series: Series): SeriesModuleType => ({
   id: series.id,
   name: series.name,
   description: series.description,
@@ -133,7 +123,6 @@ const toSeriesCardProps = (series: Series): SeriesCardType => ({
   chapterIds: series.chapters.map(ch => ch.id)
 });
 
-// Component state
 const showAddChapterForm = ref(false);
 const showEditModal = ref(false);
 const editingSeries = ref<Series | null>(null);
@@ -144,17 +133,16 @@ const showDeleteChapterModal = ref(false);
 const deletingChapter = ref<Chapter | null>(null);
 const isDeletingChapter = ref(false);
 
-// Series operations
-const handleCreateSeries = (name: string) => {
-  createSeries(name);
+const handleCreateSeries = async (name: string) => {
+  await seriesStore.createSeries({ name });
 };
 
 const toggleSeriesSelection = (seriesId: string) => {
-  selectSeriesOnly(seriesId);
+  seriesStore.selectSeries(seriesId);
 };
 
 const deselectSeries = () => {
-  selectSeriesOnly('');
+  seriesStore.selectSeries(null);
 };
 
 const editSeries = (series: Series) => {
@@ -169,16 +157,10 @@ const closeEditModal = () => {
 
 const handleSeriesEdit = async (name: string, description?: string) => {
   if (!editingSeries.value) return;
-  
+
   try {
-    const response = await updateSeriesAPI(editingSeries.value.id, { name, description });
-    
-    if (response.success) {
-      await updateSeries(editingSeries.value.id, { name, description });
-      closeEditModal();
-    } else {
-      console.error('Failed to update series:', response.error);
-    }
+    await seriesStore.updateSeries(editingSeries.value.id, { name, description });
+    closeEditModal();
   } catch (error) {
     console.error('Error updating series:', error);
   }
@@ -200,18 +182,12 @@ const closeDeleteModal = () => {
 
 const confirmDeleteSeries = async () => {
   if (!deletingSeries.value) return;
-  
+
   isDeletingSeries.value = true;
-  
+
   try {
-    const response = await deleteSeriesAPI(deletingSeries.value.id);
-    
-    if (response.success) {
-      await deleteSeries(deletingSeries.value.id);
-      closeDeleteModal();
-    } else {
-      console.error('Failed to delete series:', response.error);
-    }
+    await seriesStore.deleteSeries(deletingSeries.value.id);
+    closeDeleteModal();
   } catch (error) {
     console.error('Error deleting series:', error);
   } finally {
@@ -219,22 +195,17 @@ const confirmDeleteSeries = async () => {
   }
 };
 
-// Chapter operations
 const handleCreateChapter = async (title: string) => {
   if (!currentSeriesId.value) return;
 
   try {
     const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
 
-    const newChapter = await chaptersStore.createChapter({
+    await chaptersStore.createChapter({
       title,
       content: emptyContent,
       seriesId: currentSeriesId.value
     });
-
-    if (newChapter) {
-      await addChapterFromText(emptyContent, title, currentSeriesId.value);
-    }
 
     showAddChapterForm.value = false;
   } catch (error) {
@@ -246,10 +217,13 @@ const cancelAddChapter = () => {
   showAddChapterForm.value = false;
 };
 
+const selectChapter = (chapterId: string) => {
+  chaptersStore.selectChapter(chapterId);
+};
+
 const handleChapterEdit = async (chapter: Chapter) => {
   try {
     await chaptersStore.updateChapter(chapter.id, { title: chapter.title.trim() });
-    await updateChapter(chapter.id, { title: chapter.title.trim() });
   } catch (error) {
     console.error('Error updating chapter:', error);
   }
@@ -259,7 +233,7 @@ const onRemoveChapter = (chapterId: string) => {
   const chapterToDelete = series.value
     .flatMap(s => s.chapters)
     .find(c => c.id === chapterId);
-    
+
   if (chapterToDelete) {
     deletingChapter.value = chapterToDelete;
     showDeleteChapterModal.value = true;
@@ -279,7 +253,6 @@ const confirmDeleteChapter = async () => {
 
   try {
     await chaptersStore.deleteChapter(deletingChapter.value.id);
-    removeChapter(deletingChapter.value.id);
     closeDeleteChapterModal();
   } catch (error) {
     console.error('Error deleting chapter:', error);
