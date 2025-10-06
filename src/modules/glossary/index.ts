@@ -36,7 +36,6 @@
  */
 
 export { useGlossaryStore } from './store';
-export { vGlossary } from './directive';
 
 export { default as GlossaryPanel } from './components/GlossaryPanel.vue';
 export { default as GlossaryTermPopup } from './components/GlossaryTermPopup.vue';

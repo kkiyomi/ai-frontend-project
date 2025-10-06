@@ -106,25 +106,67 @@ const handleChapterUpdate = async (chapterId: string) => {
   console.log('Chapter updated:', chapterId);
 };
 
+function calculateTooltipPosition(
+  event: MouseEvent,
+  tooltipEl?: HTMLElement
+) {
+  const target = event.target as HTMLElement;
+  const rect = target.getBoundingClientRect();
+
+  const margin = 8;
+  const tooltipWidth = tooltipEl?.offsetWidth || 300;   // Tailwind max-w-sm ≈ 320px
+  const tooltipHeight = tooltipEl?.offsetHeight || 180;
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // Start below the word by default
+  let x = rect.left + rect.width / 2 - tooltipWidth / 2;
+  let y = rect.bottom + margin;
+
+  // --- Flip horizontally if overflowing right ---
+  if (x + tooltipWidth > viewportWidth - margin) {
+    x = viewportWidth - tooltipWidth - margin;
+  }
+
+  // --- Clamp if overflowing left ---
+  if (x < margin) {
+    x = margin;
+  }
+
+  // --- Flip vertically if overflowing bottom ---
+  if (y + tooltipHeight > viewportHeight - margin) {
+    y = rect.top - tooltipHeight - margin;
+  }
+
+  // --- Clamp top ---
+  if (y < margin) {
+    y = margin;
+  }
+
+  return { x, y };
+}
+
 const handleGlossaryHover = (event: MouseEvent) => {
   if (!glossary.isHighlightEnabled) return;
 
   const target = event.target as HTMLElement;
-  if (target.classList.contains('glossary-highlight')) {
-    const termId = target.getAttribute('data-term-id');
-    if (termId) {
-      const term = glossaryTerms.value.find(t => t.id === termId);
-      if (term) {
-        hoveredTerm.value = term;
-        popupPosition.value = {
-          x: event.clientX + 10,
-          y: event.clientY - 10
-        };
-        showGlossaryPopup.value = true;
-      }
-    }
-  }
+  if (!target.classList.contains('glossary-highlight')) return;
+
+  const termId = target.getAttribute('data-term-id');
+  if (!termId) return;
+
+  const term = glossaryTerms.value.find(t => t.id === termId);
+  if (!term) return;
+
+  // Get existing popup element if visible (for measuring)
+  const tooltipEl = document.querySelector('div.glossary-popup') as HTMLElement | undefined;
+
+  popupPosition.value = calculateTooltipPosition(event, tooltipEl);
+  hoveredTerm.value = term;
+  showGlossaryPopup.value = true;
 };
+
 
 const handleGlossaryMouseOut = (event: MouseEvent) => {
   const target = event.target as HTMLElement;

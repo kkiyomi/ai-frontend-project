@@ -1,7 +1,7 @@
 <template>
   <div 
     v-if="term"
-    class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm"
+    class="glossary-popup absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm transition-opacity duration-150"
     :style="{ left: position.x + 'px', top: position.y + 'px' }"
     @click.stop
   >
