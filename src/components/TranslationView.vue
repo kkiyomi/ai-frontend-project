@@ -23,7 +23,7 @@
     />
 
     <ChapterEditor
-      :chapterId="currentChapterId?.toString() || null"
+      :chapterId="currentChapterId || null"
       :highlightTermsInText="glossary.highlightTermsInText"
       :isHighlightEnabled="glossary.isHighlightEnabled.value"
       :isTranslating="translation.isTranslating.value"
@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import { useGlossaryStore, GlossaryTermPopup, type GlossaryTerm } from '@/modules/glossary';
 import { useTranslationStore } from '@/modules/translation';
@@ -51,8 +51,8 @@ import { useChaptersStore } from '@/modules/chapters';
 import TranslationHeader from './TranslationHeader.vue';
 
 const chaptersStore = useChaptersStore();
-const currentChapter = chaptersStore.currentChapter;
-const currentChapterId = chaptersStore.currentChapterId;
+const currentChapter = computed(() => chaptersStore.currentChapter);
+const currentChapterId = computed(() => chaptersStore.currentChapterId);
 
 const editor = useEditorStore();
 const translation = useTranslationStore();
@@ -79,10 +79,10 @@ onMounted(() => {
 });
 
 const translateAllParagraphs = async () => {
-  if (!currentChapter) return;
+  if (!currentChapter.value) return;
 
   const glossaryContext = glossaryTerms.value.map(term => term.term);
-  const fullText = currentChapter.content;
+  const fullText = currentChapter.value.content;
 
   try {
     const translatedText = await translateText(fullText, glossaryContext);
@@ -91,7 +91,7 @@ const translateAllParagraphs = async () => {
       translatedContent: translatedText,
       translatedParagraphs: translatedText.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
     };
-    await chaptersStore.updateChapter(currentChapter.id, updatedChapter);
+    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
   } catch (error) {
     console.error('Error translating all paragraphs:', error);
   }

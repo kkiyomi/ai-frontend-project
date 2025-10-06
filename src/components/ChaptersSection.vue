@@ -91,11 +91,6 @@ import type { Series, Chapter } from '../types';
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
-onMounted(async () => {
-  await seriesStore.fetchSeries();
-  await chaptersStore.loadChapters();
-});
-
 const series = computed(() => {
   return seriesStore.series.map(s => ({
     ...s,

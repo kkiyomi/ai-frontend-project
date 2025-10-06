@@ -26,12 +26,23 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
+import { useSeriesStore } from '@/modules/series';
+import { useChaptersStore } from '@/modules/chapters';
 
 const glossary = useGlossaryStore();
 const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
+
+const seriesStore = useSeriesStore();
+const chaptersStore = useChaptersStore();
+
+onMounted(async () => {
+  await seriesStore.fetchSeries();
+  await chaptersStore.loadChapters();
+});
 
 const closeGlossaryIfClickedOutside = (event: Event) => {
   if (event.target === event.currentTarget) {
