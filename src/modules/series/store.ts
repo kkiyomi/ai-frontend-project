@@ -103,7 +103,7 @@ export const useSeriesStore = defineStore('series', () => {
       const response = await seriesAPI.createSeries(request);
 
       if (response.success && response.data) {
-        series.value.push(response.data);
+        series.value.unshift(response.data);
         return response.data;
       } else {
         error.value = response.error || 'Failed to create series';

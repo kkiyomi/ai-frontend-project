@@ -35,7 +35,7 @@
           @back="deselectSeries"
           @edit="editSeries"
           @delete="onRemoveSeries"
-          @addChapter="showAddChapterForm = true"
+          @addChapter="handleCreateChapter('test')"
           @selectChapter="selectChapter"
           @editChapter="handleChapterEdit"
           @deleteChapter="onRemoveChapter"

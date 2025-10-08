@@ -8,6 +8,7 @@
 
         <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto min-h-0 pb-4">
+            <SeriesCreate />
             <!-- <FileUploadSection /> -->
             <ChaptersSection />
         </div>
@@ -33,6 +34,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import FileUploadSection from './FileUploadSection.vue';
+import SeriesCreate from './SeriesCreate.vue';
 import ChaptersSection from './ChaptersSection.vue';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
