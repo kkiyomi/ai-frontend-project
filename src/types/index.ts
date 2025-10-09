@@ -2,9 +2,13 @@ export interface Series {
   id: string;
   name: string;
   description?: string;
-  createdAt: Date;
-  chapters: Chapter[];
+  createdAt: Date | string;
+  chapters?: Chapter[];
   chapterIds?: string[];
+}
+
+export interface SeriesWithChapters extends Series {
+  chapters: Chapter[];
 }
 
 export interface Chapter {

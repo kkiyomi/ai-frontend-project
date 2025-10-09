@@ -35,6 +35,7 @@ import TranslationView from './components/TranslationView.vue';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
+import { useSeriesWithChapters } from '@/composables';
 
 const glossary = useGlossaryStore();
 const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
@@ -43,13 +44,7 @@ const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
-const currentSeries = computed(() => {
-  if (!seriesStore.selectedSeries) return null;
-  return {
-    ...seriesStore.selectedSeries,
-    chapters: chaptersStore.getChaptersBySeriesId(seriesStore.selectedSeries.id)
-  };
-});
+const { currentSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 
 onMounted(async () => {
   await seriesStore.fetchSeries();
