@@ -175,7 +175,7 @@ export const useChaptersStore = defineStore('chapters', () => {
     }
   }
 
-  function selectChapter(chapterId: string): void {
+  function selectChapter(chapterId: string | null): void {
     currentChapterId.value = chapterId;
   }
 

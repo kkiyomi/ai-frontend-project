@@ -2,7 +2,7 @@
   <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
     <div
       class="bg-gray-50 p-4 cursor-pointer"
-      @click="$emit('select', series.id)"
+      @click="toggleSeriesSelection(series.id)"
     >
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
@@ -12,7 +12,7 @@
           </p>
           <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
             <span>{{ series.chapterIds.length }} chapters</span>
-            <span>Created {{ formatDate(series.createdAt) }}</span>
+            <span>Created {{ formatDate(new Date(series.createdAt)) }}</span>
           </div>
         </div>
         <div class="flex items-center space-x-1 ml-2">
@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { useSeriesStore } from '../store';
 import type { Series } from '../types';
 
 interface Props {
@@ -52,10 +53,15 @@ interface Props {
 defineProps<Props>();
 
 defineEmits<{
-  select: [seriesId: string];
   edit: [series: Series];
   delete: [seriesId: string];
 }>();
+
+const seriesStore = useSeriesStore();
+
+const toggleSeriesSelection = (seriesId: string) => {
+  seriesStore.selectSeries(seriesId);
+};
 
 function formatDate(date: Date): string {
   const now = new Date();

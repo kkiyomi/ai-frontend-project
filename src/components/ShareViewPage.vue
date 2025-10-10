@@ -10,7 +10,7 @@ import { computed, onMounted } from 'vue';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
 import { ShareView } from '@/modules/sharing';
-import type { Series } from '@/types';
+import type { SeriesWithChapters as Series } from '@/types';
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();

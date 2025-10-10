@@ -232,7 +232,7 @@ import { useRoute } from 'vue-router';
 import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
 import type { SharedContent } from '../types';
-import type { Chapter, Series } from '@/types';
+import type { Chapter, SeriesWithChapters as Series } from '@/types';
 
 interface Props {
   chapters: Chapter[];

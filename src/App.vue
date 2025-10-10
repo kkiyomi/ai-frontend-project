@@ -44,7 +44,7 @@ const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
-const { currentSeriesWithChapters: currentSeries } = useSeriesWithChapters();
+const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 
 onMounted(async () => {
   await seriesStore.fetchSeries();

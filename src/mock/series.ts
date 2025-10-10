@@ -6,7 +6,7 @@ const mockSeries: Series[] = [
     name: 'Swallowed Star 2: Origin Continent',
     description: 'Luo Feng, accompanied by Boundary Beast Morosa, traversed reincarnation and arrived at the Origin Continent…',
     createdAt: new Date('2024-01-15'),
-    chapterIds: [],
+    chapterIds: ['ch1'],
     chapters: []
   },
   {

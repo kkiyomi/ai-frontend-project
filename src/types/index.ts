@@ -4,7 +4,7 @@ export interface Series {
   description?: string;
   createdAt: Date | string;
   chapters?: Chapter[];
-  chapterIds?: string[];
+  chapterIds: string[];
 }
 
 export interface SeriesWithChapters extends Series {

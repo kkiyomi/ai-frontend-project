@@ -1,13 +1,6 @@
 <template>
   <div class="flex-1 overflow-y-auto">
-    <SeriesHeader
-      :showAddChapterForm="showAddChapterForm"
-      @createSeries="handleCreateSeries"
-      @createChapter="handleCreateChapter"
-      @cancelAddChapter="cancelAddChapter"
-      @showAddChapter="showAddChapterForm = true"
-    />
-
+    <SeriesCreate v-if="!currentSeriesId" @edit="editSeries" />
     <div class="p-4">
       <div v-if="series.length === 0" class="text-center py-8">
         <div class="text-4xl mb-3">📚</div>
@@ -20,8 +13,7 @@
           <SeriesCard
             v-for="seriesItem in series"
             :key="seriesItem.id"
-            :series="toSeriesCardProps(seriesItem)"
-            @select="toggleSeriesSelection"
+            :series="seriesItem"
             @edit="(s) => editSeries(seriesItem)"
             @delete="onRemoveSeries"
           />
@@ -35,7 +27,7 @@
           @back="deselectSeries"
           @edit="editSeries"
           @delete="onRemoveSeries"
-          @addChapter="handleCreateChapter('test')"
+          @addChapter="handleCreateChapter('New Chapter!')"
           @selectChapter="selectChapter"
           @editChapter="handleChapterEdit"
           @deleteChapter="onRemoveChapter"
@@ -80,45 +72,29 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { SeriesCard, useSeriesStore, type Series as SeriesModuleType } from '@/modules/series';
+import {
+  SeriesCard,
+  SeriesEditModal,
+  useSeriesStore
+} from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
-import SeriesHeader from './SeriesHeader.vue';
+import { useSeriesWithChapters } from '@/composables';
+import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
-import SeriesEditModal from './SeriesEditModal.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
-import type { Series, Chapter } from '../types';
+import type { SeriesWithChapters as Series, Chapter } from '../types';
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
-const series = computed(() => {
-  return seriesStore.series.map(s => ({
-    ...s,
-    chapters: chaptersStore.getChaptersBySeriesId(s.id) || []
-  }));
-});
-
 const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
-const currentSeries = computed(() => {
-  if (!currentSeriesId.value) return null;
-  const s = seriesStore.series.find(series => series.id === currentSeriesId.value);
-  if (!s) return null;
-  return {
-    ...s,
-    chapters: chaptersStore.getChaptersBySeriesId(s.id) || []
-  };
-});
 
-const toSeriesCardProps = (series: Series): SeriesModuleType => ({
-  id: series.id,
-  name: series.name,
-  description: series.description,
-  createdAt: series.createdAt,
-  chapterIds: series.chapters.map(ch => ch.id)
-});
+const { 
+  selectedSeriesWithChapters: currentSeries, 
+  allSeriesWithChapters: series 
+} = useSeriesWithChapters();
 
-const showAddChapterForm = ref(false);
 const showEditModal = ref(false);
 const editingSeries = ref<Series | null>(null);
 const showDeleteModal = ref(false);
@@ -128,16 +104,9 @@ const showDeleteChapterModal = ref(false);
 const deletingChapter = ref<Chapter | null>(null);
 const isDeletingChapter = ref(false);
 
-const handleCreateSeries = async (name: string) => {
-  await seriesStore.createSeries({ name });
-};
-
-const toggleSeriesSelection = (seriesId: string) => {
-  seriesStore.selectSeries(seriesId);
-};
-
 const deselectSeries = () => {
   seriesStore.selectSeries(null);
+  chaptersStore.selectChapter(null);
 };
 
 const editSeries = (series: Series) => {
@@ -202,14 +171,9 @@ const handleCreateChapter = async (title: string) => {
       seriesId: currentSeriesId.value
     });
 
-    showAddChapterForm.value = false;
   } catch (error) {
     console.error('Error creating chapter:', error);
   }
-};
-
-const cancelAddChapter = () => {
-  showAddChapterForm.value = false;
 };
 
 const selectChapter = (chapterId: string) => {

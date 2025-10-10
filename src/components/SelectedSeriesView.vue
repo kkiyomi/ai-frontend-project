@@ -83,7 +83,7 @@ import { computed } from 'vue';
 import BulkChapterUpload from './BulkChapterUpload.vue';
 import ChaptersList from './ChaptersList.vue';
 import { getSeriesTranslationProgress } from '../utils/chapterUtils';
-import type { Series, Chapter } from '../types';
+import type { SeriesWithChapters as Series, Chapter } from '../types';
 
 interface Props {
   series: Series;

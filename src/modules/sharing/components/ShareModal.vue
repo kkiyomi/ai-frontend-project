@@ -89,7 +89,7 @@ import ShareContentSelector from './ShareContentSelector.vue';
 import ShareDetailsForm from './ShareDetailsForm.vue';
 import SharePreview from './SharePreview.vue';
 import type { ShareRequest, SharedContent, ShareStats } from '../types';
-import type { Chapter, Series } from '@/types';
+import type { Chapter, SeriesWithChapters as Series } from '@/types';
 
 interface Props {
   series: Series[];
@@ -236,16 +236,6 @@ const getTranslationProgress = (chapter: Chapter): number => {
   if (chapter.translatedParagraphs.length === 0) return 0;
   const translatedCount = chapter.translatedParagraphs.filter(p => p.trim()).length;
   return Math.round((translatedCount / chapter.originalParagraphs.length) * 100);
-};
-
-const getSeriesTranslationProgress = (series: Series): number => {
-  const totalParagraphs = series.chapters.reduce((sum, c) => sum + c.originalParagraphs.length, 0);
-  const translatedParagraphs = series.chapters.reduce(
-    (sum, c) => sum + c.translatedParagraphs.filter(p => p.trim()).length,
-    0
-  );
-  if (totalParagraphs === 0) return 0;
-  return Math.round((translatedParagraphs / totalParagraphs) * 100);
 };
 
 const getDefaultTitle = (): string => {

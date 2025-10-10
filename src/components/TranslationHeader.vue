@@ -15,6 +15,7 @@
       </div>
       
       <div v-if="currentChapter" class="flex items-center space-x-2">
+        <!-- Share Button -->
         <ShareButton
           :chapters="allChapters"
           :series="allSeries"

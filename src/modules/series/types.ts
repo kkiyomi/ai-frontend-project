@@ -2,7 +2,7 @@ export interface Series {
   id: string;
   name: string;
   description?: string;
-  createdAt: Date;
+  createdAt: Date | string;
   chapterIds: string[];
 }
 

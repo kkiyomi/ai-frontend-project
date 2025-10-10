@@ -26,7 +26,7 @@ import { useSharingStore } from '../store';
 import { sharingAPI } from '../api';
 import ShareModal from './ShareModal.vue';
 import type { ShareRequest } from '../types';
-import type { Chapter, Series } from '@/types';
+import type { Chapter, SeriesWithChapters as Series } from '@/types';
 
 interface Props {
   chapters: Chapter[];

@@ -6,7 +6,7 @@
     </div>
 
     <!-- Virtual scrolling container for large chapter lists -->
-    <div v-else class="max-h-96 overflow-y-auto">
+    <div v-else class="overflow-y-auto">
       <!-- Chapter count indicator for large lists -->
       <div v-if="chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
         <p class="text-xs text-yellow-700 text-center">

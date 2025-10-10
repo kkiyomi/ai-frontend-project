@@ -2,16 +2,7 @@ import type { APIResponse } from '@/modules/core/types';
 import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
 import mockData from '@/mock';
 
-// Convert global Series (with chapters) to module Series (with chapterIds)
-const convertToModuleSeries = (globalSeries: any): Series => ({
-  id: globalSeries.id,
-  name: globalSeries.name,
-  description: globalSeries.description,
-  createdAt: globalSeries.createdAt,
-  chapterIds: globalSeries.chapters?.map((ch: any) => ch.id) || globalSeries.chapterIds || []
-});
-
-let mockSeries = mockData.mockSeries.map(convertToModuleSeries);
+let mockSeries = mockData.mockSeries;
 
 export class SeriesMockAPI {
   private series: Series[] = mockSeries;
