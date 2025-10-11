@@ -52,18 +52,7 @@ const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 
 const getTotalStats = (): string => {
     const allChapters = chaptersStore.chapters;
-
-    const totalParagraphs = allChapters.reduce(
-        (sum, chapter) => sum + chapter.originalParagraphs.length,
-        0
-    );
-
-    const translatedParagraphs = allChapters.reduce(
-        (sum, chapter) => sum + chapter.translatedParagraphs.filter((p) => p.trim()).length,
-        0
-    );
-
-    if (totalParagraphs === 0) return "No content yet";
-    return `${series.value.length} series • ${translatedParagraphs}/${totalParagraphs} paragraphs translated`;
+    if (series.value.length === allChapters.length === 0) return "No content yet";
+    return `${series.value.length} series • ${allChapters.length} chapters`;
 };
 </script>

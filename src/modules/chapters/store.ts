@@ -179,14 +179,6 @@ export const useChaptersStore = defineStore('chapters', () => {
     currentChapterId.value = chapterId;
   }
 
-  function removeChapter(chapterId: string): void {
-    chapters.value = chapters.value.filter(ch => ch.id !== chapterId);
-
-    if (currentChapterId.value === chapterId) {
-      currentChapterId.value = chapters.value.length > 0 ? chapters.value[0].id : null;
-    }
-  }
-
   async function refresh(seriesId?: string): Promise<void> {
     if (!seriesId) {
       dataLoaded = false;
@@ -208,13 +200,12 @@ export const useChaptersStore = defineStore('chapters', () => {
     error: computed(() => error.value),
     getChaptersBySeriesId,
     loadChapters,
-    createChapter,
     addChapter,
     addChapterFromText,
+    selectChapter,
+    createChapter,
     updateChapter,
     deleteChapter,
-    selectChapter,
-    removeChapter,
     refresh,
     forceReload,
   };
