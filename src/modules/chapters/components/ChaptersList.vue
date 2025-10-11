@@ -21,7 +21,7 @@
           :chapter="chapter"
           :isSelected="currentChapterId === chapter.id"
           :isEditing="editingChapters.has(chapter.id)"
-          @select="$emit('select', chapter.id)"
+          @select="selectChapter(chapter.id)"
           @startEdit="startEditingChapter"
           @saveEdit="saveChapterEdit"
           @cancelEdit="cancelChapterEdit"
@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useChaptersStore } from '../store';
 import ChapterItem from './ChapterItem.vue';
 import type { Chapter } from '../types';
 
@@ -45,12 +46,19 @@ interface Props {
 defineProps<Props>();
 
 const emit = defineEmits<{
-  select: [chapterId: string];
-  edit: [chapter: Chapter];
   delete: [chapterId: string];
 }>();
 
+const {
+  selectChapter,
+  updateChapter,
+} = useChaptersStore();
+
 const editingChapters = ref<Set<string>>(new Set());
+
+const handleChapterEdit = async (chapter: Chapter) => {
+  await updateChapter(chapter.id, { title: chapter.title.trim() });
+};
 
 const startEditingChapter = (chapter: Chapter) => {
   editingChapters.value.add(chapter.id);
@@ -62,7 +70,7 @@ const saveChapterEdit = (chapter: Chapter) => {
     return;
   }
   
-  emit('edit', chapter);
+  handleChapterEdit(chapter);
   editingChapters.value.delete(chapter.id);
 };
 

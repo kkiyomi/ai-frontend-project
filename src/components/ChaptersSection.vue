@@ -32,8 +32,6 @@
           <ChaptersList
             :chapters="currentSeries.chapters"
             :currentChapterId="currentChapterId"
-            @select="selectChapter"
-            @edit="handleChapterEdit"
             @delete="onRemoveChapter"
           />
         </div>
@@ -82,11 +80,10 @@ import {
   SeriesEditModal,
   useSeriesStore
 } from '@/modules/series';
-import { useChaptersStore } from '@/modules/chapters';
+import { ChaptersList, useChaptersStore } from '@/modules/chapters';
 import { useSeriesWithChapters } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
-import ChaptersList from './ChaptersList.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import type { SeriesWithChapters as Series, Chapter } from '../types';
 
@@ -184,14 +181,6 @@ const handleCreateChapter = async (title: string) => {
 
 const selectChapter = (chapterId: string) => {
   chaptersStore.selectChapter(chapterId);
-};
-
-const handleChapterEdit = async (chapter: Chapter) => {
-  try {
-    await chaptersStore.updateChapter(chapter.id, { title: chapter.title.trim() });
-  } catch (error) {
-    console.error('Error updating chapter:', error);
-  }
 };
 
 const onRemoveChapter = (chapterId: string) => {

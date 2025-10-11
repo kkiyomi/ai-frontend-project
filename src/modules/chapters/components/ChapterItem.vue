@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { getChapterTranslationProgress, formatFileSize, getFileIcon } from '../utils/chapterUtils';
+import { getChapterTranslationProgress, formatFileSize, getFileIcon } from '@/utils/chapterUtils';
 import type { Chapter } from '../types';
 
 interface Props {
