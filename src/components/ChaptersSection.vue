@@ -18,20 +18,25 @@
             @delete="onRemoveSeries"
           />
         </div>
+        <div v-else-if="currentSeries" class="border border-gray-200 rounded-lg overflow-hidden">
+          <SelectedSeriesView
+            :key="currentSeries.id"
+            :series="currentSeries"
+            @back="deselectSeries"
+            @edit="editSeries"
+            @delete="onRemoveSeries"
+            @addChapter="handleCreateChapter('New Chapter!')"
+          />
 
-        <SelectedSeriesView
-          v-else-if="currentSeries"
-          :key="currentSeries.id"
-          :series="currentSeries"
-          :currentChapterId="currentChapterId"
-          @back="deselectSeries"
-          @edit="editSeries"
-          @delete="onRemoveSeries"
-          @addChapter="handleCreateChapter('New Chapter!')"
-          @selectChapter="selectChapter"
-          @editChapter="handleChapterEdit"
-          @deleteChapter="onRemoveChapter"
-        />
+          <!-- Chapters List -->
+          <ChaptersList
+            :chapters="currentSeries.chapters"
+            :currentChapterId="currentChapterId"
+            @select="selectChapter"
+            @edit="handleChapterEdit"
+            @delete="onRemoveChapter"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -81,6 +86,7 @@ import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesWithChapters } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
+import ChaptersList from './ChaptersList.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import type { SeriesWithChapters as Series, Chapter } from '../types';
 

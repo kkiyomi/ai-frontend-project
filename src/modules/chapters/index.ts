@@ -20,6 +20,9 @@
 
 export { useChaptersStore } from './store';
 export { chapterAPI } from './api';
+
+export { default as BulkChapterUpload } from './components/BulkChapterUpload.vue';
+
 export type {
   Chapter,
   ChapterCreateInput,

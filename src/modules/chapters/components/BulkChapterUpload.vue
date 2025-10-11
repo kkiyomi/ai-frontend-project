@@ -94,7 +94,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useChaptersStore } from '@/modules/chapters';
+import { useChaptersStore } from '../store';
 
 interface Props {
     seriesId: string;
