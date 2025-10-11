@@ -2,16 +2,12 @@
 import type { Chapter, Series } from '../types';
 
 export function getSeriesTranslationProgress(series: Series): number {
-  if (series.chapters?.length === 0) return 0;
+  if (!series.chapters || series.chapters.length === 0) return 0;
 
-  const totalParagraphs = series.chapters?.reduce((sum, chapter) => sum + chapter.originalParagraphs.length, 0);
-  const translatedParagraphs = series.chapters?.reduce(
-    (sum, chapter) => sum + chapter.translatedParagraphs.filter(p => p.trim()).length,
-    0
-  );
+  const totalChapters = series.chapters.length;
+  const translatedChapters = series.chapters.filter(ch => ch.isTranslated).length;
 
-  if (totalParagraphs === 0) return 0;
-  return Math.round(((translatedParagraphs ?? 0) / (totalParagraphs ?? 1)) * 100);
+  return Math.round((translatedChapters / totalChapters) * 100);
 }
 
 export function getChapterTranslationProgress(chapter: Chapter): number {

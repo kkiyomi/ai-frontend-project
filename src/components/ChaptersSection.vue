@@ -14,8 +14,8 @@
             v-for="seriesItem in series"
             :key="seriesItem.id"
             :series="seriesItem"
-            @edit="(s) => editSeries(seriesItem)"
-            @delete="onRemoveSeries"
+            @edit="() => editSeries(seriesItem)"
+            @delete="() => deleteSeries(seriesItem)"
           />
         </div>
         <div v-else-if="currentSeries" class="border border-gray-200 rounded-lg overflow-hidden">
@@ -24,7 +24,7 @@
             :series="currentSeries"
             @back="deselectSeries"
             @edit="editSeries"
-            @delete="onRemoveSeries"
+            @delete="() => deleteSeries(currentSeries)"
             @addChapter="handleCreateChapter('New Chapter!')"
           />
 
@@ -32,7 +32,7 @@
           <ChaptersList
             :chapters="currentSeries.chapters"
             :currentChapterId="currentChapterId"
-            @delete="onRemoveChapter"
+            @delete="deleteChapter"
           />
         </div>
       </div>
@@ -47,41 +47,21 @@
   />
 
   <ConfirmationModal
-    v-if="showDeleteModal && deletingSeries"
-    title="Delete Series"
-    :message="`Are you sure you want to delete '${deletingSeries.name}'?`"
-    details="This action cannot be undone. All chapters in this series will also be deleted."
-    type="danger"
-    confirm-text="Delete Series"
-    :is-processing="isDeletingSeries"
-    processing-text="Deleting..."
-    @confirm="confirmDeleteSeries"
-    @cancel="closeDeleteModal"
-  />
-
-  <ConfirmationModal
-    v-if="showDeleteChapterModal && deletingChapter"
-    title="Delete Chapter"
-    :message="`Are you sure you want to delete '${deletingChapter.title}'?`"
-    details="This action cannot be undone. All translations for this chapter will be lost."
-    type="danger"
-    confirm-text="Delete Chapter"
-    :is-processing="isDeletingChapter"
-    processing-text="Deleting..."
-    @confirm="confirmDeleteChapter"
-    @cancel="closeDeleteChapterModal"
+    v-if="showConfirmation"
+    v-bind="confirmationData"
+    @close="closeConfirmation"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import {
   SeriesCard,
   SeriesEditModal,
   useSeriesStore
 } from '@/modules/series';
 import { ChaptersList, useChaptersStore } from '@/modules/chapters';
-import { useSeriesWithChapters } from '@/composables';
+import { useSeriesWithChapters, useConfirmation } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
@@ -93,24 +73,13 @@ const chaptersStore = useChaptersStore();
 const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
 
-const { 
-  selectedSeriesWithChapters: currentSeries, 
-  allSeriesWithChapters: series 
+const {
+  selectedSeriesWithChapters: currentSeries,
+  allSeriesWithChapters: series
 } = useSeriesWithChapters();
 
 const showEditModal = ref(false);
 const editingSeries = ref<Series | null>(null);
-const showDeleteModal = ref(false);
-const deletingSeries = ref<Series | null>(null);
-const isDeletingSeries = ref(false);
-const showDeleteChapterModal = ref(false);
-const deletingChapter = ref<Chapter | null>(null);
-const isDeletingChapter = ref(false);
-
-const deselectSeries = () => {
-  seriesStore.selectSeries(null);
-  chaptersStore.selectChapter(null);
-};
 
 const editSeries = (series: Series) => {
   editingSeries.value = series;
@@ -133,33 +102,16 @@ const handleSeriesEdit = async (name: string, description?: string) => {
   }
 };
 
-const onRemoveSeries = (seriesId: string) => {
-  const seriesToDelete = series.value.find(s => s.id === seriesId);
-  if (seriesToDelete) {
-    deletingSeries.value = seriesToDelete;
-    showDeleteModal.value = true;
-  }
-};
+const {
+  show: showConfirmation,
+  modalData: confirmationData,
+  open: openConfirmation,
+  close: closeConfirmation
+} = useConfirmation();
 
-const closeDeleteModal = () => {
-  showDeleteModal.value = false;
-  deletingSeries.value = null;
-  isDeletingSeries.value = false;
-};
-
-const confirmDeleteSeries = async () => {
-  if (!deletingSeries.value) return;
-
-  isDeletingSeries.value = true;
-
-  try {
-    await seriesStore.deleteSeries(deletingSeries.value.id);
-    closeDeleteModal();
-  } catch (error) {
-    console.error('Error deleting series:', error);
-  } finally {
-    isDeletingSeries.value = false;
-  }
+const deselectSeries = () => {
+  seriesStore.selectSeries(null);
+  chaptersStore.selectChapter(null);
 };
 
 const handleCreateChapter = async (title: string) => {
@@ -179,39 +131,36 @@ const handleCreateChapter = async (title: string) => {
   }
 };
 
-const selectChapter = (chapterId: string) => {
-  chaptersStore.selectChapter(chapterId);
+const deleteSeries = (series: Series) => {
+  openConfirmation({
+    title: 'Delete Series',
+    message: `Are you sure you want to delete '${series.name}'?`,
+    details: 'This action cannot be undone. All chapters in this series will also be deleted.',
+    type: 'danger',
+    confirmText: 'Delete Series',
+    action: async () => {
+      await seriesStore.deleteSeries(series.id);
+    },
+  });
 };
 
-const onRemoveChapter = (chapterId: string) => {
-  const chapterToDelete = series.value
-    .flatMap(s => s.chapters)
-    .find(c => c.id === chapterId);
+const deleteChapter = (chapterId: string) => {
+  const chapter = currentSeries.value.chapters.find(c => c.id === chapterId);
 
-  if (chapterToDelete) {
-    deletingChapter.value = chapterToDelete;
-    showDeleteChapterModal.value = true;
+  if (!chapter) {
+    console.warn(`Chapter with ID '${chapterId}' not found`);
+    return;
   }
-};
 
-const closeDeleteChapterModal = () => {
-  showDeleteChapterModal.value = false;
-  deletingChapter.value = null;
-  isDeletingChapter.value = false;
-};
-
-const confirmDeleteChapter = async () => {
-  if (!deletingChapter.value) return;
-
-  isDeletingChapter.value = true;
-
-  try {
-    await chaptersStore.deleteChapter(deletingChapter.value.id);
-    closeDeleteChapterModal();
-  } catch (error) {
-    console.error('Error deleting chapter:', error);
-  } finally {
-    isDeletingChapter.value = false;
-  }
+  openConfirmation({
+    title: 'Delete Chapter',
+    message: `Are you sure you want to delete '${chapter.title}'?`,
+    details: 'This action cannot be undone. All translations for this chapter will be lost.',
+    type: 'danger',
+    confirmText: 'Delete Chapter',
+    action: async () => {
+      await chaptersStore.deleteChapter(chapter.id);
+    },
+  });
 };
 </script>
