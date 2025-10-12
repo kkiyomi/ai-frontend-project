@@ -18,16 +18,22 @@ const dynamicData = loadDynamicMockData();
 // =====================================================
 // Merge base and dynamic data
 // =====================================================
-const mockSeries: Series[] = [...baseSeries, ...dynamicData.series].map(s => ({
+const mockSeries: Series[] = [
+  ...dynamicData.series,
+  ...baseSeries,
+].map(s => ({
   ...s,
   createdAt: new Date(s.createdAt),
   chapters: s.chapters || [],
 }));
 
-const mockChapters: Chapter[] = [...baseChapters, ...dynamicData.chapters];
+const mockChapters: Chapter[] = [
+  ...dynamicData.chapters,
+  ...baseChapters,
+];
 const mockGlossaryTerms: GlossaryTerm[] = [
-  ...baseGlossaryTerms,
   ...dynamicData.glossaryTerms,
+  ...baseGlossaryTerms,
 ];
 
 // =====================================================
