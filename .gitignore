@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-src/mock/mock_data_*/*
 *.tsbuildinfo
 
 node_modules
