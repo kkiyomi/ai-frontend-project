@@ -26,7 +26,7 @@ const glossary = useGlossaryStore();
 const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
 
 const sidebar = ref<HTMLElement | null>(null);
-const isExpanded = ref(false);
+const isExpanded = ref(true);
 
 const handleMouseEnter = () => {
   isExpanded.value = true;
