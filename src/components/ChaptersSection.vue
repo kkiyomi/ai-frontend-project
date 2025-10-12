@@ -65,7 +65,7 @@ import { useSeriesWithChapters, useConfirmation } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
-import type { SeriesWithChapters as Series, Chapter } from '../types';
+import type { Series, Chapter } from '../types';
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
@@ -131,7 +131,8 @@ const handleCreateChapter = async (title: string) => {
   }
 };
 
-const deleteSeries = (series: Series) => {
+const deleteSeries = (series: Series | null) => {
+  if (!series) return;
   openConfirmation({
     title: 'Delete Series',
     message: `Are you sure you want to delete '${series.name}'?`,
@@ -145,6 +146,7 @@ const deleteSeries = (series: Series) => {
 };
 
 const deleteChapter = (chapterId: string) => {
+  if (!currentSeries.value) return;
   const chapter = currentSeries.value.chapters.find(c => c.id === chapterId);
 
   if (!chapter) {

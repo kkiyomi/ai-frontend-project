@@ -52,7 +52,7 @@ const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 
 const getTotalStats = (): string => {
     const allChapters = chaptersStore.chapters;
-    if (series.value.length === allChapters.length === 0) return "No content yet";
+    if (series.value.length ===  0 && allChapters.length === 0) return "No content yet";
     return `${series.value.length} series • ${allChapters.length} chapters`;
 };
 </script>

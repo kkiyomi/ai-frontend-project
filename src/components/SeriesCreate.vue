@@ -50,7 +50,7 @@ const createSeries = async () => {
             console.log(`✅ Created series: ${defaultName}`);
             seriesStore.selectSeries(response.id)
             chaptersStore.selectChapter('')
-            emit('edit', seriesStore.selectedSeries)
+            if (seriesStore.selectedSeries) { emit('edit', seriesStore.selectedSeries)};
         }
     } catch (error) {
         console.error('❌ Error creating series:', error);
