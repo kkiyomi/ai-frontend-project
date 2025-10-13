@@ -1,3 +1,6 @@
+<!--
+  GlossaryTermPopup - Glossary Module Component
+-->
 <template>
   <div 
     v-if="term"
@@ -93,7 +96,17 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import { useGlossaryStore } from '../store';
+import { useGlossaryPopup } from '../composables/useGlossaryPopup';
 import type { GlossaryTerm } from '../types';
+
+const {
+  updateTerm
+} = useGlossaryStore();
+
+const {
+  closePopup
+} = useGlossaryPopup();
 
 interface Props {
   term: GlossaryTerm;
@@ -101,11 +114,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  update: [termId: string, updates: Partial<GlossaryTerm>];
-  close: [];
-}>();
 
 const isEditing = ref(false);
 const editForm = reactive({
@@ -136,10 +144,15 @@ const cancelEdit = () => {
   isEditing.value = false;
 };
 
+const handleTermUpdate = async (termId: string, updates: Partial<GlossaryTerm>) => {
+  await updateTerm(termId, updates);
+  closePopup();
+};
+
 const saveEdit = () => {
   if (!editForm.term.trim() || !editForm.translation.trim()) return;
   
-  emit('update', props.term.id, {
+  handleTermUpdate(props.term.id, {
     term: editForm.term.trim(),
     translation: editForm.translation.trim(),
     definition: editForm.definition.trim(),
