@@ -109,9 +109,11 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useEditorStore } from '../store';
+import { type Chapter } from '../types';
 import TextColumn from './TextColumn.vue';
 
 interface Props {
+  chapter: Chapter | null;
   chapterId?: string | null;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
@@ -120,6 +122,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  chapter: null,
   chapterId: null,
   isHighlightEnabled: false,
   isTranslating: false,
@@ -143,9 +146,7 @@ const contentMode = computed(() => editor.contentMode);
 const highlightFn = computed(() => props.highlightTermsInText);
 
 watch(() => props.chapterId, (newChapterId) => {
-  if (newChapterId) {
-    editor.loadChapter(newChapterId);
-  }
+  editor.loadChapter(props.chapter);
 }, { immediate: true });
 
 function handleToggleParagraphEditing(index: number, type: 'original' | 'translated') {

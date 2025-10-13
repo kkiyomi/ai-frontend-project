@@ -297,7 +297,7 @@ const props = defineProps<Props>();
 const store = useGlossaryStore();
 
 const {
-  terms: glossaryTerms,
+  termsByCurrentChapter: glossaryTerms,
   isLoading,
   isHighlightEnabled,
   termsByCategory,

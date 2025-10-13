@@ -20,6 +20,7 @@
     />
 
     <ChapterEditor
+      :chapter="currentChapter"
       :chapterId="currentChapterId || null"
       :highlightTermsInText="glossary.highlightTermsInText"
       :isHighlightEnabled="glossary.isHighlightEnabled.value"

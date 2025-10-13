@@ -61,30 +61,12 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Load a chapter into the editor
    */
-  async function loadChapter(chapterId: string) {
-    try {
-      isLoading.value = true;
-      error.value = null;
-
-      const response = await editorAPI.getChapter(chapterId);
-
-      if (response.success && response.data) {
-        currentChapter.value = response.data;
-        currentChapterId.value = chapterId;
-        hasUnsavedChanges.value = false;
-
-        // Reset editing states
-        isEditingOriginal.value = false;
-        editingOriginalParagraphs.value.clear();
-        editingTranslatedParagraphs.value.clear();
-      } else {
-        error.value = response.error || 'Failed to load chapter';
-      }
-    } catch (err) {
-      error.value = 'An error occurred while loading the chapter';
-      console.error('Error loading chapter:', err);
-    } finally {
-      isLoading.value = false;
+  function loadChapter(chapter: Chapter) {
+    clearChapter()
+    if (chapter) {
+      currentChapter.value = chapter;
+      currentChapterId.value = chapter.id;
+      hasUnsavedChanges.value = false;
     }
   }
 

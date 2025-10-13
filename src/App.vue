@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, watch } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
@@ -38,7 +38,11 @@ import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesWithChapters } from '@/composables';
 
 const glossary = useGlossaryStore();
-const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
+const {
+  isGlossaryVisible,
+  toggleVisibility: toggleGlossaryVisibility,
+  loadTerms: loadGlossaryTerms,
+} = glossary;
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
@@ -56,4 +60,11 @@ const closeGlossaryIfClickedOutside = (event: Event) => {
     toggleGlossaryVisibility();
   }
 };
+
+// Watch for chapter or series changes and reload glossary
+watch([() => currentChapter.value?.id, () => currentSeries.value?.id], () => {
+  if (currentSeries.value) {
+    loadGlossaryTerms(currentSeries.value.id, currentChapter.value?.id);
+  }
+});
 </script>
