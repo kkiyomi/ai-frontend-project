@@ -21,19 +21,19 @@
           :series="allSeries"
         />
         <button
-          @click="$emit('toggleEditMode')"
+          @click="editor.toggleEditingOriginal()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >
           {{ isEditingOriginal ? 'Save Changes' : 'Edit Original' }}
         </button>
         <button
-          @click="$emit('toggleLayoutMode')"
+          @click="editor.toggleLayoutMode()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >
           {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
         </button>
         <button
-          @click="$emit('toggleContentMode')"
+          @click="editor.toggleContentMode()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >
           {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
@@ -66,7 +66,7 @@ import { computed } from 'vue';
 import { ShareButton } from '@/modules/sharing';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
-import type { Chapter } from '@/modules/editor/types';
+import { type Chapter, useEditorStore } from '@/modules/editor';
 import type { Series } from '@/types';
 
 interface Props {
@@ -82,6 +82,7 @@ defineProps<Props>();
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
+const editor = useEditorStore();
 
 const allChapters = computed(() => chaptersStore.chapters);
 const allSeries = computed(() => {
@@ -92,9 +93,6 @@ const allSeries = computed(() => {
 });
 
 defineEmits<{
-  toggleEditMode: [];
-  toggleLayoutMode: [];
-  toggleContentMode: [];
   translateAll: [];
 }>();
 </script>

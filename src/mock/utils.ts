@@ -1,7 +1,6 @@
 // src/mock/utils.ts
 // =====================================================
 // Browser-safe utility for dynamically loading mock_data_* folders
-// Uses Vite's import.meta.glob (no Node APIs)
 // =====================================================
 
 import type { Series, Chapter, GlossaryTerm } from '../types';

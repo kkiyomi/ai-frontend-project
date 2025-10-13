@@ -16,9 +16,6 @@
       :contentMode="editor.contentMode"
       :isTranslating="translation.isTranslating.value"
       :translationProgress="translation.translationProgress.value"
-      @toggleEditMode="editor.toggleEditingOriginal()"
-      @toggleLayoutMode="editor.toggleLayoutMode()"
-      @toggleContentMode="editor.toggleContentMode()"
       @translateAll="translateAllParagraphs"
     />
 
