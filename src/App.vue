@@ -61,10 +61,10 @@ const closeGlossaryIfClickedOutside = (event: Event) => {
   }
 };
 
-// Watch for chapter or series changes and reload glossary
-watch([() => currentChapter.value?.id, () => currentSeries.value?.id], () => {
-  if (currentSeries.value) {
-    loadGlossaryTerms(currentSeries.value.id, currentChapter.value?.id);
+// Watch for chapter changes and reload glossary
+watch(() => currentChapter.value?.id, () => {
+  if (currentChapter.value) {
+    loadGlossaryTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
 </script>

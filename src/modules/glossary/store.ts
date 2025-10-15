@@ -19,7 +19,7 @@ const currentChapterId = ref<string | undefined>();
 
 const termsByCategory = computed(() => {
   const grouped: Record<string, GlossaryTerm[]> = {};
-  terms.value.forEach(term => {
+  termsByCurrentChapter.value.forEach(term => {
     if (!grouped[term.category]) {
       grouped[term.category] = [];
     }
@@ -30,9 +30,12 @@ const termsByCategory = computed(() => {
 
 const termsByCurrentChapter = computed(() => {
   if (!currentSeriesId.value) return [];
+  if (!currentChapterId.value) return terms.value.filter(term => term.seriesId === currentSeriesId.value);
 
   return terms.value.filter(term =>
-    !term.chapterId || term.chapterId === currentChapterId.value
+    (term.chapterId === null && term.seriesId === currentSeriesId.value) ||
+    (term.chapterId !== null && term.chapterId === currentChapterId.value) ||
+    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId.value))
   );
 });
 

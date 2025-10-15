@@ -54,9 +54,6 @@ export { default as ChapterEditor } from './components/ChapterEditor.vue';
 export { default as ParagraphEditor } from './components/ParagraphEditor.vue';
 export { default as TextColumn } from './components/TextColumn.vue';
 
-// API
-export { editorAPI } from './api';
-
 // Types
 export type {
   Chapter,

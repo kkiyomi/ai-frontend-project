@@ -8,7 +8,7 @@
  * import { useEditorStore } from '@/modules/editor';
  *
  * const editor = useEditorStore();
- * await editor.loadChapter('ch-123');
+ * editor.loadChapter(chapter);
  * editor.startEditingParagraph(0, 'original');
  * await editor.saveParagraph(0, 'Updated content', 'original');
  * ```
@@ -21,7 +21,7 @@
  * const editor = useEditorStore();
  *
  * onMounted(() => {
- *   editor.loadChapter(route.params.chapterId);
+ *   editor.loadChapter(route.params.chapter);
  * });
  * </script>
  * ```
@@ -29,7 +29,6 @@
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { editorAPI } from './api';
 import type { Chapter, EditorState, LayoutMode, ContentMode } from './types';
 
 export const useEditorStore = defineStore('editor', () => {
@@ -42,6 +41,7 @@ export const useEditorStore = defineStore('editor', () => {
   const hasUnsavedChanges = ref(false);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const shouldInitiateChapterSave = ref(false);
 
   // View preferences (persisted to localStorage)
   const layoutMode = ref<LayoutMode>('split');
@@ -85,28 +85,8 @@ export const useEditorStore = defineStore('editor', () => {
    */
   async function saveChapter() {
     if (!currentChapter.value) return;
-
-    try {
-      isLoading.value = true;
-      error.value = null;
-
-      const response = await editorAPI.updateChapter(
-        currentChapter.value.id,
-        currentChapter.value
-      );
-
-      if (response.success && response.data) {
-        currentChapter.value = response.data;
-        hasUnsavedChanges.value = false;
-      } else {
-        error.value = response.error || 'Failed to save chapter';
-      }
-    } catch (err) {
-      error.value = 'An error occurred while saving the chapter';
-      console.error('Error saving chapter:', err);
-    } finally {
-      isLoading.value = false;
-    }
+    shouldInitiateChapterSave.value = true;
+    hasUnsavedChanges.value = false;
   }
 
   /**
