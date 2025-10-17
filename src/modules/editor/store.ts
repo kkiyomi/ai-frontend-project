@@ -37,6 +37,7 @@ export const useEditorStore = defineStore('editor', () => {
   const currentChapter = ref<Chapter | null>(null);
   const currentChapterId = ref<string | null>(null);
   const isEditingOriginal = ref(false);
+  const isEditingTranslated = ref(false);
   const editingOriginalParagraphs = ref<Set<number>>(new Set());
   const editingTranslatedParagraphs = ref<Set<number>>(new Set());
   const hasUnsavedChanges = ref(false);
@@ -120,6 +121,16 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * Toggle editing mode for the entire translated text
+   */
+  function toggleEditingTranslated() {
+    isEditingTranslated.value = !isEditingTranslated.value;
+    if (!isEditingTranslated.value) {
+      saveChapter();
+    }
+  }
+
+  /**
    * Start editing a specific paragraph
    */
   function startEditingParagraph(index: number, type: 'original' | 'translated') {
@@ -172,14 +183,37 @@ export const useEditorStore = defineStore('editor', () => {
    */
   async function saveFullOriginalText(text: string) {
     if (!currentChapter.value) return;
+    const normalized = text
+      .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
 
-    const paragraphs = text
+    const paragraphs = normalized
       .split('\n\n')
       .map(p => p.trim())
       .filter(p => p.length > 0);
 
-    currentChapter.value.content = text;
+    currentChapter.value.content = normalized;
     currentChapter.value.originalParagraphs = paragraphs;
+
+    hasUnsavedChanges.value = true;
+    await saveChapter();
+  }
+
+  /**
+   * Update full translated text (for full-text editing mode)
+   */
+  async function saveFullTranslatedText(text: string) {
+    if (!currentChapter.value) return;
+
+    const normalized = text
+      .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
+
+    const paragraphs = normalized
+      .split('\n\n')
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+
+    currentChapter.value.translatedContent = normalized;
+    currentChapter.value.translatedParagraphs = paragraphs;
 
     hasUnsavedChanges.value = true;
     await saveChapter();
@@ -220,6 +254,7 @@ export const useEditorStore = defineStore('editor', () => {
     currentChapterId.value = null;
     hasUnsavedChanges.value = false;
     isEditingOriginal.value = false;
+    isEditingTranslated.value = false;
     editingOriginalParagraphs.value.clear();
     editingTranslatedParagraphs.value.clear();
     error.value = null;
@@ -233,6 +268,7 @@ export const useEditorStore = defineStore('editor', () => {
     currentChapter: computed(() => currentChapter.value),
     currentChapterId: computed(() => currentChapterId.value),
     isEditingOriginal: computed(() => isEditingOriginal.value),
+    isEditingTranslated: computed(() => isEditingTranslated.value),
     editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
     editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
     hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
@@ -247,11 +283,13 @@ export const useEditorStore = defineStore('editor', () => {
     updateLocalChapter,
     saveChapter,
     toggleEditingOriginal,
+    toggleEditingTranslated,
     startEditingParagraph,
     stopEditingParagraph,
     saveParagraph,
     cancelParagraphEdit,
     saveFullOriginalText,
+    saveFullTranslatedText,
     toggleLayoutMode,
     toggleContentMode,
     loadViewPreferences,
