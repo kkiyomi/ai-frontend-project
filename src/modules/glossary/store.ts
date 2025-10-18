@@ -35,7 +35,7 @@ const termsByCurrentChapter = computed(() => {
   return terms.value.filter(term =>
     (term.chapterId === null && term.seriesId === currentSeriesId.value) ||
     (term.chapterId !== null && term.chapterId === currentChapterId.value) ||
-    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId.value))
+    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId.value!))
   );
 });
 

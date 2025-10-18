@@ -42,10 +42,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import {
-  useGlossaryStore,
-  useGlossaryPopup,
-  GlossaryTermPopup,
-  type GlossaryTerm
+  useGlossaryStore, useGlossaryPopup,
+  GlossaryTermPopup, type GlossaryTerm
 } from '@/modules/glossary';
 import { useTranslationStore } from '@/modules/translation';
 import { useChaptersStore, type Chapter } from '@/modules/chapters';
@@ -57,17 +55,7 @@ const currentChapterId = computed(() => chaptersStore.currentChapterId);
 
 const editor = useEditorStore();
 const translation = useTranslationStore();
-const {
-  isTranslating,
-  translationProgress,
-  translateParagraph: translateText,
-} = translation;
-
 const glossary = useGlossaryStore();
-const {
-  terms: glossaryTerms,
-  updateTerm
-} = glossary;
 
 const {
   showPopup: showGlossaryPopup,
@@ -78,11 +66,11 @@ const {
 const translateAllParagraphs = async () => {
   if (!currentChapter.value) return;
 
-  const glossaryContext = glossaryTerms.value.map(term => term.term);
+  const glossaryContext = glossary.terms.value.map(term => term.term);
   const fullText = currentChapter.value.content;
 
   try {
-    const translatedText = await translateText(fullText, glossaryContext);
+    const translatedText = await translation.translateParagraph(fullText, glossaryContext);
 
     const updatedChapter = {
       translatedContent: translatedText,
@@ -94,9 +82,14 @@ const translateAllParagraphs = async () => {
   }
 };
 
-const handleChapterUpdate = async (chapterId: string, updatedChapter: Chapter) => {
+const handleChapterUpdate = async (chapterId: string | null, updatedChapter: Chapter | null) => {
   console.log('Chapter updated:', chapterId);
-  await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+  if (!chapterId) return;
+  if (!updatedChapter) return;
+
+  if (currentChapter.value) {
+    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+  }
 };
 
 </script>

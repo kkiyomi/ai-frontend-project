@@ -136,12 +136,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   translateAll: [];
-  chapterUpdated: [chapterId: string, updatedChapter: Chapter];
+  chapterUpdated: [chapterId: string | null, updatedChapter: Chapter | null];
 }>();
 
 const editor = useEditorStore();
 
 const currentChapter = computed(() => editor.currentChapter);
+const currentChapterId = computed(() => editor.currentChapterId);
 const isEditingOriginal = computed(() => editor.isEditingOriginal);
 const isEditingTranslated = computed(() => editor.isEditingTranslated);
 const editingOriginalParagraphs = computed(() => editor.editingOriginalParagraphs);
@@ -152,7 +153,9 @@ const contentMode = computed(() => editor.contentMode);
 const highlightFn = computed(() => props.highlightTermsInText);
 
 watch(() => props.chapterId, (newChapterId: string | null) => {
-  editor.loadChapter(props.chapter);
+  if (props.chapter) {
+    editor.loadChapter(props.chapter);
+  }
 }, { immediate: true });
 
 function handleToggleParagraphEditing(index: number, type: 'original' | 'translated') {
@@ -169,7 +172,7 @@ function handleToggleParagraphEditing(index: number, type: 'original' | 'transla
 
 function handleSaveParagraph(index: number, content: string, type: 'original' | 'translated') {
   editor.saveParagraph(index, content, type);
-  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
 }
 
 function handleCancelParagraphEdit(index: number, type: 'original' | 'translated') {
@@ -192,11 +195,11 @@ function getFullTranslatedText(): string {
 
 async function handleSaveFullOriginalText(text: string) {
   await editor.saveFullOriginalText(text);
-  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
 }
 
 async function handleSaveFullTranslatedText(text: string) {
   await editor.saveFullTranslatedText(text);
-  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
 }
 </script>
