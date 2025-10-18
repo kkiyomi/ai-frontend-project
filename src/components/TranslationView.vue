@@ -48,7 +48,7 @@ import {
   type GlossaryTerm
 } from '@/modules/glossary';
 import { useTranslationStore } from '@/modules/translation';
-import { useChaptersStore } from '@/modules/chapters';
+import { useChaptersStore, type Chapter } from '@/modules/chapters';
 import TranslationHeader from './TranslationHeader.vue';
 
 const chaptersStore = useChaptersStore();
@@ -94,8 +94,9 @@ const translateAllParagraphs = async () => {
   }
 };
 
-const handleChapterUpdate = async (chapterId: string) => {
+const handleChapterUpdate = async (chapterId: string, updatedChapter: Chapter) => {
   console.log('Chapter updated:', chapterId);
+  await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
 };
 
 </script>

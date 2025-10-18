@@ -57,6 +57,7 @@
           mode="paragraph"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
+          :showEditButton="true"
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
@@ -83,7 +84,7 @@
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
           @toggleEdit="editor.toggleEditingOriginal()"
-          @saveFullText="editor.saveFullOriginalText($event)"
+          @saveFullText="handleSaveFullOriginalText"
         />
 
         <TextColumn
@@ -93,13 +94,17 @@
           :mode="layoutMode === 'full' ? 'full' : 'paragraph'"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
+          :isEditingMode="isEditingTranslated"
+          :showEditButton="layoutMode === 'full' && !isEditingTranslated"
           emptyMessage="No translations yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
+          @toggleEdit="editor.toggleEditingTranslated()"
           @toggleParagraphEditing="handleToggleParagraphEditing($event, 'translated')"
           @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'translated')"
           @cancelParagraphEdit="(index: number) => handleCancelParagraphEdit(index, 'translated')"
+          @saveFullText="handleSaveFullTranslatedText"
         />
       </div>
     </div>
@@ -131,13 +136,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   translateAll: [];
-  chapterUpdated: [chapterId: string];
+  chapterUpdated: [chapterId: string, updatedChapter: Chapter];
 }>();
 
 const editor = useEditorStore();
 
 const currentChapter = computed(() => editor.currentChapter);
 const isEditingOriginal = computed(() => editor.isEditingOriginal);
+const isEditingTranslated = computed(() => editor.isEditingTranslated);
 const editingOriginalParagraphs = computed(() => editor.editingOriginalParagraphs);
 const editingTranslatedParagraphs = computed(() => editor.editingTranslatedParagraphs);
 const layoutMode = computed(() => editor.layoutMode);
@@ -145,7 +151,7 @@ const contentMode = computed(() => editor.contentMode);
 
 const highlightFn = computed(() => props.highlightTermsInText);
 
-watch(() => props.chapterId, (newChapterId) => {
+watch(() => props.chapterId, (newChapterId: string | null) => {
   editor.loadChapter(props.chapter);
 }, { immediate: true });
 
@@ -163,7 +169,7 @@ function handleToggleParagraphEditing(index: number, type: 'original' | 'transla
 
 function handleSaveParagraph(index: number, content: string, type: 'original' | 'translated') {
   editor.saveParagraph(index, content, type);
-  emit('chapterUpdated', editor.currentChapterId!);
+  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
 }
 
 function handleCancelParagraphEdit(index: number, type: 'original' | 'translated') {
@@ -177,10 +183,20 @@ function getFullOriginalText(): string {
 
 function getFullTranslatedText(): string {
   if (!currentChapter.value) return '';
-  const translations = currentChapter.value.translatedParagraphs.filter(text => text.trim());
+  const translations = currentChapter.value.translatedParagraphs.filter((text: string) => text.trim());
 
   if (translations.length === 0) return '';
 
   return currentChapter.value.translatedParagraphs.join('<br>');
+}
+
+async function handleSaveFullOriginalText(text: string) {
+  await editor.saveFullOriginalText(text);
+  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
+}
+
+async function handleSaveFullTranslatedText(text: string) {
+  await editor.saveFullTranslatedText(text);
+  emit('chapterUpdated', editor.currentChapterId, editor.currentChapter);
 }
 </script>
