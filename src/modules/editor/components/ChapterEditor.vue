@@ -21,7 +21,7 @@
   - Core API for data persistence
 -->
 <template>
-  <div class="flex-1 flex flex-col h-full bg-white">
+  <div class="flex-1 flex flex-col bg-white overflow-hidden">
 
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">

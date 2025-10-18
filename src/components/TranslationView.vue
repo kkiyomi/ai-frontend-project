@@ -8,7 +8,7 @@
   - This component connects them via props (no direct module dependencies)
 -->
 <template>
-  <div class="flex-1 flex flex-col h-full bg-white">
+  <div class="flex-1 flex flex-col bg-white overflow-hidden">
     <TranslationHeader
       :currentChapter="currentChapter"
       :isEditingOriginal="editor.isEditingOriginal"

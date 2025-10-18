@@ -5,11 +5,9 @@
     <SidebarMain />
 
     <!-- Main Content -->
-    <div class="flex-1 relative overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Translation View (always full width) -->
-      <div class="h-full">
-        <TranslationView />
-      </div>
+      <TranslationView />
 
       <!-- Glossary Panel Overlay -->
       <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"

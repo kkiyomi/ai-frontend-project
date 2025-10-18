@@ -21,12 +21,6 @@
           :series="allSeries"
         />
         <button
-          @click="editor.toggleEditingOriginal()"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
-        >
-          {{ isEditingOriginal ? 'Save Changes' : 'Edit Original' }}
-        </button>
-        <button
           @click="editor.toggleLayoutMode()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >

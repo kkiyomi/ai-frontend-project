@@ -1,21 +1,20 @@
 <template>
-  <div class="flex-1" :class="{ 'border-r border-secondary-200': showBorder }">
+  <div class="flex-1 flex flex-col" :class="{ 'border-r border-secondary-200': showBorder }">
     <div class="p-4 border-b border-secondary-200" :class="headerClass">
       <div class="flex items-center justify-between">
         <h3 class="font-medium text-secondary-900">{{ title }}</h3>
         <button
-          v-if="showEditButton && !isEditingMode"
           @click="$emit('toggleEdit')"
           class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
         >
-          Edit
+          {{ isEditingMode ? 'Save' : 'Edit' }}
         </button>
       </div>
     </div>
     
-    <div class="p-4 overflow-y-auto h-full pb-20">
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
       <!-- Full Text Mode -->
-      <div v-if="mode === 'full'" class="max-w-4xl">
+      <div v-if="mode === 'full'" class="flex max-w-4xl h-full">
         <div v-if="!isEditingMode && fullText" 
              class="reading-text text-secondary-900 leading-relaxed space-y-4"
              v-html="displayFullText">
@@ -28,7 +27,7 @@
           v-else
           v-model="editableFullText"
           @blur="$emit('saveFullText', editableFullText)"
-          class="w-full h-96 p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
+          class="flex-1 w-full p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
           :placeholder="placeholder"
         ></textarea>
       </div>
