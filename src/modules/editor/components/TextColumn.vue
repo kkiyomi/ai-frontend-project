@@ -23,7 +23,7 @@
           {{ emptyMessage }}
         </div>
         
-        <div v-else class="flex-1 flex flex-col">
+        <div v-else-if="isEditingMode" class="flex-1 flex flex-col">
           <div class="flex justify-between items-center mb-2">
             <span class="text-sm text-secondary-600">Full Text Editor</span>
             <div class="flex space-x-2">
@@ -49,7 +49,8 @@
           </div>
           <textarea
             v-model="editableFullText"
-            @blur="$emit('saveFullText', editableFullText)"
+            @blur="handleSaveFullText"
+            @keyup.enter="handleSaveFullText"
             class="flex-1 w-full p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
             :placeholder="placeholder"
           ></textarea>
@@ -132,14 +133,18 @@ const emit = defineEmits<{
   redo: [];
 }>();
 
-const editableFullText = computed({
-  get: () =>
-    (props.fullText ?? "").replace(/<br\s*\/?>/gi, "\n\n"),
-  set: (val: string) => {
-    // convert newlines back to <br> before emitting
-    emit("saveFullText", val.replace(/\n+/g, "<br>"));
-  },
-});
+const editableFullText = ref('');
+
+// Watch for changes in fullText prop and update editableFullText
+watch(() => props.fullText, (newFullText: string | undefined) => {
+  editableFullText.value = (newFullText ?? "").replace(/<br\s*\/?>/gi, "\n\n");
+}, { immediate: true });
+
+// Handle save when textarea loses focus
+const handleSaveFullText = () => {
+  const normalizedText = editableFullText.value.replace(/\n+/g, "<br>");
+  emit("saveFullText", normalizedText);
+};
 
 const headerClass = computed(() => {
   return props.type === 'translated' ? 'bg-accent-50' : 'bg-secondary-50';

@@ -45,7 +45,14 @@ export const useEditorStore = defineStore('editor', () => {
   const shouldInitiateChapterSave = ref(false);
 
   // History management for undo/redo
-  const history = ref<Array<{ type: 'paragraph' | 'full', content: string, paragraphs: string[], timestamp: number }>>([]);
+  const history = ref<Array<{ 
+    type: 'paragraph' | 'full', 
+    content: string, 
+    translatedContent: string,
+    originalParagraphs: string[], 
+    translatedParagraphs: string[],
+    timestamp: number 
+  }>>([]);
   const historyIndex = ref(-1);
   const maxHistorySize = 50;
 
@@ -74,18 +81,20 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapterId.value = chapter.id;
       hasUnsavedChanges.value = false;
       // Initialize history with the loaded chapter
-      addToHistory('full', chapter.content, chapter.originalParagraphs);
+      addToHistory('full', chapter.content, chapter.translatedContent, chapter.originalParagraphs, chapter.translatedParagraphs);
     }
   }
 
   /**
    * Add a state to history for undo/redo functionality
    */
-  function addToHistory(type: 'paragraph' | 'full', content: string, paragraphs: string[]) {
+  function addToHistory(type: 'paragraph' | 'full', content: string, translatedContent: string, originalParagraphs: string[], translatedParagraphs: string[]) {
     const historyEntry = {
       type,
       content,
-      paragraphs: [...paragraphs],
+      translatedContent,
+      originalParagraphs: [...originalParagraphs],
+      translatedParagraphs: [...translatedParagraphs],
       timestamp: Date.now()
     };
 
@@ -111,13 +120,11 @@ export const useEditorStore = defineStore('editor', () => {
       historyIndex.value--;
       const historyEntry = history.value[historyIndex.value];
       
-      if (historyEntry.type === 'paragraph') {
-        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
-        currentChapter.value.content = historyEntry.content;
-      } else {
-        currentChapter.value.content = historyEntry.content;
-        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
-      }
+      // Restore both original and translated content
+      currentChapter.value.content = historyEntry.content;
+      currentChapter.value.translatedContent = historyEntry.translatedContent;
+      currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
+      currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
       
       hasUnsavedChanges.value = true;
     }
@@ -131,13 +138,11 @@ export const useEditorStore = defineStore('editor', () => {
       historyIndex.value++;
       const historyEntry = history.value[historyIndex.value];
       
-      if (historyEntry.type === 'paragraph') {
-        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
-        currentChapter.value.content = historyEntry.content;
-      } else {
-        currentChapter.value.content = historyEntry.content;
-        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
-      }
+      // Restore both original and translated content
+      currentChapter.value.content = historyEntry.content;
+      currentChapter.value.translatedContent = historyEntry.translatedContent;
+      currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
+      currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
       
       hasUnsavedChanges.value = true;
     }
@@ -146,16 +151,16 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Check if undo is available
    */
-  function canUndo() {
+  const canUndo = computed(() => {
     return historyIndex.value > 0;
-  }
+  });
 
   /**
    * Check if redo is available
    */
-  function canRedo() {
+  const canRedo = computed(() => {
     return historyIndex.value < history.value.length - 1;
-  }
+  });
 
   /**
    * Update the current chapter (local state only)
@@ -224,9 +229,6 @@ export const useEditorStore = defineStore('editor', () => {
   async function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    // Add to history before making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
-
     if (type === 'original') {
       currentChapter.value.originalParagraphs[index] = content;
       currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
@@ -234,6 +236,9 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.translatedParagraphs[index] = content;
       currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
     }
+
+    // Add to history after making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
     stopEditingParagraph(index, type);
@@ -246,9 +251,6 @@ export const useEditorStore = defineStore('editor', () => {
   function addParagraph(index: number, type: 'original' | 'translated', content: string = '') {
     if (!currentChapter.value) return;
 
-    // Add to history before making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
-
     if (type === 'original') {
       currentChapter.value.originalParagraphs.splice(index, 0, content);
       currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
@@ -256,6 +258,9 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.translatedParagraphs.splice(index, 0, content);
       currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
     }
+
+    // Add to history after making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
   }
@@ -266,9 +271,6 @@ export const useEditorStore = defineStore('editor', () => {
   function deleteParagraph(index: number, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    // Add to history before making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
-
     if (type === 'original') {
       currentChapter.value.originalParagraphs.splice(index, 1);
       currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
@@ -276,6 +278,9 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.translatedParagraphs.splice(index, 1);
       currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
     }
+
+    // Add to history after making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
   }
@@ -286,9 +291,6 @@ export const useEditorStore = defineStore('editor', () => {
   function moveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    // Add to history before making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
-
     if (type === 'original') {
       const paragraph = currentChapter.value.originalParagraphs.splice(fromIndex, 1)[0];
       currentChapter.value.originalParagraphs.splice(toIndex, 0, paragraph);
@@ -298,6 +300,9 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.translatedParagraphs.splice(toIndex, 0, paragraph);
       currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
     }
+
+    // Add to history after making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
   }
@@ -315,9 +320,6 @@ export const useEditorStore = defineStore('editor', () => {
   async function saveFullOriginalText(text: string) {
     if (!currentChapter.value) return;
     
-    // Add to history before making changes
-    addToHistory('full', currentChapter.value.content, currentChapter.value.originalParagraphs);
-    
     const normalized = text
       .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
 
@@ -329,6 +331,9 @@ export const useEditorStore = defineStore('editor', () => {
     currentChapter.value.content = normalized;
     currentChapter.value.originalParagraphs = paragraphs;
 
+    // Add to history after making changes
+    addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
+
     hasUnsavedChanges.value = true;
     await saveChapter();
   }
@@ -338,9 +343,6 @@ export const useEditorStore = defineStore('editor', () => {
    */
   async function saveFullTranslatedText(text: string) {
     if (!currentChapter.value) return;
-
-    // Add to history before making changes
-    addToHistory('full', currentChapter.value.content, currentChapter.value.originalParagraphs);
 
     const normalized = text
       .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
@@ -352,6 +354,9 @@ export const useEditorStore = defineStore('editor', () => {
 
     currentChapter.value.translatedContent = normalized;
     currentChapter.value.translatedParagraphs = paragraphs;
+
+    // Add to history after making changes
+    addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
     await saveChapter();
@@ -438,8 +443,8 @@ export const useEditorStore = defineStore('editor', () => {
     // History management
     undo,
     redo,
-    canUndo: computed(() => canUndo()),
-    canRedo: computed(() => canRedo()),
+    canUndo,
+    canRedo,
     
     // Paragraph management
     addParagraph,

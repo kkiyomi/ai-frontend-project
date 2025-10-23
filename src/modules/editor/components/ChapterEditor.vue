@@ -110,11 +110,11 @@
           title="Translation"
           :fullText="getFullTranslatedText()"
           :paragraphs="currentChapter.translatedParagraphs"
-          :mode="layoutMode === 'full' ? 'full' : 'paragraph'"
+          mode="full"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
           :isEditingMode="isEditingTranslated"
-          :showEditButton="layoutMode === 'full' && !isEditingTranslated"
+          :showEditButton="!isEditingTranslated"
           emptyMessage="No translations yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
@@ -212,10 +212,6 @@ function getFullOriginalText(): string {
 
 function getFullTranslatedText(): string {
   if (!currentChapter.value) return '';
-  const translations = currentChapter.value.translatedParagraphs.filter((text: string) => text.trim());
-
-  if (translations.length === 0) return '';
-
   return currentChapter.value.translatedParagraphs.join('<br>');
 }
 
