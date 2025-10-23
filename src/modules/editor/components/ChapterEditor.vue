@@ -10,6 +10,7 @@
   Usage:
   ```vue
   <ChapterEditor
+    :chapter="currentChapter"
     :chapterId="currentChapterId"
     @chapter-updated="handleChapterUpdate"
   />
@@ -21,7 +22,7 @@
   - Core API for data persistence
 -->
 <template>
-  <div class="flex-1 flex flex-col h-full bg-white">
+  <div class="flex-1 flex flex-col bg-white overflow-hidden">
 
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">
@@ -32,74 +33,58 @@
     </div>
 
     <div v-else class="flex-1 overflow-hidden">
-      <div v-if="layoutMode === 'split'" class="h-full flex">
+      <div class="h-full flex">
+        <!-- Original Text Column -->
         <TextColumn
           v-if="contentMode === 'all'"
           title="Original Text"
           :paragraphs="currentChapter.originalParagraphs"
-          mode="paragraph"
+          :fullText="layoutMode === 'full' ? getFullOriginalText() : undefined"
+          :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="original"
           :editingParagraphs="editingOriginalParagraphs"
           :showBorder="true"
-          :showEditButton="!isEditingOriginal"
+          :showEditButton="layoutMode === 'split' && !isEditingOriginal"
+          emptyMessage="No original text yet"
           placeholder="Enter original text..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
+          :canUndo="editor.canUndo"
+          :canRedo="editor.canRedo"
           @toggleEdit="editor.toggleEditingOriginal()"
           @toggleParagraphEditing="handleToggleParagraphEditing($event, 'original')"
           @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'original')"
           @cancelParagraphEdit="handleCancelParagraphEdit($event, 'original')"
+          @addParagraph="(index: number) => handleAddParagraph(index, 'original')"
+          @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'original')"
+          @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'original')"
+          @undo="editor.undo"
+          @redo="editor.redo"
         />
 
+        <!-- Translation Column -->
         <TextColumn
           title="Translation"
           :paragraphs="currentChapter.translatedParagraphs"
-          mode="paragraph"
+          :fullText="layoutMode === 'full' ? getFullTranslatedText() : undefined"
+          :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
+          :showEditButton="layoutMode === 'split'"
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
+          :canUndo="editor.canUndo"
+          :canRedo="editor.canRedo"
           @toggleParagraphEditing="handleToggleParagraphEditing($event, 'translated')"
           @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'translated')"
           @cancelParagraphEdit="(index: number) => handleCancelParagraphEdit(index, 'translated')"
-        />
-      </div>
-
-      <div v-else class="h-full flex">
-        <TextColumn
-          v-if="contentMode === 'all'"
-          title="Original Text"
-          :fullText="getFullOriginalText()"
-          :paragraphs="currentChapter.originalParagraphs"
-          mode="full"
-          type="original"
-          :editingParagraphs="editingOriginalParagraphs"
-          :isEditingMode="isEditingOriginal"
-          :showBorder="true"
-          :showEditButton="!isEditingOriginal"
-          placeholder="Enter original text..."
-          :highlightTermsInText="highlightFn"
-          :isHighlightEnabled="isHighlightEnabled"
-          @toggleEdit="editor.toggleEditingOriginal()"
-          @saveFullText="editor.saveFullOriginalText($event)"
-        />
-
-        <TextColumn
-          title="Translation"
-          :fullText="getFullTranslatedText()"
-          :paragraphs="currentChapter.translatedParagraphs"
-          :mode="layoutMode === 'full' ? 'full' : 'paragraph'"
-          type="translated"
-          :editingParagraphs="editingTranslatedParagraphs"
-          emptyMessage="No translations yet"
-          placeholder="Enter translation..."
-          :highlightTermsInText="highlightFn"
-          :isHighlightEnabled="isHighlightEnabled"
-          @toggleParagraphEditing="handleToggleParagraphEditing($event, 'translated')"
-          @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'translated')"
-          @cancelParagraphEdit="(index: number) => handleCancelParagraphEdit(index, 'translated')"
+          @addParagraph="(index: number) => handleAddParagraph(index, 'translated')"
+          @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'translated')"
+          @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'translated')"
+          @undo="editor.undo"
+          @redo="editor.redo"
         />
       </div>
     </div>
@@ -109,9 +94,11 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import { useEditorStore } from '../store';
+import { type Chapter } from '../types';
 import TextColumn from './TextColumn.vue';
 
 interface Props {
+  chapter: Chapter | null;
   chapterId?: string | null;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
@@ -120,6 +107,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  chapter: null,
   chapterId: null,
   isHighlightEnabled: false,
   isTranslating: false,
@@ -127,14 +115,15 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  translateAll: [];
-  chapterUpdated: [chapterId: string];
+  chapterUpdated: [chapterId: string | null, updatedChapter: Chapter | null];
 }>();
 
 const editor = useEditorStore();
 
 const currentChapter = computed(() => editor.currentChapter);
+const currentChapterId = computed(() => editor.currentChapterId);
 const isEditingOriginal = computed(() => editor.isEditingOriginal);
+const isEditingTranslated = computed(() => editor.isEditingTranslated);
 const editingOriginalParagraphs = computed(() => editor.editingOriginalParagraphs);
 const editingTranslatedParagraphs = computed(() => editor.editingTranslatedParagraphs);
 const layoutMode = computed(() => editor.layoutMode);
@@ -142,9 +131,9 @@ const contentMode = computed(() => editor.contentMode);
 
 const highlightFn = computed(() => props.highlightTermsInText);
 
-watch(() => props.chapterId, (newChapterId) => {
-  if (newChapterId) {
-    editor.loadChapter(newChapterId);
+watch(() => props.chapterId, (newChapterId: string | null) => {
+  if (props.chapter) {
+    editor.loadChapter(props.chapter);
   }
 }, { immediate: true });
 
@@ -162,7 +151,7 @@ function handleToggleParagraphEditing(index: number, type: 'original' | 'transla
 
 function handleSaveParagraph(index: number, content: string, type: 'original' | 'translated') {
   editor.saveParagraph(index, content, type);
-  emit('chapterUpdated', editor.currentChapterId!);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
 }
 
 function handleCancelParagraphEdit(index: number, type: 'original' | 'translated') {
@@ -176,10 +165,22 @@ function getFullOriginalText(): string {
 
 function getFullTranslatedText(): string {
   if (!currentChapter.value) return '';
-  const translations = currentChapter.value.translatedParagraphs.filter(text => text.trim());
-
-  if (translations.length === 0) return '';
-
   return currentChapter.value.translatedParagraphs.join('<br>');
+}
+
+
+function handleAddParagraph(index: number, type: 'original' | 'translated') {
+  editor.addParagraph(index, type);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
+}
+
+function handleDeleteParagraph(index: number, type: 'original' | 'translated') {
+  editor.deleteParagraph(index, type);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
+}
+
+function handleMoveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
+  editor.moveParagraph(fromIndex, toIndex, type);
+  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
 }
 </script>

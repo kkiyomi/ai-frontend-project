@@ -67,10 +67,6 @@ export const useChaptersStore = defineStore('chapters', () => {
           chapters.value = enrichedChapters;
           dataLoaded = true;
         }
-
-        if (enrichedChapters.length > 0 && !currentChapterId.value) {
-          currentChapterId.value = enrichedChapters[0].id;
-        }
       }
     } catch (err) {
       console.error('Error loading chapters:', err);

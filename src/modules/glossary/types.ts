@@ -8,4 +8,5 @@ export interface GlossaryTerm {
   isUserDefined: boolean;
   seriesId: string;
   chapterId?: string;
+  chapterIds?: string[];
 }

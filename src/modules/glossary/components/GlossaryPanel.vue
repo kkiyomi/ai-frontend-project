@@ -297,7 +297,7 @@ const props = defineProps<Props>();
 const store = useGlossaryStore();
 
 const {
-  terms: glossaryTerms,
+  termsByCurrentChapter: glossaryTerms,
   isLoading,
   isHighlightEnabled,
   termsByCategory,
@@ -418,8 +418,7 @@ const generateSuggestions = () => {
 
   // Simulate async operation
   setTimeout(() => {
-    const allText = props.currentChapter!.originalParagraphs
-      .join(' ');
+    const allText = props.currentChapter!.content;
 
     suggestions.value = suggestTermsFromText(allText);
     isGeneratingSuggestions.value = false;

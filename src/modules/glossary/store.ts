@@ -19,7 +19,7 @@ const currentChapterId = ref<string | undefined>();
 
 const termsByCategory = computed(() => {
   const grouped: Record<string, GlossaryTerm[]> = {};
-  terms.value.forEach(term => {
+  termsByCurrentChapter.value.forEach(term => {
     if (!grouped[term.category]) {
       grouped[term.category] = [];
     }
@@ -28,9 +28,19 @@ const termsByCategory = computed(() => {
   return grouped;
 });
 
+const termsByCurrentChapter = computed(() => {
+  if (!currentSeriesId.value) return [];
+  if (!currentChapterId.value) return terms.value.filter(term => term.seriesId === currentSeriesId.value);
+
+  return terms.value.filter(term =>
+    (term.chapterId === null && term.seriesId === currentSeriesId.value) ||
+    (term.chapterId !== null && term.chapterId === currentChapterId.value) ||
+    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId.value!))
+  );
+});
+
 async function loadTerms(seriesId?: string, chapterId?: string) {
   if (!seriesId) {
-    terms.value = [];
     return;
   }
 
@@ -49,7 +59,10 @@ async function loadTerms(seriesId?: string, chapterId?: string) {
       } else {
         filteredTerms = response.data;
       }
-      terms.value = filteredTerms;
+      terms.value = [
+        ...terms.value.filter(t => !filteredTerms.some(nt => nt.id === t.id)),
+        ...filteredTerms
+      ];
     }
   } catch (error) {
     console.error('[Glossary Store] Error loading glossary terms:', error);
@@ -170,6 +183,7 @@ function toggleHighlight() {
 export function useGlossaryStore() {
   return {
     terms: computed(() => terms.value),
+    termsByCurrentChapter,
     isLoading: computed(() => isLoading.value),
     isGlossaryVisible: computed(() => isGlossaryVisible.value),
     isHighlightEnabled: computed(() => isHighlightEnabled.value),

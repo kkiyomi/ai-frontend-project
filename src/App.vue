@@ -5,11 +5,9 @@
     <SidebarMain />
 
     <!-- Main Content -->
-    <div class="flex-1 relative overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Translation View (always full width) -->
-      <div class="h-full">
-        <TranslationView />
-      </div>
+      <TranslationView />
 
       <!-- Glossary Panel Overlay -->
       <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"
@@ -29,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, watch } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
@@ -38,7 +36,11 @@ import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesWithChapters } from '@/composables';
 
 const glossary = useGlossaryStore();
-const { isGlossaryVisible, toggleVisibility: toggleGlossaryVisibility } = glossary;
+const {
+  isGlossaryVisible,
+  toggleVisibility: toggleGlossaryVisibility,
+  loadTerms: loadGlossaryTerms,
+} = glossary;
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
@@ -56,4 +58,11 @@ const closeGlossaryIfClickedOutside = (event: Event) => {
     toggleGlossaryVisibility();
   }
 };
+
+// Watch for chapter changes and reload glossary
+watch(() => currentChapter.value?.id, () => {
+  if (currentChapter.value) {
+    loadGlossaryTerms(currentSeries.value?.id, currentChapter.value?.id);
+  }
+});
 </script>

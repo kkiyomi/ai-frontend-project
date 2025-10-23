@@ -1,36 +1,21 @@
 <template>
-  <div class="flex-1" :class="{ 'border-r border-secondary-200': showBorder }">
+  <div class="flex-1 flex flex-col" :class="{ 'border-r border-secondary-200': showBorder }">
     <div class="p-4 border-b border-secondary-200" :class="headerClass">
       <div class="flex items-center justify-between">
         <h3 class="font-medium text-secondary-900">{{ title }}</h3>
-        <button
-          v-if="showEditButton && !isEditingMode"
-          @click="$emit('toggleEdit')"
-          class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          Edit
-        </button>
       </div>
     </div>
     
-    <div class="p-4 overflow-y-auto h-full pb-20">
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
       <!-- Full Text Mode -->
-      <div v-if="mode === 'full'" class="max-w-4xl">
-        <div v-if="!isEditingMode && fullText" 
-             class="reading-text text-secondary-900 leading-relaxed space-y-4"
+      <div v-if="mode === 'full'" class="flex flex-col max-w-4xl">
+        <div v-if="fullText" 
+             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto"
              v-html="displayFullText">
         </div>
-        <div v-else-if="!isEditingMode && !fullText" class="text-secondary-400 italic">
+        <div v-else class="text-secondary-400 italic flex-1 flex items-center justify-center">
           {{ emptyMessage }}
         </div>
-        
-        <textarea
-          v-else
-          v-model="editableFullText"
-          @blur="$emit('saveFullText', editableFullText)"
-          class="w-full h-96 p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
-          :placeholder="placeholder"
-        ></textarea>
       </div>
 
       <!-- Paragraph Mode -->
@@ -47,17 +32,36 @@
           :type="type"
           :highlightTermsInText="highlightTermsInText"
           :isHighlightEnabled="isHighlightEnabled"
+          :canUndo="canUndo"
+          :canRedo="canRedo"
           @toggleEditing="handleToggleEditing"
           @save="handleSave"
           @cancel="handleCancel"
+          @addParagraph="handleAddParagraph"
+          @deleteParagraph="handleDeleteParagraph"
+          @moveParagraph="handleMoveParagraph"
+          @undo="$emit('undo')"
+          @redo="$emit('redo')"
         />
+        
+        <!-- Add Paragraph Button -->
+        <div class="flex justify-center pt-4">
+          <button
+            @click="handleAddParagraph(paragraphs.length)"
+            class="flex items-center space-x-2 px-4 py-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 border border-green-200 rounded-lg transition-colors"
+            title="Add new paragraph"
+          >
+            <span class="text-lg">+</span>
+            <span>Add Paragraph</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 import ParagraphEditor from './ParagraphEditor.vue';
 
 interface Props {
@@ -67,40 +71,37 @@ interface Props {
   mode: 'paragraph' | 'full';
   type: 'original' | 'translated';
   editingParagraphs: Set<number>;
-  isEditingMode?: boolean;
   showBorder?: boolean;
   showEditButton?: boolean;
   emptyMessage?: string;
   placeholder?: string;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isEditingMode: false,
   showBorder: false,
   showEditButton: false,
   emptyMessage: 'No content yet',
   placeholder: 'Enter content...',
   isHighlightEnabled: false,
+  canUndo: false,
+  canRedo: false,
 });
 
 const emit = defineEmits<{
-  toggleEdit: [];
-  saveFullText: [text: string];
   toggleParagraphEditing: [index: number];
   saveParagraph: [index: number, content: string];
   cancelParagraphEdit: [index: number];
+  addParagraph: [index: number];
+  deleteParagraph: [index: number];
+  moveParagraph: [fromIndex: number, toIndex: number];
+  undo: [];
+  redo: [];
 }>();
 
-const editableFullText = computed({
-  get: () =>
-    (props.fullText ?? "").replace(/<br\s*\/?>/gi, "\n\n"),
-  set: (val: string) => {
-    // convert newlines back to <br> before emitting
-    emit("saveFullText", val.replace(/\n+/g, "<br>"));
-  },
-});
 
 const headerClass = computed(() => {
   return props.type === 'translated' ? 'bg-accent-50' : 'bg-secondary-50';
@@ -129,5 +130,17 @@ const handleSave = (index: number, content: string) => {
 
 const handleCancel = (index: number) => {
   emit('cancelParagraphEdit', index);
+};
+
+const handleAddParagraph = (index: number) => {
+  emit('addParagraph', index);
+};
+
+const handleDeleteParagraph = (index: number) => {
+  emit('deleteParagraph', index);
+};
+
+const handleMoveParagraph = (fromIndex: number, toIndex: number) => {
+  emit('moveParagraph', fromIndex, toIndex);
 };
 </script>
