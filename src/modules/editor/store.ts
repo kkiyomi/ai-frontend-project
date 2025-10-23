@@ -44,6 +44,11 @@ export const useEditorStore = defineStore('editor', () => {
   const error = ref<string | null>(null);
   const shouldInitiateChapterSave = ref(false);
 
+  // History management for undo/redo
+  const history = ref<Array<{ type: 'paragraph' | 'full', content: string, paragraphs: string[], timestamp: number }>>([]);
+  const historyIndex = ref(-1);
+  const maxHistorySize = 50;
+
   // View preferences (persisted to localStorage)
   const layoutMode = ref<LayoutMode>('split');
   const contentMode = ref<ContentMode>('all');
@@ -68,7 +73,88 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value = chapter;
       currentChapterId.value = chapter.id;
       hasUnsavedChanges.value = false;
+      // Initialize history with the loaded chapter
+      addToHistory('full', chapter.content, chapter.originalParagraphs);
     }
+  }
+
+  /**
+   * Add a state to history for undo/redo functionality
+   */
+  function addToHistory(type: 'paragraph' | 'full', content: string, paragraphs: string[]) {
+    const historyEntry = {
+      type,
+      content,
+      paragraphs: [...paragraphs],
+      timestamp: Date.now()
+    };
+
+    // Remove any history after current index
+    history.value = history.value.slice(0, historyIndex.value + 1);
+    
+    // Add new entry
+    history.value.push(historyEntry);
+    historyIndex.value = history.value.length - 1;
+
+    // Limit history size
+    if (history.value.length > maxHistorySize) {
+      history.value.shift();
+      historyIndex.value--;
+    }
+  }
+
+  /**
+   * Undo the last change
+   */
+  function undo() {
+    if (historyIndex.value > 0 && currentChapter.value) {
+      historyIndex.value--;
+      const historyEntry = history.value[historyIndex.value];
+      
+      if (historyEntry.type === 'paragraph') {
+        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
+        currentChapter.value.content = historyEntry.content;
+      } else {
+        currentChapter.value.content = historyEntry.content;
+        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
+      }
+      
+      hasUnsavedChanges.value = true;
+    }
+  }
+
+  /**
+   * Redo the next change
+   */
+  function redo() {
+    if (historyIndex.value < history.value.length - 1 && currentChapter.value) {
+      historyIndex.value++;
+      const historyEntry = history.value[historyIndex.value];
+      
+      if (historyEntry.type === 'paragraph') {
+        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
+        currentChapter.value.content = historyEntry.content;
+      } else {
+        currentChapter.value.content = historyEntry.content;
+        currentChapter.value.originalParagraphs = [...historyEntry.paragraphs];
+      }
+      
+      hasUnsavedChanges.value = true;
+    }
+  }
+
+  /**
+   * Check if undo is available
+   */
+  function canUndo() {
+    return historyIndex.value > 0;
+  }
+
+  /**
+   * Check if redo is available
+   */
+  function canRedo() {
+    return historyIndex.value < history.value.length - 1;
   }
 
   /**
@@ -138,6 +224,9 @@ export const useEditorStore = defineStore('editor', () => {
   async function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
+    // Add to history before making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
+
     if (type === 'original') {
       currentChapter.value.originalParagraphs[index] = content;
       currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
@@ -152,6 +241,68 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * Add a new paragraph at the specified index
+   */
+  function addParagraph(index: number, type: 'original' | 'translated', content: string = '') {
+    if (!currentChapter.value) return;
+
+    // Add to history before making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
+
+    if (type === 'original') {
+      currentChapter.value.originalParagraphs.splice(index, 0, content);
+      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+    } else {
+      currentChapter.value.translatedParagraphs.splice(index, 0, content);
+      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    }
+
+    hasUnsavedChanges.value = true;
+  }
+
+  /**
+   * Delete a paragraph at the specified index
+   */
+  function deleteParagraph(index: number, type: 'original' | 'translated') {
+    if (!currentChapter.value) return;
+
+    // Add to history before making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
+
+    if (type === 'original') {
+      currentChapter.value.originalParagraphs.splice(index, 1);
+      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+    } else {
+      currentChapter.value.translatedParagraphs.splice(index, 1);
+      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    }
+
+    hasUnsavedChanges.value = true;
+  }
+
+  /**
+   * Move a paragraph from one index to another
+   */
+  function moveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
+    if (!currentChapter.value) return;
+
+    // Add to history before making changes
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.originalParagraphs);
+
+    if (type === 'original') {
+      const paragraph = currentChapter.value.originalParagraphs.splice(fromIndex, 1)[0];
+      currentChapter.value.originalParagraphs.splice(toIndex, 0, paragraph);
+      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+    } else {
+      const paragraph = currentChapter.value.translatedParagraphs.splice(fromIndex, 1)[0];
+      currentChapter.value.translatedParagraphs.splice(toIndex, 0, paragraph);
+      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    }
+
+    hasUnsavedChanges.value = true;
+  }
+
+  /**
    * Cancel editing a paragraph
    */
   function cancelParagraphEdit(index: number, type: 'original' | 'translated') {
@@ -163,6 +314,10 @@ export const useEditorStore = defineStore('editor', () => {
    */
   async function saveFullOriginalText(text: string) {
     if (!currentChapter.value) return;
+    
+    // Add to history before making changes
+    addToHistory('full', currentChapter.value.content, currentChapter.value.originalParagraphs);
+    
     const normalized = text
       .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
 
@@ -183,6 +338,9 @@ export const useEditorStore = defineStore('editor', () => {
    */
   async function saveFullTranslatedText(text: string) {
     if (!currentChapter.value) return;
+
+    // Add to history before making changes
+    addToHistory('full', currentChapter.value.content, currentChapter.value.originalParagraphs);
 
     const normalized = text
       .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
@@ -238,6 +396,8 @@ export const useEditorStore = defineStore('editor', () => {
     editingOriginalParagraphs.value.clear();
     editingTranslatedParagraphs.value.clear();
     error.value = null;
+    history.value = [];
+    historyIndex.value = -1;
   }
 
   // Initialize view preferences
@@ -274,5 +434,16 @@ export const useEditorStore = defineStore('editor', () => {
     toggleContentMode,
     loadViewPreferences,
     clearChapter,
+    
+    // History management
+    undo,
+    redo,
+    canUndo: computed(() => canUndo()),
+    canRedo: computed(() => canRedo()),
+    
+    // Paragraph management
+    addParagraph,
+    deleteParagraph,
+    moveParagraph,
   };
 });

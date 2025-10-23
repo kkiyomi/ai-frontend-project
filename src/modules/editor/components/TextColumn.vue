@@ -14,22 +14,46 @@
     
     <div class="flex-1 flex flex-col p-4 overflow-y-auto">
       <!-- Full Text Mode -->
-      <div v-if="mode === 'full'" class="flex max-w-4xl h-full">
+      <div v-if="mode === 'full'" class="flex flex-col max-w-4xl h-full">
         <div v-if="!isEditingMode && fullText" 
-             class="reading-text text-secondary-900 leading-relaxed space-y-4"
+             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto"
              v-html="displayFullText">
         </div>
-        <div v-else-if="!isEditingMode && !fullText" class="text-secondary-400 italic">
+        <div v-else-if="!isEditingMode && !fullText" class="text-secondary-400 italic flex-1 flex items-center justify-center">
           {{ emptyMessage }}
         </div>
         
-        <textarea
-          v-else
-          v-model="editableFullText"
-          @blur="$emit('saveFullText', editableFullText)"
-          class="flex-1 w-full p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
-          :placeholder="placeholder"
-        ></textarea>
+        <div v-else class="flex-1 flex flex-col">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-secondary-600">Full Text Editor</span>
+            <div class="flex space-x-2">
+              <button
+                @click="$emit('undo')"
+                :disabled="!canUndo"
+                class="text-xs px-2 py-1 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="canUndo ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-400'"
+                title="Undo"
+              >
+                ↶ Undo
+              </button>
+              <button
+                @click="$emit('redo')"
+                :disabled="!canRedo"
+                class="text-xs px-2 py-1 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="canRedo ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-400'"
+                title="Redo"
+              >
+                ↷ Redo
+              </button>
+            </div>
+          </div>
+          <textarea
+            v-model="editableFullText"
+            @blur="$emit('saveFullText', editableFullText)"
+            class="flex-1 w-full p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
+            :placeholder="placeholder"
+          ></textarea>
+        </div>
       </div>
 
       <!-- Paragraph Mode -->
@@ -46,9 +70,16 @@
           :type="type"
           :highlightTermsInText="highlightTermsInText"
           :isHighlightEnabled="isHighlightEnabled"
+          :canUndo="canUndo"
+          :canRedo="canRedo"
           @toggleEditing="handleToggleEditing"
           @save="handleSave"
           @cancel="handleCancel"
+          @addParagraph="handleAddParagraph"
+          @deleteParagraph="handleDeleteParagraph"
+          @moveParagraph="handleMoveParagraph"
+          @undo="$emit('undo')"
+          @redo="$emit('redo')"
         />
       </div>
     </div>
@@ -73,6 +104,8 @@ interface Props {
   placeholder?: string;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -82,6 +115,8 @@ const props = withDefaults(defineProps<Props>(), {
   emptyMessage: 'No content yet',
   placeholder: 'Enter content...',
   isHighlightEnabled: false,
+  canUndo: false,
+  canRedo: false,
 });
 
 const emit = defineEmits<{
@@ -90,6 +125,11 @@ const emit = defineEmits<{
   toggleParagraphEditing: [index: number];
   saveParagraph: [index: number, content: string];
   cancelParagraphEdit: [index: number];
+  addParagraph: [index: number];
+  deleteParagraph: [index: number];
+  moveParagraph: [fromIndex: number, toIndex: number];
+  undo: [];
+  redo: [];
 }>();
 
 const editableFullText = computed({
@@ -128,5 +168,17 @@ const handleSave = (index: number, content: string) => {
 
 const handleCancel = (index: number) => {
   emit('cancelParagraphEdit', index);
+};
+
+const handleAddParagraph = (index: number) => {
+  emit('addParagraph', index);
+};
+
+const handleDeleteParagraph = (index: number) => {
+  emit('deleteParagraph', index);
+};
+
+const handleMoveParagraph = (fromIndex: number, toIndex: number) => {
+  emit('moveParagraph', fromIndex, toIndex);
 };
 </script>
