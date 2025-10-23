@@ -3,20 +3,14 @@
     <div class="p-4 border-b border-secondary-200" :class="headerClass">
       <div class="flex items-center justify-between">
         <h3 class="font-medium text-secondary-900">{{ title }}</h3>
-        <button
-          @click="$emit('toggleEdit')"
-          class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          {{ isEditingMode ? 'Save' : 'Edit' }}
-        </button>
       </div>
     </div>
     
-    <div class="flex-1 flex flex-col p-4 overflow-y-auto scrollbar-custom">
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
       <!-- Full Text Mode -->
-      <div v-if="mode === 'full'" class="flex flex-col max-w-4xl h-full">
+      <div v-if="mode === 'full'" class="flex flex-col max-w-4xl">
         <div v-if="fullText" 
-             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto scrollbar-custom"
+             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto"
              v-html="displayFullText">
         </div>
         <div v-else class="text-secondary-400 italic flex-1 flex items-center justify-center">
@@ -58,7 +52,7 @@
             title="Add new paragraph"
           >
             <span class="text-lg">+</span>
-            <span>Add {{ paragraphLabel }}</span>
+            <span>Add Paragraph</span>
           </button>
         </div>
       </div>

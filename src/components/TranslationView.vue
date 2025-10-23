@@ -9,15 +9,7 @@
 -->
 <template>
   <div class="flex-1 flex flex-col bg-white overflow-hidden">
-    <TranslationHeader
-      :currentChapter="currentChapter"
-      :isEditingOriginal="editor.isEditingOriginal"
-      :layoutMode="editor.layoutMode"
-      :contentMode="editor.contentMode"
-      :isTranslating="translation.isTranslating.value"
-      :translationProgress="translation.translationProgress.value"
-      @translateAll="translateAllParagraphs"
-    />
+    <TranslationHeader />
 
     <ChapterEditor
       :chapter="currentChapter"
@@ -26,7 +18,6 @@
       :isHighlightEnabled="glossary.isHighlightEnabled.value"
       :isTranslating="translation.isTranslating.value"
       :translationProgress="translation.translationProgress.value"
-      @translateAll="translateAllParagraphs"
       @chapterUpdated="handleChapterUpdate"
     />
   </div>
@@ -40,7 +31,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { ChapterEditor, useEditorStore } from '@/modules/editor';
+import { ChapterEditor } from '@/modules/editor';
 import {
   useGlossaryStore, useGlossaryPopup,
   GlossaryTermPopup, type GlossaryTerm
@@ -53,7 +44,6 @@ const chaptersStore = useChaptersStore();
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
 
-const editor = useEditorStore();
 const translation = useTranslationStore();
 const glossary = useGlossaryStore();
 
@@ -62,25 +52,6 @@ const {
   hoveredTerm,
   popupPosition,
 } = useGlossaryPopup();
-
-const translateAllParagraphs = async () => {
-  if (!currentChapter.value) return;
-
-  const glossaryContext = glossary.terms.value.map(term => term.term);
-  const fullText = currentChapter.value.content;
-
-  try {
-    const translatedText = await translation.translateParagraph(fullText, glossaryContext);
-
-    const updatedChapter = {
-      translatedContent: translatedText,
-      translatedParagraphs: translatedText.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
-    };
-    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
-  } catch (error) {
-    console.error('Error translating all paragraphs:', error);
-  }
-};
 
 const handleChapterUpdate = async (chapterId: string | null, updatedChapter: Chapter | null) => {
   console.log('Chapter updated:', chapterId);

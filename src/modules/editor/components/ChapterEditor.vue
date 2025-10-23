@@ -115,7 +115,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  translateAll: [];
   chapterUpdated: [chapterId: string | null, updatedChapter: Chapter | null];
 }>();
 

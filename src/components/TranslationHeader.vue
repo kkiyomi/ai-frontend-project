@@ -24,16 +24,16 @@
           @click="editor.toggleLayoutMode()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >
-          {{ layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
+          {{ editor.layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
         </button>
         <button
           @click="editor.toggleContentMode()"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
         >
-          {{ contentMode === 'all' ? 'Translated Only' : 'Show All' }}
+          {{ editor.contentMode === 'all' ? 'Translated Only' : 'Show All' }}
         </button>
         <button
-          @click="$emit('translateAll')"
+          @click="translateAllParagraphs"
           :disabled="isTranslating"
           class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
         >
@@ -61,23 +61,20 @@ import { ShareButton } from '@/modules/sharing';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
 import { type Chapter, useEditorStore } from '@/modules/editor';
+import { useTranslationStore } from '@/modules/translation';
 import type { Series } from '@/types';
-
-interface Props {
-  currentChapter: Chapter | null;
-  isEditingOriginal: boolean;
-  layoutMode: 'split' | 'full';
-  contentMode: 'all' | 'translated';
-  isTranslating: boolean;
-  translationProgress: number;
-}
-
-defineProps<Props>();
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
 const editor = useEditorStore();
 
+const {
+  isTranslating,
+  translationProgress,
+  translateParagraph,
+} = useTranslationStore();
+
+const currentChapter = computed(() => chaptersStore.currentChapter);
 const allChapters = computed(() => chaptersStore.chapters);
 const allSeries = computed(() => {
   return seriesStore.series.map(s => ({
@@ -86,7 +83,22 @@ const allSeries = computed(() => {
   }));
 });
 
-defineEmits<{
-  translateAll: [];
-}>();
+const translateAllParagraphs = async () => {
+  if (!currentChapter.value) return;
+
+  const fullText = currentChapter.value.content;
+
+  try {
+    const translatedText = await translateParagraph(fullText);
+
+    const updatedChapter = {
+      translatedContent: translatedText,
+      translatedParagraphs: translatedText.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
+    };
+    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+  } catch (error) {
+    console.error('Error translating all paragraphs:', error);
+  }
+};
+
 </script>
