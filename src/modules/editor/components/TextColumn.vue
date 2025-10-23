@@ -15,45 +15,12 @@
     <div class="flex-1 flex flex-col p-4 overflow-y-auto scrollbar-custom">
       <!-- Full Text Mode -->
       <div v-if="mode === 'full'" class="flex flex-col max-w-4xl h-full">
-        <div v-if="!isEditingMode && fullText" 
+        <div v-if="fullText" 
              class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto scrollbar-custom"
              v-html="displayFullText">
         </div>
-        <div v-else-if="!isEditingMode && !fullText" class="text-secondary-400 italic flex-1 flex items-center justify-center">
+        <div v-else class="text-secondary-400 italic flex-1 flex items-center justify-center">
           {{ emptyMessage }}
-        </div>
-        
-        <div v-else-if="isEditingMode" class="flex-1 flex flex-col">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-sm text-secondary-600">Full Text Editor</span>
-            <div class="flex space-x-2">
-              <button
-                @click="$emit('undo')"
-                :disabled="!canUndo"
-                class="text-xs px-2 py-1 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="canUndo ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-400'"
-                title="Undo"
-              >
-                ↶ Undo
-              </button>
-              <button
-                @click="$emit('redo')"
-                :disabled="!canRedo"
-                class="text-xs px-2 py-1 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="canRedo ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-400'"
-                title="Redo"
-              >
-                ↷ Redo
-              </button>
-            </div>
-          </div>
-          <textarea
-            v-model="editableFullText"
-            @blur="handleSaveFullText"
-            @keyup.enter="handleSaveFullText"
-            class="flex-1 w-full p-4 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 reading-text resize-none"
-            :placeholder="placeholder"
-          ></textarea>
         </div>
       </div>
 
@@ -82,13 +49,25 @@
           @undo="$emit('undo')"
           @redo="$emit('redo')"
         />
+        
+        <!-- Add Paragraph Button -->
+        <div class="flex justify-center pt-4">
+          <button
+            @click="handleAddParagraph(paragraphs.length)"
+            class="flex items-center space-x-2 px-4 py-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 border border-green-200 rounded-lg transition-colors"
+            title="Add new paragraph"
+          >
+            <span class="text-lg">+</span>
+            <span>Add {{ paragraphLabel }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 import ParagraphEditor from './ParagraphEditor.vue';
 
 interface Props {
@@ -98,7 +77,6 @@ interface Props {
   mode: 'paragraph' | 'full';
   type: 'original' | 'translated';
   editingParagraphs: Set<number>;
-  isEditingMode?: boolean;
   showBorder?: boolean;
   showEditButton?: boolean;
   emptyMessage?: string;
@@ -110,7 +88,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isEditingMode: false,
   showBorder: false,
   showEditButton: false,
   emptyMessage: 'No content yet',
@@ -121,8 +98,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  toggleEdit: [];
-  saveFullText: [text: string];
   toggleParagraphEditing: [index: number];
   saveParagraph: [index: number, content: string];
   cancelParagraphEdit: [index: number];
@@ -133,18 +108,6 @@ const emit = defineEmits<{
   redo: [];
 }>();
 
-const editableFullText = ref('');
-
-// Watch for changes in fullText prop and update editableFullText
-watch(() => props.fullText, (newFullText: string | undefined) => {
-  editableFullText.value = (newFullText ?? "").replace(/<br\s*\/?>/gi, "\n\n");
-}, { immediate: true });
-
-// Handle save when textarea loses focus
-const handleSaveFullText = () => {
-  const normalizedText = editableFullText.value.replace(/\n+/g, "<br>");
-  emit("saveFullText", normalizedText);
-};
 
 const headerClass = computed(() => {
   return props.type === 'translated' ? 'bg-accent-50' : 'bg-secondary-50';

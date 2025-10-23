@@ -33,16 +33,19 @@
     </div>
 
     <div v-else class="flex-1 overflow-hidden">
-      <div v-if="layoutMode === 'split'" class="h-full flex">
+      <div class="h-full flex">
+        <!-- Original Text Column -->
         <TextColumn
           v-if="contentMode === 'all'"
           title="Original Text"
           :paragraphs="currentChapter.originalParagraphs"
-          mode="paragraph"
+          :fullText="layoutMode === 'full' ? getFullOriginalText() : undefined"
+          :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="original"
           :editingParagraphs="editingOriginalParagraphs"
           :showBorder="true"
-          :showEditButton="!isEditingOriginal"
+          :showEditButton="layoutMode === 'split' && !isEditingOriginal"
+          emptyMessage="No original text yet"
           placeholder="Enter original text..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
@@ -59,13 +62,15 @@
           @redo="editor.redo"
         />
 
+        <!-- Translation Column -->
         <TextColumn
           title="Translation"
           :paragraphs="currentChapter.translatedParagraphs"
-          mode="paragraph"
+          :fullText="layoutMode === 'full' ? getFullTranslatedText() : undefined"
+          :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
-          :showEditButton="true"
+          :showEditButton="layoutMode === 'split'"
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
@@ -78,57 +83,6 @@
           @addParagraph="(index: number) => handleAddParagraph(index, 'translated')"
           @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'translated')"
           @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'translated')"
-          @undo="editor.undo"
-          @redo="editor.redo"
-        />
-      </div>
-
-      <div v-else class="h-full flex">
-        <TextColumn
-          v-if="contentMode === 'all'"
-          title="Original Text"
-          :fullText="getFullOriginalText()"
-          :paragraphs="currentChapter.originalParagraphs"
-          mode="full"
-          type="original"
-          :editingParagraphs="editingOriginalParagraphs"
-          :isEditingMode="isEditingOriginal"
-          :showBorder="true"
-          :showEditButton="!isEditingOriginal"
-          placeholder="Enter original text..."
-          :highlightTermsInText="highlightFn"
-          :isHighlightEnabled="isHighlightEnabled"
-          :canUndo="editor.canUndo"
-          :canRedo="editor.canRedo"
-          @toggleEdit="editor.toggleEditingOriginal()"
-          @saveFullText="handleSaveFullOriginalText"
-          @undo="editor.undo"
-          @redo="editor.redo"
-        />
-
-        <TextColumn
-          title="Translation"
-          :fullText="getFullTranslatedText()"
-          :paragraphs="currentChapter.translatedParagraphs"
-          mode="full"
-          type="translated"
-          :editingParagraphs="editingTranslatedParagraphs"
-          :isEditingMode="isEditingTranslated"
-          :showEditButton="!isEditingTranslated"
-          emptyMessage="No translations yet"
-          placeholder="Enter translation..."
-          :highlightTermsInText="highlightFn"
-          :isHighlightEnabled="isHighlightEnabled"
-          :canUndo="editor.canUndo"
-          :canRedo="editor.canRedo"
-          @toggleEdit="editor.toggleEditingTranslated()"
-          @toggleParagraphEditing="handleToggleParagraphEditing($event, 'translated')"
-          @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'translated')"
-          @cancelParagraphEdit="(index: number) => handleCancelParagraphEdit(index, 'translated')"
-          @addParagraph="(index: number) => handleAddParagraph(index, 'translated')"
-          @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'translated')"
-          @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'translated')"
-          @saveFullText="handleSaveFullTranslatedText"
           @undo="editor.undo"
           @redo="editor.redo"
         />
@@ -215,15 +169,6 @@ function getFullTranslatedText(): string {
   return currentChapter.value.translatedParagraphs.join('<br>');
 }
 
-async function handleSaveFullOriginalText(text: string) {
-  await editor.saveFullOriginalText(text);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
-
-async function handleSaveFullTranslatedText(text: string) {
-  await editor.saveFullTranslatedText(text);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
 
 function handleAddParagraph(index: number, type: 'original' | 'translated') {
   editor.addParagraph(index, type);
