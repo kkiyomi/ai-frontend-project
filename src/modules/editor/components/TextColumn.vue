@@ -12,11 +12,11 @@
       </div>
     </div>
     
-    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto scrollbar-custom">
       <!-- Full Text Mode -->
       <div v-if="mode === 'full'" class="flex flex-col max-w-4xl h-full">
         <div v-if="!isEditingMode && fullText" 
-             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto"
+             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto scrollbar-custom"
              v-html="displayFullText">
         </div>
         <div v-else-if="!isEditingMode && !fullText" class="text-secondary-400 italic flex-1 flex items-center justify-center">

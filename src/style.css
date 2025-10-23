@@ -11,16 +11,61 @@
   .paragraph-hover {
     @apply hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200;
   }
-  
+
   .glossary-highlight {
     @apply bg-green-100 border-b-2 border-green-500 cursor-pointer;
   }
-  
+
   .sidebar-transition {
     @apply transition-all duration-300 ease-in-out;
   }
-  
+
   .reading-text {
     @apply font-serif leading-relaxed text-base;
+  }
+}
+
+/* ✅ Custom scrollbar styles */
+@layer utilities {
+  /* Chrome, Edge, Safari */
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.400');
+    border-radius: 4px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.gray.600');
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+  }
+
+  /* Firefox */
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.gray.400') theme('colors.gray.100');
+  }
+
+  /* Optional: dark mode variant */
+  .dark .scrollbar-custom {
+    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
+  }
+
+  .dark .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.600');
+  }
+
+  .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.gray.500');
+  }
+
+  .dark .scrollbar-custom::-webkit-scrollbar-track {
+    background: theme('colors.gray.800');
   }
 }
