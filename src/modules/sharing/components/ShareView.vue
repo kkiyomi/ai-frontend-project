@@ -311,8 +311,8 @@ const loadChapterData = (content: SharedContent) => {
     return {
       id: ch.id,
       title: ch.title,
-      originalText: ch.originalParagraphs.join('\n'),
-      translatedText: ch.translatedParagraphs.join('\n'),
+      originalText: ch.content,
+      translatedText: ch.translatedContent,
       seriesName: seriesInfo?.name || 'Unknown Series',
       seriesId: ch.seriesId
     };

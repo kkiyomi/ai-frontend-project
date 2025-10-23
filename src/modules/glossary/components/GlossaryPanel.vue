@@ -418,8 +418,7 @@ const generateSuggestions = () => {
 
   // Simulate async operation
   setTimeout(() => {
-    const allText = props.currentChapter!.originalParagraphs
-      .join(' ');
+    const allText = props.currentChapter!.content;
 
     suggestions.value = suggestTermsFromText(allText);
     isGeneratingSuggestions.value = false;
