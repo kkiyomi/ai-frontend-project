@@ -32,23 +32,13 @@
           :type="type"
           :highlightTermsInText="highlightTermsInText"
           :isHighlightEnabled="isHighlightEnabled"
-          :canUndo="canUndo"
-          :canRedo="canRedo"
-          @toggleEditing="handleToggleEditing"
-          @save="handleSave"
-          @cancel="handleCancel"
-          @addParagraph="handleAddParagraph"
-          @deleteParagraph="handleDeleteParagraph"
-          @moveParagraph="handleMoveParagraph"
-          @undo="$emit('undo')"
-          @redo="$emit('redo')"
         />
         
         <!-- Add Paragraph Button -->
         <div class="flex justify-center pt-4">
           <button
-            @click="handleAddParagraph(paragraphs.length)"
-            class="flex items-center space-x-2 px-4 py-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 border border-green-200 rounded-lg transition-colors"
+            @click="editor.addParagraph(paragraphs.length)"
+            class="flex items-center space-x-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
             title="Add new paragraph"
           >
             <span class="text-lg">+</span>
@@ -62,6 +52,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useEditorStore } from '../store';
 import ParagraphEditor from './ParagraphEditor.vue';
 
 interface Props {
@@ -77,8 +68,6 @@ interface Props {
   placeholder?: string;
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
-  canUndo?: boolean;
-  canRedo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -87,21 +76,9 @@ const props = withDefaults(defineProps<Props>(), {
   emptyMessage: 'No content yet',
   placeholder: 'Enter content...',
   isHighlightEnabled: false,
-  canUndo: false,
-  canRedo: false,
 });
 
-const emit = defineEmits<{
-  toggleParagraphEditing: [index: number];
-  saveParagraph: [index: number, content: string];
-  cancelParagraphEdit: [index: number];
-  addParagraph: [index: number];
-  deleteParagraph: [index: number];
-  moveParagraph: [fromIndex: number, toIndex: number];
-  undo: [];
-  redo: [];
-}>();
-
+const editor = useEditorStore();
 
 const headerClass = computed(() => {
   return props.type === 'translated' ? 'bg-accent-50' : 'bg-secondary-50';
@@ -120,27 +97,4 @@ const displayFullText = computed(() => {
   return props.fullText;
 });
 
-const handleToggleEditing = (index: number) => {
-  emit('toggleParagraphEditing', index);
-};
-
-const handleSave = (index: number, content: string) => {
-  emit('saveParagraph', index, content);
-};
-
-const handleCancel = (index: number) => {
-  emit('cancelParagraphEdit', index);
-};
-
-const handleAddParagraph = (index: number) => {
-  emit('addParagraph', index);
-};
-
-const handleDeleteParagraph = (index: number) => {
-  emit('deleteParagraph', index);
-};
-
-const handleMoveParagraph = (fromIndex: number, toIndex: number) => {
-  emit('moveParagraph', fromIndex, toIndex);
-};
 </script>
