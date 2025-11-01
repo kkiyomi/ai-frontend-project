@@ -11,14 +11,14 @@
         <span class="text-xs text-secondary-500 font-medium">{{ label }} {{ index + 1 }}</span>
         <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            @click="$emit('addParagraph', index)"
+            @click="editor.addParagraph(index, type)"
             class="text-xs text-green-600 hover:text-green-700 transition-colors"
             title="Add paragraph above"
           >
             + Add
           </button>
           <button
-            @click="$emit('deleteParagraph', index)"
+            @click="editor.deleteParagraph(index, type)"
             class="text-xs text-red-600 hover:text-red-700 transition-colors"
             title="Delete paragraph"
           >
@@ -29,19 +29,19 @@
       <div class="flex space-x-2">
         <div v-if="isEditing" class="flex space-x-1">
           <button
-            @click="$emit('undo')"
-            :disabled="!canUndo"
+            @click="editor.undo"
+            :disabled="!editor.canUndo"
             class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="canUndo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
+            :class="editor.canUndo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
             title="Undo"
           >
             ↶ Undo
           </button>
           <button
-            @click="$emit('redo')"
-            :disabled="!canRedo"
+            @click="editor.redo"
+            :disabled="!editor.canRedo"
             class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="canRedo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
+            :class="editor.canRedo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
             title="Redo"
           >
             ↷ Redo
@@ -79,6 +79,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useEditorStore } from '../store';
 
 interface Props {
   content: string;
@@ -91,8 +92,6 @@ interface Props {
   type?: 'original' | 'translated';
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
-  canUndo?: boolean;
-  canRedo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -101,20 +100,9 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Enter content...',
   type: 'original',
   isHighlightEnabled: false,
-  canUndo: false,
-  canRedo: false,
 });
 
-const emit = defineEmits<{
-  toggleEditing: [index: number];
-  save: [index: number, content: string];
-  cancel: [index: number];
-  addParagraph: [index: number];
-  deleteParagraph: [index: number];
-  moveParagraph: [fromIndex: number, toIndex: number];
-  undo: [];
-  redo: [];
-}>();
+const editor = useEditorStore();
 
 const editableContent = ref(props.content);
 const isDragging = ref(false);
@@ -145,16 +133,25 @@ const textareaClass = computed(() => {
 });
 
 const toggleEditing = () => {
-  emit('toggleEditing', props.index);
+  const editingSet = props.type === 'original'
+    ? editor.editingOriginalParagraphs
+    : editor.editingTranslatedParagraphs;
+
+  if (editingSet.has(props.index)) {
+    editor.stopEditingParagraph(props.index, props.type);
+  } else {
+    editor.startEditingParagraph(props.index, props.type);
+  }
 };
 
 const handleSave = () => {
-  emit('save', props.index, editableContent.value);
+  editor.saveParagraph(props.index, editableContent.value, props.type);
+  editor.saveChapter();
 };
 
 const handleCancel = () => {
   editableContent.value = props.content; // Reset to original
-  emit('cancel', props.index);
+  editor.cancelParagraphEdit(props.index, props.type);
 };
 
 // Drag and drop handlers
@@ -178,7 +175,7 @@ const handleDrop = (event: DragEvent) => {
   if (event.dataTransfer) {
     const fromIndex = parseInt(event.dataTransfer.getData('text/plain'));
     if (fromIndex !== props.index) {
-      emit('moveParagraph', fromIndex, props.index);
+      editor.moveParagraph(fromIndex, props.index, props.type);
     }
   }
 };

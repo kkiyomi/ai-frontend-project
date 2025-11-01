@@ -49,17 +49,6 @@
           placeholder="Enter original text..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
-          :canUndo="editor.canUndo"
-          :canRedo="editor.canRedo"
-          @toggleEdit="editor.toggleEditingOriginal()"
-          @toggleParagraphEditing="handleToggleParagraphEditing($event, 'original')"
-          @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'original')"
-          @cancelParagraphEdit="handleCancelParagraphEdit($event, 'original')"
-          @addParagraph="(index: number) => handleAddParagraph(index, 'original')"
-          @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'original')"
-          @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'original')"
-          @undo="editor.undo"
-          @redo="editor.redo"
         />
 
         <!-- Translation Column -->
@@ -75,16 +64,6 @@
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
           :isHighlightEnabled="isHighlightEnabled"
-          :canUndo="editor.canUndo"
-          :canRedo="editor.canRedo"
-          @toggleParagraphEditing="handleToggleParagraphEditing($event, 'translated')"
-          @saveParagraph="(index: number, content: string) => handleSaveParagraph(index, content, 'translated')"
-          @cancelParagraphEdit="(index: number) => handleCancelParagraphEdit(index, 'translated')"
-          @addParagraph="(index: number) => handleAddParagraph(index, 'translated')"
-          @deleteParagraph="(index: number) => handleDeleteParagraph(index, 'translated')"
-          @moveParagraph="(fromIndex: number, toIndex: number) => handleMoveParagraph(fromIndex, toIndex, 'translated')"
-          @undo="editor.undo"
-          @redo="editor.redo"
         />
       </div>
     </div>
@@ -134,29 +113,10 @@ const highlightFn = computed(() => props.highlightTermsInText);
 watch(() => props.chapterId, (newChapterId: string | null) => {
   if (props.chapter) {
     editor.loadChapter(props.chapter);
+  } else {
+    editor.clearChapter()
   }
 }, { immediate: true });
-
-function handleToggleParagraphEditing(index: number, type: 'original' | 'translated') {
-  const editingSet = type === 'original'
-    ? editor.editingOriginalParagraphs
-    : editor.editingTranslatedParagraphs;
-
-  if (editingSet.has(index)) {
-    editor.stopEditingParagraph(index, type);
-  } else {
-    editor.startEditingParagraph(index, type);
-  }
-}
-
-function handleSaveParagraph(index: number, content: string, type: 'original' | 'translated') {
-  editor.saveParagraph(index, content, type);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
-
-function handleCancelParagraphEdit(index: number, type: 'original' | 'translated') {
-  editor.cancelParagraphEdit(index, type);
-}
 
 function getFullOriginalText(): string {
   if (!currentChapter.value) return '';
@@ -168,19 +128,4 @@ function getFullTranslatedText(): string {
   return currentChapter.value.translatedParagraphs.join('<br>');
 }
 
-
-function handleAddParagraph(index: number, type: 'original' | 'translated') {
-  editor.addParagraph(index, type);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
-
-function handleDeleteParagraph(index: number, type: 'original' | 'translated') {
-  editor.deleteParagraph(index, type);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
-
-function handleMoveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
-  editor.moveParagraph(fromIndex, toIndex, type);
-  emit('chapterUpdated', currentChapterId.value, currentChapter.value);
-}
 </script>
