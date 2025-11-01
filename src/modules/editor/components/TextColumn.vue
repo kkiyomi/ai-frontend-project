@@ -37,7 +37,7 @@
         <!-- Add Paragraph Button -->
         <div class="flex justify-center pt-4">
           <button
-            @click="editor.addParagraph(paragraphs.length)"
+            @click="editor.addParagraph(paragraphs.length, type)"
             class="flex items-center space-x-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
             title="Add new paragraph"
           >

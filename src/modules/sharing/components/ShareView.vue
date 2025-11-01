@@ -203,7 +203,7 @@
           <a 
             href="/" 
             class="inline-flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all text-xs font-medium hover:shadow-xl transform hover:scale-105"
-            title="Translated with AI-Assisted Novel Translation Tool"
+            title="Translated with Absolute Mystery"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -213,7 +213,7 @@
         </div>
         
         <p class="text-gray-500 text-sm">
-          Shared via AI-Assisted Novel Translation Tool
+          Shared via Absolute Mystery
         </p>
         <router-link 
           to="/" 
