@@ -182,6 +182,13 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * Reset the save flag after a successful save
+   */
+  function resetSaveFlag() {
+    shouldInitiateChapterSave.value = false;
+  }
+
+  /**
    * Toggle editing mode for the entire original text
    */
   function toggleEditingOriginal() {
@@ -417,6 +424,7 @@ export const useEditorStore = defineStore('editor', () => {
     editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
     editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
     hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
+    shouldInitiateChapterSave: computed(() => shouldInitiateChapterSave.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     layoutMode: computed(() => layoutMode.value),
@@ -427,6 +435,7 @@ export const useEditorStore = defineStore('editor', () => {
     loadChapter,
     updateLocalChapter,
     saveChapter,
+    resetSaveFlag,
     toggleEditingOriginal,
     toggleEditingTranslated,
     startEditingParagraph,
@@ -439,13 +448,13 @@ export const useEditorStore = defineStore('editor', () => {
     toggleContentMode,
     loadViewPreferences,
     clearChapter,
-    
+
     // History management
     undo,
     redo,
     canUndo,
     canRedo,
-    
+
     // Paragraph management
     addParagraph,
     deleteParagraph,

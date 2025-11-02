@@ -6,6 +6,7 @@
   - Editor module handles chapter editing state and operations
   - Glossary module provides term highlighting functionality
   - This component connects them via props (no direct module dependencies)
+  - Auto-save functionality triggered by editor store state changes
 -->
 <template>
   <div class="flex-1 flex flex-col bg-white overflow-hidden">
@@ -29,8 +30,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { ChapterEditor } from '@/modules/editor';
+import { ref, computed, watch } from 'vue';
+import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import {
   useGlossaryStore, useGlossaryPopup,
   GlossaryTermPopup, type GlossaryTerm
@@ -43,6 +44,7 @@ const chaptersStore = useChaptersStore();
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
 
+const editor = useEditorStore();
 const translation = useTranslationStore();
 const glossary = useGlossaryStore();
 
@@ -52,14 +54,34 @@ const {
   popupPosition,
 } = useGlossaryPopup();
 
-const handleChapterUpdate = async (chapterId: string | null, updatedChapter: Chapter | null) => {
-  console.log('Chapter updated:', chapterId);
-  if (!chapterId) return;
-  if (!updatedChapter) return;
+const handleChapterUpdate = async () => {
+  const currentEditorChapter = editor.currentChapter;
 
-  if (currentChapter.value) {
-    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+  if (!currentEditorChapter || !currentEditorChapter.id) {
+    return;
+  }
+
+  try {
+    const updateData = {
+      content: currentEditorChapter.content,
+      translatedContent: currentEditorChapter.translatedContent,
+    };
+
+    await chaptersStore.updateChapter(currentEditorChapter.id, updateData);
+    editor.resetSaveFlag();
+  } catch (error) {
+    console.error('Failed to save chapter:', error);
+    editor.resetSaveFlag();
   }
 };
+
+watch(
+  () => editor.shouldInitiateChapterSave,
+  (shouldSave) => {
+    if (shouldSave && !editor.hasUnsavedChanges) {
+      handleChapterUpdate();
+    }
+  }
+);
 
 </script>
