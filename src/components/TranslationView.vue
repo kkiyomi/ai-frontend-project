@@ -13,12 +13,11 @@
 
     <ChapterEditor
       :chapter="currentChapter"
-      :chapterId="currentChapterId || null"
+      :chapterId="currentChapterId"
       :highlightTermsInText="glossary.highlightTermsInText"
       :isHighlightEnabled="glossary.isHighlightEnabled.value"
       :isTranslating="translation.isTranslating.value"
       :translationProgress="translation.translationProgress.value"
-      @chapterUpdated="handleChapterUpdate"
     />
   </div>
 
