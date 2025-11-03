@@ -67,6 +67,7 @@
     <textarea
       v-else
       v-model="editableContent"
+      @blur="handleSave"
       @keyup.escape="handleCancel"
       class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:border-secondary-500 reading-text resize-none"
       :class="textareaClass"
@@ -132,18 +133,14 @@ const textareaClass = computed(() => {
 });
 
 const toggleEditing = () => {
-  console.log('toggleEditing')
   const editingSet = props.type === 'original'
     ? editor.editingOriginalParagraphs
     : editor.editingTranslatedParagraphs;
 
   if (editingSet.has(props.index)) {
-    editor.stopEditingParagraph(props.index, props.type);
+    handleSave();
   } else {
     editor.startEditingParagraph(props.index, props.type);
-  }
-  if (props.isEditing) {
-    handleSave();
   }
 };
 
