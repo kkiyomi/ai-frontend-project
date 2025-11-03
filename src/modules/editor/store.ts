@@ -212,6 +212,7 @@ export const useEditorStore = defineStore('editor', () => {
    * Start editing a specific paragraph
    */
   function startEditingParagraph(index: number, type: 'original' | 'translated') {
+    console.log('startEditingParagraph')
     if (type === 'original') {
       editingOriginalParagraphs.value.add(index);
     } else {
@@ -223,6 +224,7 @@ export const useEditorStore = defineStore('editor', () => {
    * Stop editing a specific paragraph
    */
   function stopEditingParagraph(index: number, type: 'original' | 'translated') {
+    console.log('stopEditingParagraph')
     if (type === 'original') {
       editingOriginalParagraphs.value.delete(index);
     } else {
@@ -248,7 +250,7 @@ export const useEditorStore = defineStore('editor', () => {
     addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
-    stopEditingParagraph(index, type);
+//     stopEditingParagraph(index, type);
     await saveChapter();
   }
 
