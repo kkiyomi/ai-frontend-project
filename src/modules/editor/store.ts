@@ -198,7 +198,7 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Save chapter changes to the API
    */
-  async function saveChapter() {
+  function saveChapter() {
     if (!currentChapter.value) return;
     shouldInitiateChapterSave.value = true;
     hasUnsavedChanges.value = false;
@@ -309,6 +309,7 @@ export const useEditorStore = defineStore('editor', () => {
     paragraphs.splice(index, 1);
     rebuildContent(type);
     recordChange('paragraph');
+    saveChapter();
   }
 
   /**
@@ -325,6 +326,7 @@ export const useEditorStore = defineStore('editor', () => {
     paragraphs.splice(toIndex, 0, paragraph);
     rebuildContent(type);
     recordChange('paragraph');
+    saveChapter();
   }
 
   /**
@@ -355,7 +357,7 @@ export const useEditorStore = defineStore('editor', () => {
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
-    await saveChapter();
+    saveChapter();
   }
 
   /**
@@ -379,7 +381,7 @@ export const useEditorStore = defineStore('editor', () => {
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
-    await saveChapter();
+    saveChapter();
   }
 
   /**

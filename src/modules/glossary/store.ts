@@ -32,7 +32,7 @@ const termsByCurrentChapter = computed(() => {
   return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value);
 });
 
-function getFilteredTerms(terms: GlossaryTerm[], currentSeriesId: string, currentChapterId: string) {
+function getFilteredTerms(terms: GlossaryTerm[], currentSeriesId?: string, currentChapterId?: string) {
   if (!currentSeriesId) return [];
 
   if (!currentChapterId) {
