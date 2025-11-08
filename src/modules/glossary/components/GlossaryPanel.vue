@@ -16,6 +16,8 @@
       </div>
       <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
       <p v-if="currentChapter" class="text-xs text-blue-600 mt-1">
+        {{ currentSeries.name }}
+        <br/>
         Chapter: {{ currentChapter.title }}
       </p>
       <p v-else-if="currentSeries" class="text-xs text-green-600 mt-1">

@@ -235,7 +235,6 @@ export const useEditorStore = defineStore('editor', () => {
    * Start editing a specific paragraph
    */
   function startEditingParagraph(index: number, type: 'original' | 'translated') {
-    console.log('startEditingParagraph')
     if (type === 'original') {
       editingOriginalParagraphs.value.add(index);
     } else {
@@ -247,7 +246,6 @@ export const useEditorStore = defineStore('editor', () => {
    * Stop editing a specific paragraph
    */
   function stopEditingParagraph(index: number, type: 'original' | 'translated') {
-    console.log('stopEditingParagraph')
     if (type === 'original') {
       editingOriginalParagraphs.value.delete(index);
     } else {
@@ -261,11 +259,21 @@ export const useEditorStore = defineStore('editor', () => {
   function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    if (type === 'original') {
-      currentChapter.value.originalParagraphs[index] = content;
-    } else {
-      currentChapter.value.translatedParagraphs[index] = content;
+    if (hasUnsavedChanges.value) {
+      rebuildContent(type);
+      stopEditingParagraph(index, type);
+      saveChapter();
+      return;
     }
+
+    const targetParagraphs =
+      type === 'original'
+        ? currentChapter.value.originalParagraphs
+        : currentChapter.value.translatedParagraphs;
+
+    const previousContent = targetParagraphs[index];
+    if (previousContent.trim() === content.trim()) return stopEditingParagraph(index, type);
+    targetParagraphs[index] = content;
 
     rebuildContent(type);
     recordChange('paragraph');

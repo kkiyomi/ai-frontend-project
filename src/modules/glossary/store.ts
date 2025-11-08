@@ -29,15 +29,25 @@ const termsByCategory = computed(() => {
 });
 
 const termsByCurrentChapter = computed(() => {
-  if (!currentSeriesId.value) return [];
-  if (!currentChapterId.value) return terms.value.filter(term => term.seriesId === currentSeriesId.value);
-
-  return terms.value.filter(term =>
-    (term.chapterId === null && term.seriesId === currentSeriesId.value) ||
-    (term.chapterId !== null && term.chapterId === currentChapterId.value) ||
-    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId.value!))
-  );
+  return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value);
 });
+
+function getFilteredTerms(terms: GlossaryTerm[], currentSeriesId: string, currentChapterId: string) {
+  if (!currentSeriesId) return [];
+
+  if (!currentChapterId) {
+    return terms.filter(term => term.seriesId === currentSeriesId);
+  }
+
+  const filteredTerms = terms.filter(term =>
+    (term.chapterId === null && term.seriesId === currentSeriesId) ||
+    (term.chapterId !== null && term.chapterId === currentChapterId) ||
+    (Array.isArray(term.chapterIds) && term.chapterIds.includes(currentChapterId))
+  );
+
+  return filteredTerms;
+}
+
 
 async function loadTerms(seriesId?: string, chapterId?: string) {
   if (!seriesId) {
@@ -52,13 +62,7 @@ async function loadTerms(seriesId?: string, chapterId?: string) {
     const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId);
     if (response.success && response.data) {
       let filteredTerms: GlossaryTerm[];
-      if (chapterId) {
-        filteredTerms = response.data.filter(term =>
-          !term.chapterId || term.chapterId === chapterId
-        );
-      } else {
-        filteredTerms = response.data;
-      }
+      filteredTerms = getFilteredTerms(response.data, seriesId, chapterId);
       terms.value = [
         ...terms.value.filter(t => !filteredTerms.some(nt => nt.id === t.id)),
         ...filteredTerms
