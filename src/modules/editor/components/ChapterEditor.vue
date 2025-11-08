@@ -93,10 +93,6 @@ const props = withDefaults(defineProps<Props>(), {
   translationProgress: 0,
 });
 
-const emit = defineEmits<{
-  chapterUpdated: [chapterId: string | null, updatedChapter: Chapter | null];
-}>();
-
 const editor = useEditorStore();
 
 const currentChapter = computed(() => editor.currentChapter);

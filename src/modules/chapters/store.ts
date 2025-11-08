@@ -129,6 +129,7 @@ export const useChaptersStore = defineStore('chapters', () => {
       const response = await chapterAPI.updateChapter(chapterId, updates);
 
       if (response.success && response.data) {
+        console.log('Updating chapter success');
         const index = chapters.value.findIndex(ch => ch.id === chapterId);
         if (index !== -1) {
           const currentChapter = chapters.value[index];

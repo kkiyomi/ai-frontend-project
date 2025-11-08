@@ -86,6 +86,29 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * Helper function to rebuild content from paragraphs
+   */
+  function rebuildContent(type: 'original' | 'translated'): void {
+    if (!currentChapter.value) return;
+
+    if (type === 'original') {
+      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+    } else {
+      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    }
+  }
+
+  /**
+   * Helper function to record state change to history and mark as unsaved
+   */
+  function recordChange(changeType: 'paragraph' | 'full'): void {
+    if (!currentChapter.value) return;
+
+    addToHistory(changeType, currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
+    hasUnsavedChanges.value = true;
+  }
+
+  /**
    * Add a state to history for undo/redo functionality
    */
   function addToHistory(type: 'paragraph' | 'full', content: string, translatedContent: string, originalParagraphs: string[], translatedParagraphs: string[]) {
@@ -175,10 +198,17 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Save chapter changes to the API
    */
-  async function saveChapter() {
+  function saveChapter() {
     if (!currentChapter.value) return;
     shouldInitiateChapterSave.value = true;
     hasUnsavedChanges.value = false;
+  }
+
+  /**
+   * Reset the save flag after a successful save
+   */
+  function resetSaveFlag() {
+    shouldInitiateChapterSave.value = false;
   }
 
   /**
@@ -226,23 +256,29 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Save a paragraph's content
    */
-  async function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
+  function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    if (type === 'original') {
-      currentChapter.value.originalParagraphs[index] = content;
-      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
-    } else {
-      currentChapter.value.translatedParagraphs[index] = content;
-      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+    if (hasUnsavedChanges.value) {
+      rebuildContent(type);
+      stopEditingParagraph(index, type);
+      saveChapter();
+      return;
     }
 
-    // Add to history after making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
+    const targetParagraphs =
+      type === 'original'
+        ? currentChapter.value.originalParagraphs
+        : currentChapter.value.translatedParagraphs;
 
-    hasUnsavedChanges.value = true;
+    const previousContent = targetParagraphs[index];
+    if (previousContent.trim() === content.trim()) return stopEditingParagraph(index, type);
+    targetParagraphs[index] = content;
+
+    rebuildContent(type);
+    recordChange('paragraph');
     stopEditingParagraph(index, type);
-    await saveChapter();
+    saveChapter();
   }
 
   /**
@@ -251,18 +287,13 @@ export const useEditorStore = defineStore('editor', () => {
   function addParagraph(index: number, type: 'original' | 'translated', content: string = '') {
     if (!currentChapter.value) return;
 
-    if (type === 'original') {
-      currentChapter.value.originalParagraphs.splice(index, 0, content);
-      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
-    } else {
-      currentChapter.value.translatedParagraphs.splice(index, 0, content);
-      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
-    }
+    const paragraphs = type === 'original'
+      ? currentChapter.value.originalParagraphs
+      : currentChapter.value.translatedParagraphs;
 
-    // Add to history after making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-
-    hasUnsavedChanges.value = true;
+    paragraphs.splice(index, 0, content);
+    rebuildContent(type);
+    recordChange('paragraph');
   }
 
   /**
@@ -271,18 +302,14 @@ export const useEditorStore = defineStore('editor', () => {
   function deleteParagraph(index: number, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    if (type === 'original') {
-      currentChapter.value.originalParagraphs.splice(index, 1);
-      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
-    } else {
-      currentChapter.value.translatedParagraphs.splice(index, 1);
-      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
-    }
+    const paragraphs = type === 'original'
+      ? currentChapter.value.originalParagraphs
+      : currentChapter.value.translatedParagraphs;
 
-    // Add to history after making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-
-    hasUnsavedChanges.value = true;
+    paragraphs.splice(index, 1);
+    rebuildContent(type);
+    recordChange('paragraph');
+    saveChapter();
   }
 
   /**
@@ -291,20 +318,15 @@ export const useEditorStore = defineStore('editor', () => {
   function moveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
-    if (type === 'original') {
-      const paragraph = currentChapter.value.originalParagraphs.splice(fromIndex, 1)[0];
-      currentChapter.value.originalParagraphs.splice(toIndex, 0, paragraph);
-      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
-    } else {
-      const paragraph = currentChapter.value.translatedParagraphs.splice(fromIndex, 1)[0];
-      currentChapter.value.translatedParagraphs.splice(toIndex, 0, paragraph);
-      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
-    }
+    const paragraphs = type === 'original'
+      ? currentChapter.value.originalParagraphs
+      : currentChapter.value.translatedParagraphs;
 
-    // Add to history after making changes
-    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-
-    hasUnsavedChanges.value = true;
+    const paragraph = paragraphs.splice(fromIndex, 1)[0];
+    paragraphs.splice(toIndex, 0, paragraph);
+    rebuildContent(type);
+    recordChange('paragraph');
+    saveChapter();
   }
 
   /**
@@ -335,7 +357,7 @@ export const useEditorStore = defineStore('editor', () => {
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
-    await saveChapter();
+    saveChapter();
   }
 
   /**
@@ -359,7 +381,7 @@ export const useEditorStore = defineStore('editor', () => {
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
     hasUnsavedChanges.value = true;
-    await saveChapter();
+    saveChapter();
   }
 
   /**
@@ -417,6 +439,7 @@ export const useEditorStore = defineStore('editor', () => {
     editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
     editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
     hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
+    shouldInitiateChapterSave: computed(() => shouldInitiateChapterSave.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     layoutMode: computed(() => layoutMode.value),
@@ -427,6 +450,7 @@ export const useEditorStore = defineStore('editor', () => {
     loadChapter,
     updateLocalChapter,
     saveChapter,
+    resetSaveFlag,
     toggleEditingOriginal,
     toggleEditingTranslated,
     startEditingParagraph,
@@ -439,13 +463,13 @@ export const useEditorStore = defineStore('editor', () => {
     toggleContentMode,
     loadViewPreferences,
     clearChapter,
-    
+
     // History management
     undo,
     redo,
     canUndo,
     canRedo,
-    
+
     // Paragraph management
     addParagraph,
     deleteParagraph,
