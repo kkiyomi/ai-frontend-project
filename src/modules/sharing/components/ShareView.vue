@@ -36,7 +36,7 @@
             to="/" 
             class="text-sm text-gray-500 hover:text-gray-700"
           >
-            ← Back to Translation Tool
+            ← Back to Absolute Mystery
           </router-link>
         </div>
       </div>
@@ -98,7 +98,7 @@
         to="/" 
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
-        Go to Translation Tool
+        Go to Absolute Mystery
       </router-link>
     </div>
 
@@ -198,7 +198,7 @@
 
       <!-- Footer -->
       <div class="mt-12 text-center py-8 border-t border-gray-200">
-        <!-- Translation Tool Badge -->
+        <!-- Absolute Mystery Badge -->
         <div class="fixed bottom-4 left-4 z-50">
           <a 
             href="/" 
@@ -208,7 +208,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Translated with AI Tool</span>
+            <span>Translated with Absolute Mystery</span>
           </a>
         </div>
         

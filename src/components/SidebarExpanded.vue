@@ -2,7 +2,7 @@
     <div class="flex flex-col h-full">
         <!-- Header -->
         <div class="p-4 border-b border-gray-200 flex-shrink-0">
-            <h1 class="text-xl font-bold text-gray-900 mb-2">Translation Tool</h1>
+            <h1 class="text-xl font-bold text-gray-900 mb-2">Absolute Mystery</h1>
             <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
         </div>
 
