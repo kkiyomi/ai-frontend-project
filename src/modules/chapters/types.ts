@@ -13,6 +13,7 @@ export interface ChapterCreateInput {
   title: string;
   content: string;
   seriesId: string;
+  translatedContent?: string;
 }
 
 export interface ChapterUpdateInput {
