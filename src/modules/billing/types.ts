@@ -1,26 +1,18 @@
 /**
  * Billing Module - Type Definitions
  *
- * Defines all types for billing and subscription functionality
+ * Defines all types for billing and subscription functionality with dynamic features and limits
  */
 
 export interface Plan {
   id: string;
   name: string;
-  features: {
-    translation: boolean;
-  };
-  limits: {
-    series_limit: number;
-    chapter_limit: number;
-    glossary_limit: number;
-  };
+  features: Record<string, boolean>;
+  limits: Record<string, number>;
 }
 
 export interface Usage {
-  series_limit: number;
-  chapter_limit: number;
-  glossary_limit: number;
+  [key: string]: number;
 }
 
 export interface Subscription {
@@ -33,3 +25,14 @@ export interface BillingState {
   loading: boolean;
   error: string | null;
 }
+
+// Known feature keys - backend may add more
+export const FEATURE_KEYS = {
+  translation: 'translation',
+  seriesLimit: 'series_limit',
+  chapterLimit: 'chapter_limit',
+  glossaryLimit: 'glossary_limit',
+} as const;
+
+// Type for known feature keys
+export type FeatureKey = typeof FEATURE_KEYS[keyof typeof FEATURE_KEYS];

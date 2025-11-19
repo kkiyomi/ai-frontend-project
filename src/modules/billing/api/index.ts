@@ -57,6 +57,33 @@ class BillingAPIService {
     const api = await this.getAPI();
     return api.getSubscription();
   }
+
+  async getPlans(): Promise<APIResponse<any[]>> {
+    const api = await this.getAPI();
+    return api.getPlans();
+  }
+
+  async updateSubscription(planId: string): Promise<APIResponse<Subscription>> {
+    const api = await this.getAPI();
+    if ('updateSubscription' in api) {
+      return api.updateSubscription(planId);
+    }
+    return {
+      success: false,
+      error: 'Update subscription not available in mock mode'
+    };
+  }
+
+  async cancelSubscription(): Promise<APIResponse<void>> {
+    const api = await this.getAPI();
+    if ('cancelSubscription' in api) {
+      return api.cancelSubscription();
+    }
+    return {
+      success: false,
+      error: 'Cancel subscription not available in mock mode'
+    };
+  }
 }
 
 export const billingAPI = BillingAPIService.getInstance();

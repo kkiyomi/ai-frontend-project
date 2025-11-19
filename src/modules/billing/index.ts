@@ -1,13 +1,14 @@
 /**
  * Billing Module - Public API
  *
- * The Billing module manages subscription plans, usage limits, and billing information.
+ * The Billing module manages subscription plans, usage limits, and billing information with dynamic features and limits.
  *
  * Features:
  * - Store: Reactive state management for subscription and usage data
  * - API: Subscription endpoint with automatic mock/real switching
- * - Usage tracking: Monitor limits for series, chapters, and glossary terms
- * - Feature flags: Check if premium features are available
+ * - Dynamic feature checking: Check if any feature is available
+ * - Dynamic usage tracking: Monitor limits for any resource type
+ * - Extensible: Backend can add new features and limits without frontend changes
  *
  * Integration Example:
  * ```typescript
@@ -17,22 +18,41 @@
  * app.use(pinia);
  *
  * // In a component
- * import { useBillingStore } from '@/modules/billing';
+ * import { useBillingStore, FEATURE_KEYS } from '@/modules/billing';
  *
  * const billing = useBillingStore();
  * await billing.fetchSubscription();
  *
- * // Check limits before creating content
- * if (billing.canCreateSeries) {
+ * // Check limits dynamically before creating content
+ * if (billing.canConsume('series_limit')) {
  *   // Create series
  * } else {
  *   // Show upgrade prompt
  * }
  *
- * // Check feature availability
- * if (billing.hasTranslationFeature) {
+ * // Check feature availability dynamically
+ * if (billing.hasFeature(FEATURE_KEYS.translation)) {
  *   // Show translation button
  * }
+ *
+ * // Check any custom feature added by backend
+ * if (billing.hasFeature('advanced_analytics')) {
+ *   // Show analytics dashboard
+ * }
+ *
+ * // Get usage percentage for any limit
+ * const seriesUsage = billing.getUsagePercentage('series_limit');
+ * const customUsage = billing.getUsagePercentage('api_calls_per_month');
+ *
+ * // Get all available features
+ * const features = billing.getAvailableFeatures();
+ * console.log('Available features:', features);
+ *
+ * // Get all limits with usage info
+ * const limitsInfo = billing.getAllLimitsWithUsage();
+ * limitsInfo.forEach(limit => {
+ *   console.log(`${limit.key}: ${limit.usage}/${limit.limit} (${limit.percentage}%)`);
+ * });
  * ```
  *
  * API Configuration:
@@ -44,11 +64,24 @@
  * The store provides methods to update usage counters when content is created/deleted:
  * ```typescript
  * // When creating a series
- * billing.updateUsage('series', 1);
+ * billing.updateUsage('series_limit', 1);
  *
  * // When deleting a chapter
- * billing.updateUsage('chapter', -1);
+ * billing.updateUsage('chapter_limit', -1);
+ *
+ * // Batch update multiple usage counters
+ * billing.updateMultipleUsage({
+ *   'series_limit': 1,
+ *   'chapter_limit': 5,
+ *   'api_calls_per_day': 10
+ * });
  * ```
+ *
+ * Backward Compatibility:
+ * All existing computed properties and methods are preserved for backward compatibility:
+ * - canCreateSeries, canCreateChapter, canCreateGlossaryTerm
+ * - hasTranslationFeature
+ * - seriesUsagePercentage, chapterUsagePercentage, glossaryUsagePercentage
  */
 
 // Store
@@ -63,4 +96,8 @@ export type {
   Usage,
   Subscription,
   BillingState,
+  FeatureKey,
 } from './types';
+
+// Constants
+export { FEATURE_KEYS } from './types';

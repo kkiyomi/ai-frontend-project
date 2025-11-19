@@ -15,4 +15,16 @@ export class BillingRealAPI {
   async getSubscription(): Promise<APIResponse<Subscription>> {
     return apiClient.get<Subscription>('/billing/subscription');
   }
+
+  async getPlans(): Promise<APIResponse<any[]>> {
+    return apiClient.get<any[]>('/billing/plans');
+  }
+
+  async updateSubscription(planId: string): Promise<APIResponse<Subscription>> {
+    return apiClient.post<Subscription>('/billing/subscription', { planId });
+  }
+
+  async cancelSubscription(): Promise<APIResponse<void>> {
+    return apiClient.delete<void>('/billing/subscription');
+  }
 }
