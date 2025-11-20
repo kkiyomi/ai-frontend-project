@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between">
       <!-- Left: Back -->
       <button
-        @click="$emit('back')"
+        @click="deselectSeries"
         class="p-1 text-blue-600 hover:text-blue-700 transition-colors"
         title="Back to all series"
       >
@@ -18,7 +18,7 @@
       <div class="flex items-center space-x-1">
         <!-- Add Chapter -->
         <button
-          @click="$emit('addChapter')"
+          @click="handleCreateChapter('New Chapter!')"
           class="p-1 text-gray-400 hover:text-green-600 transition-colors"
           title="Add chapter"
         >
@@ -85,9 +85,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { BulkChapterUpload } from '@/modules/chapters';
+import { useSeriesStore } from '@/modules/series';
+import { useChaptersStore, BulkChapterUpload } from '@/modules/chapters';
 import { getSeriesTranslationProgress } from '../utils/chapterUtils';
 import type { SeriesWithChapters as Series, Chapter } from '../types';
+
+const seriesStore = useSeriesStore();
+const chaptersStore = useChaptersStore();
 
 interface Props {
   series: Series;
@@ -96,11 +100,34 @@ interface Props {
 const props = defineProps<Props>();
 
 defineEmits<{
-  back: [];
   edit: [series: Series];
   delete: [seriesId: string];
-  addChapter: [];
 }>();
+
+const handleCreateChapter = async (title: string) => {
+  if (!props.series.id) return;
+
+  try {
+    const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
+
+    const newChapter = await chaptersStore.createChapter({
+      title,
+      content: `Chapter: ${title}\n\n[Add your content here...]`,
+      translatedContent: '[Add your translation here...]',
+      seriesId: props.series.id
+    });
+
+    chaptersStore.selectChapter(newChapter.id)
+
+  } catch (error) {
+    console.error('Error creating chapter:', error);
+  }
+};
+
+const deselectSeries = () => {
+  seriesStore.selectSeries(null);
+  chaptersStore.selectChapter(null);
+};
 
 const translationProgress = computed(() => getSeriesTranslationProgress(props.series));
 </script>
