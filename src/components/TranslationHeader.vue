@@ -39,6 +39,13 @@
         >
           {{ isTranslating ? 'Translating...' : 'Translate All' }}
         </button>
+        
+        <!-- Avatar Menu -->
+        <AvatarMenu
+          :user="profile.user"
+          @open-settings="showSettings = true"
+          @logout="handleLogout"
+        />
       </div>
     </div>
     
@@ -52,12 +59,19 @@
       </div>
       <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
     </div>
+    
+    <!-- Settings Modal -->
+    <SettingsModal
+      v-if="showSettings"
+      @close="showSettings = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { ShareButton } from '@/modules/sharing';
+import { AvatarMenu, SettingsModal, useProfileStore } from '@/modules/profile';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
 import { type Chapter, useEditorStore } from '@/modules/editor';
@@ -67,12 +81,15 @@ import type { Series } from '@/types';
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
 const editor = useEditorStore();
+const profile = useProfileStore();
 
 const {
   isTranslating,
   translationProgress,
   translateParagraph,
 } = useTranslationStore();
+
+const showSettings = ref(false);
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const allChapters = computed(() => chaptersStore.chapters);
@@ -98,6 +115,16 @@ const translateAllParagraphs = async () => {
     await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
   } catch (error) {
     console.error('Error translating all paragraphs:', error);
+  }
+};
+
+const handleLogout = async () => {
+  try {
+    await profile.logout();
+    // Handle post-logout logic here if needed
+    console.log('User logged out successfully');
+  } catch (error) {
+    console.error('Logout failed:', error);
   }
 };
 
