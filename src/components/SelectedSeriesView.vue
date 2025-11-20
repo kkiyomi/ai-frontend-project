@@ -117,7 +117,9 @@ const handleCreateChapter = async (title: string) => {
       seriesId: props.series.id
     });
 
-    chaptersStore.selectChapter(newChapter.id)
+    if (newChapter) {
+      chaptersStore.selectChapter(newChapter.id)
+    }
 
   } catch (error) {
     console.error('Error creating chapter:', error);

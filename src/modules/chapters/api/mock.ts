@@ -37,12 +37,14 @@ export class ChapterMockAPI {
       };
     }
 
+    const translatedContent = input.translatedContent || '';
+
     const originalParagraphs = input.content
       .split('\n')
       .map(p => p.trim())
       .filter(p => p.length > 0);
 
-    const translatedParagraphs = input.translatedContent
+    const translatedParagraphs = translatedContent
       .split('\n')
       .map(p => p.trim())
       .filter(p => p.length > 0);
@@ -51,7 +53,7 @@ export class ChapterMockAPI {
       id: `ch${Date.now()}`,
       title: input.title,
       content: input.content,
-      translatedContent: input.translatedContent,
+      translatedContent,
       originalParagraphs,
       translatedParagraphs,
       seriesId: input.seriesId,
