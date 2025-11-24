@@ -33,7 +33,7 @@
       <div class="flex-1 flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
+          <div v-if="currentSection">
             <h3 class="text-lg font-semibold text-gray-900">{{ currentSection.title }}</h3>
             <p v-if="currentSection.description" class="text-sm text-gray-500 mt-1">{{ currentSection.description }}</p>
           </div>
@@ -112,13 +112,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useSettingsStore } from '../store';
+import type { SettingsItem, SettingsSection } from '../types';
 
 const settings = useSettingsStore();
 
 const activeSection = ref('profile');
 
 const currentSection = computed(() =>
-  settings.allSections.find(s => s.id === activeSection.value) || null
+  settings.allSections.find((s: SettingsSection) => s.id === activeSection.value) || null
 );
 
 const handleBackdropClick = (e: MouseEvent) => {

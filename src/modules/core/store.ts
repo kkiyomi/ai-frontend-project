@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, markRaw } from 'vue';
-import type { SettingsSection, SettingsItem } from '../types/settings';
+import type { SettingsSection, SettingsItem } from './types';
 
 /**
  * Centralized settings store for the Core module.
@@ -14,7 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // --- Getters ---
   const allSections = computed(() => sections.value);
   const getSection = (id: string) =>
-    sections.value.find((s) => s.id === id);
+    sections.value.find((s: SettingsSection) => s.id === id);
   const isSettingsVisible = computed(() => showSettings.value);
 
   // --- Actions ---
@@ -28,13 +28,13 @@ export const useSettingsStore = defineStore('settings', () => {
       })) || [],
     };
 
-    const index = sections.value.findIndex((s) => s.id === safeSection.id);
+    const index = sections.value.findIndex((s: SettingsSection) => s.id === safeSection.id);
     if (index !== -1) sections.value[index] = safeSection;
     else sections.value.push(safeSection);
   }
 
   function unregisterSection(sectionId: string) {
-    sections.value = sections.value.filter((s) => s.id !== sectionId);
+    sections.value = sections.value.filter((s: SettingsSection) => s.id !== sectionId);
   }
 
   function clearSections() {
