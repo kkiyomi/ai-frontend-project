@@ -1,9 +1,8 @@
-import { useProfileStore } from '@/modules/profile';
+import { settingsManager } from '@/modules/core';
 import { billingSettings } from '@/modules/billing';
 
 
 export const loadSettings = () => {
   console.log('loadSettings')
-  const profile = useProfileStore();
-  profile.registerSettingsSection(billingSettings);
+  settingsManager.registerSection(billingSettings);
 };

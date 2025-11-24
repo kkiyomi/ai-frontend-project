@@ -27,7 +27,9 @@
 export { APIClient } from './services/apiClient';
 export { apiClient } from './services/index';
 
-export type { APIResponse } from './types';
+export type { APIResponse, SettingsItem, SettingsSection } from './types';
+
+export { settingsManager } from './services/settingsManager';
 
 export {
   isDevelopment,

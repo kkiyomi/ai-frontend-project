@@ -20,7 +20,9 @@
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { User, ProfileState, SettingsSection } from './types';
+import { settingsManager } from '@/modules/core';
+import type { User, ProfileState } from './types';
+import type { SettingsSection } from '@/modules/core';
 
 export const useProfileStore = defineStore('profile', () => {
   // State
@@ -34,7 +36,6 @@ export const useProfileStore = defineStore('profile', () => {
   
   const isLoading = ref(false);
   const error = ref<string | null>(null);
-  const settingsSections = ref<SettingsSection[]>([]);
 
   // Computed
   const profileState = computed<ProfileState>(() => ({
@@ -54,6 +55,8 @@ export const useProfileStore = defineStore('profile', () => {
       .join('');
   });
 
+  // Get settings sections from core settings manager
+  const settingsSections = settingsManager.getSections();
   // Actions
   function updateProfile(updates: Partial<User>) {
     if (user.value) {
@@ -74,23 +77,6 @@ export const useProfileStore = defineStore('profile', () => {
     error.value = errorMessage;
   }
 
-  // Settings management (for other modules to register settings)
-  function registerSettingsSection(section: SettingsSection) {
-    const existingIndex = settingsSections.value.findIndex(s => s.id === section.id);
-    if (existingIndex !== -1) {
-      settingsSections.value[existingIndex] = section;
-    } else {
-      settingsSections.value.push(section);
-    }
-  }
-
-  function unregisterSettingsSection(sectionId: string) {
-    settingsSections.value = settingsSections.value.filter(s => s.id !== sectionId);
-  }
-
-  function getSettingsSection(sectionId: string): SettingsSection | undefined {
-    return settingsSections.value.find(s => s.id === sectionId);
-  }
 
   // Placeholder methods for future API integration
   async function loadProfile(): Promise<void> {
@@ -157,10 +143,5 @@ export const useProfileStore = defineStore('profile', () => {
     loadProfile,
     saveProfile,
     logout,
-
-    // Settings management
-    registerSettingsSection,
-    unregisterSettingsSection,
-    getSettingsSection,
   };
 });

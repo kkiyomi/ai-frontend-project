@@ -7,14 +7,18 @@
  * - Avatar menu component for user actions
  * - Settings modal for global application settings
  * - Profile state management (name, email, avatar)
- * - Extensible settings system for other modules
+ * - Integration with Core's centralized settings system
  *
  * Integration Example:
  * ```typescript
  * // In main app
  * import { AvatarMenu, SettingsModal, useProfileStore } from '@/modules/profile';
+ * import { settingsManager } from '@/modules/core';
  *
  * const profile = useProfileStore();
+ * 
+ * // Register settings from other modules
+ * settingsManager.registerSection(billingSettings);
  *
  * // Use avatar menu
  * <AvatarMenu
@@ -47,6 +51,4 @@ export { default as SettingsModal } from './components/SettingsModal.vue';
 export type {
   User,
   ProfileState,
-  SettingsSection,
-  SettingsItem
 } from './types';

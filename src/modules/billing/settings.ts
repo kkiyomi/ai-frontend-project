@@ -1,4 +1,4 @@
-import { type SettingsSection } from '@/modules/profile';
+import { type SettingsSection } from '@/modules/core';
 
 export const billingSettings: SettingsSection = {
   id: 'billing',

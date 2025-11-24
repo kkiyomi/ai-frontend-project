@@ -188,7 +188,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useProfileStore } from '../store';
-import type { SettingsSection } from '../types';
+import type { SettingsSection } from '@/modules/core';
 
 const emit = defineEmits<{
   close: [];
