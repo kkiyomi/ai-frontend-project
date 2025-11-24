@@ -39,14 +39,13 @@
         >
           {{ isTranslating ? 'Translating...' : 'Translate All' }}
         </button>
-        
-        <!-- Avatar Menu -->
-        <AvatarMenu
-          :user="profile.user"
-          @open-settings="showSettings = true"
-          @logout="handleLogout"
-        />
       </div>
+      <!-- Avatar Menu -->
+      <AvatarMenu
+        :user="profile.user"
+        @open-settings="showSettings = true"
+        @logout="handleLogout"
+      />
     </div>
     
     <!-- Progress Bar -->
