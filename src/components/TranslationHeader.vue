@@ -69,8 +69,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { SettingsModal } from '@/modules/core';
 import { ShareButton } from '@/modules/sharing';
-import { AvatarMenu, SettingsModal, useProfileStore } from '@/modules/profile';
+import { AvatarMenu, useProfileStore } from '@/modules/profile';
 import { useChaptersStore } from '@/modules/chapters';
 import { useSeriesStore } from '@/modules/series';
 import { type Chapter, useEditorStore } from '@/modules/editor';

@@ -23,14 +23,17 @@
           v-model="form.name"
           type="text"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter your name"
         />
       </div>
+
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
         <input
           v-model="form.email"
           type="email"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter your email"
         />
       </div>
     </div>
@@ -67,7 +70,7 @@ const save = async () => {
       email: form.value.email,
     });
   } catch (err) {
-    console.error('Failed to save profile', err);
+    console.error('Failed to save profile:', err);
   } finally {
     isSaving.value = false;
   }

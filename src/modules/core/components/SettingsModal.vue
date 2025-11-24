@@ -11,19 +11,6 @@
 
         <!-- Navigation -->
         <nav class="flex-1 p-4 space-y-1">
-          <!-- Profile section -->
-          <button
-            @click="activeSection = 'profile'"
-            class="w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-left"
-            :class="activeSection === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
-          >
-            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Profile
-          </button>
-
           <!-- Dynamic sections -->
           <button
             v-for="section in settingsSections"
@@ -47,8 +34,8 @@
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ currentSectionTitle }}</h3>
-            <p v-if="currentSectionDescription" class="text-sm text-gray-500 mt-1">{{ currentSectionDescription }}</p>
+            <h3 class="text-lg font-semibold text-gray-900">{{ currentSection.title }}</h3>
+            <p v-if="currentSection.description" class="text-sm text-gray-500 mt-1">{{ currentSection.description }}</p>
           </div>
           <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,12 +46,9 @@
 
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-6">
-          <!-- Profile -->
-          <ProfileSettings v-if="activeSection === 'profile'" />
-
           <!-- Dynamic section -->
           <component
-            v-else-if="currentSection?.component"
+            v-if="currentSection?.component"
             :is="currentSection.component"
             :section="currentSection"
           />
@@ -127,30 +111,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useProfileStore } from '../store';
-import ProfileSettings from './ProfileSettings.vue';
+import { settingsManager } from '../services/settingsManager';
 
 defineEmits({ close: [] });
 
-const profileStore = useProfileStore();
-
 const activeSection = ref('profile');
-const settingsSections = computed(() => profileStore.settingsSections);
+const settingsSections = settingsManager.getSections();
 
 const currentSection = computed(() =>
   settingsSections.value.find(s => s.id === activeSection.value) || null
-);
-
-const currentSectionTitle = computed(() =>
-  activeSection.value === 'profile'
-    ? 'Profile'
-    : currentSection.value?.title || 'Settings'
-);
-
-const currentSectionDescription = computed(() =>
-  activeSection.value === 'profile'
-    ? 'Manage your account information'
-    : currentSection.value?.description || ''
 );
 
 const handleBackdropClick = (e: MouseEvent) => {

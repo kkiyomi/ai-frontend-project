@@ -1,8 +1,8 @@
 // profile.settings.ts
 import type { SettingsSection } from '@/modules/core';
-import ProfileSettings from './ProfileSettings.vue';
+import ProfileSettingsSection from './components/ProfileSettings.vue';
 
-export const profileSettingsSection: SettingsSection = {
+export const profileSettings: SettingsSection = {
   id: 'profile',
   title: 'Profile',
   description: 'Manage your account information',
@@ -12,6 +12,6 @@ export const profileSettingsSection: SettingsSection = {
         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
   `,
-  component: ProfileSettings,
+  component: ProfileSettingsSection,
   items: [], // Not used because this section is fully custom
 };

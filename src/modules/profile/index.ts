@@ -12,7 +12,7 @@
  * Integration Example:
  * ```typescript
  * // In main app
- * import { AvatarMenu, SettingsModal, useProfileStore } from '@/modules/profile';
+ * import { AvatarMenu, useProfileStore } from '@/modules/profile';
  * import { settingsManager } from '@/modules/core';
  *
  * const profile = useProfileStore();
@@ -27,12 +27,6 @@
  *   @logout="handleLogout"
  * />
  *
- * // Use settings modal
- * <SettingsModal
- *   v-if="showSettings"
- *   @close="showSettings = false"
- * />
- * ```
  *
  * Module Independence:
  * - Does NOT import from other domain modules (billing, glossary, etc.)
@@ -45,10 +39,11 @@ export { useProfileStore } from './store';
 
 // Components
 export { default as AvatarMenu } from './components/AvatarMenu.vue';
-export { default as SettingsModal } from './components/SettingsModal.vue';
 
 // Types
 export type {
   User,
   ProfileState,
 } from './types';
+
+export { profileSettings } from './settings';

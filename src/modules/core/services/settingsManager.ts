@@ -5,8 +5,8 @@
  * their settings sections without creating circular dependencies.
  */
 
-import { ref, computed } from 'vue';
-import type { SettingsSection } from '../types/settings';
+import { ref, computed, markRaw } from 'vue';
+import type { SettingsSection, SettingsItem } from '../types/settings';
 
 class SettingsManager {
   private sections = ref<SettingsSection[]>([]);
@@ -22,11 +22,22 @@ class SettingsManager {
    * Register a settings section
    */
   registerSection(section: SettingsSection) {
-    const existingIndex = this.sections.value.findIndex(s => s.id === section.id);
-    if (existingIndex !== -1) {
-      this.sections.value[existingIndex] = section;
+    // Clone the incoming section so we never mutate the caller's object
+    const safeSection: SettingsSection = {
+      ...section,
+      component: section.component ? markRaw(section.component) : undefined,
+      items: section.items?.map((item: SettingsItem) => ({
+        ...item,
+        component: item.component ? markRaw(item.component) : undefined,
+      })) || [],
+    };
+
+    const index = this.sections.value.findIndex(s => s.id === safeSection.id);
+
+    if (index !== -1) {
+      this.sections.value[index] = safeSection;
     } else {
-      this.sections.value.push(section);
+      this.sections.value.push(safeSection);
     }
   }
 
