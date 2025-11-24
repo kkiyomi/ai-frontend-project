@@ -1,6 +1,6 @@
 <template>
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="handleBackdropClick">
-    <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex" @click.stop>
+  <div v-if="settings.isSettingsVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="handleBackdropClick">
+    <div class="bg-white rounded-lg w-full max-w-5xl h-[80vh] mx-4 flex overflow-hidden" @click.stop>
       <!-- Sidebar -->
       <div class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
         <!-- Header -->
@@ -13,7 +13,7 @@
         <nav class="flex-1 p-4 space-y-1">
           <!-- Dynamic sections -->
           <button
-            v-for="section in settingsSections"
+            v-for="section in settings.allSections"
             :key="section.id"
             @click="activeSection = section.id"
             class="w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-left"
@@ -37,7 +37,7 @@
             <h3 class="text-lg font-semibold text-gray-900">{{ currentSection.title }}</h3>
             <p v-if="currentSection.description" class="text-sm text-gray-500 mt-1">{{ currentSection.description }}</p>
           </div>
-          <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <button @click="settings.closeSettings()" class="text-gray-400 hover:text-gray-600 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -111,20 +111,19 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { settingsManager } from '../services/settingsManager';
+import { useSettingsStore } from '../store';
 
-defineEmits({ close: [] });
+const settings = useSettingsStore();
 
 const activeSection = ref('profile');
-const settingsSections = settingsManager.getSections();
 
 const currentSection = computed(() =>
-  settingsSections.value.find(s => s.id === activeSection.value) || null
+  settings.allSections.find(s => s.id === activeSection.value) || null
 );
 
 const handleBackdropClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
-    emit('close');
+    settings.closeSettings();
   }
 };
 </script>

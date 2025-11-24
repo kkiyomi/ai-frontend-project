@@ -13,10 +13,11 @@
  * ```typescript
  * // In main app
  * import { AvatarMenu, useProfileStore } from '@/modules/profile';
- * import { settingsManager } from '@/modules/core';
+ * import { useSettingsStore } from '@/modules/core';
  *
  * const profile = useProfileStore();
- * 
+ * const settingsManager = useSettingsStore();
+ *
  * // Register settings from other modules
  * settingsManager.registerSection(billingSettings);
  *
@@ -39,6 +40,7 @@ export { useProfileStore } from './store';
 
 // Components
 export { default as AvatarMenu } from './components/AvatarMenu.vue';
+export { default as ProfileMenu } from './components/ProfileMenu.vue';
 
 // Types
 export type {

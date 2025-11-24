@@ -11,7 +11,6 @@
  */
 
 export { APIClient } from './apiClient';
-export { settingsManager } from './settingsManager';
 
 import { APIClient } from './apiClient';
 import { apiBaseURL } from '../utils/environment';

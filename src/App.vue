@@ -23,6 +23,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Settings Modal -->
+    <SettingsModal />
   </div>
 </template>
 
@@ -30,6 +33,7 @@
 import { onMounted, computed, watch } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
+import { SettingsModal } from '@/modules/core';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';

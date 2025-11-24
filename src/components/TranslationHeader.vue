@@ -42,8 +42,6 @@
       </div>
       <!-- Avatar Menu -->
       <AvatarMenu
-        :user="profile.user"
-        @open-settings="showSettings = true"
         @logout="handleLogout"
       />
     </div>
@@ -58,18 +56,11 @@
       </div>
       <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
     </div>
-    
-    <!-- Settings Modal -->
-    <SettingsModal
-      v-if="showSettings"
-      @close="showSettings = false"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { SettingsModal } from '@/modules/core';
 import { ShareButton } from '@/modules/sharing';
 import { AvatarMenu, useProfileStore } from '@/modules/profile';
 import { useChaptersStore } from '@/modules/chapters';

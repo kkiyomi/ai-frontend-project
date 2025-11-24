@@ -26,6 +26,7 @@
                 <p class="text-xs text-gray-500">{{ getTotalStats() }}</p>
             </div>
         </div>
+        <ProfileMenu />
     </div>
 </template>
 
@@ -34,6 +35,7 @@ import { computed } from 'vue';
 import ChaptersSection from './ChaptersSection.vue';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
+import { ProfileMenu } from '@/modules/profile';
 
 interface Props {
     isGlossaryVisible: boolean;

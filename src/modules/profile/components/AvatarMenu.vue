@@ -83,27 +83,30 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import type { User } from '../types';
+import { useProfileStore } from '../store';
+import { useSettingsStore } from '@/modules/core';
+
+const settings = useSettingsStore();
+const profile = useProfileStore();
 
 interface Props {
-  user?: User | null;
   showUserInfo?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  user: null,
   showUserInfo: false,
 });
 
 const emit = defineEmits<{
-  'open-settings': [];
   'logout': [];
 }>();
 
+const user = profile.user;
 const isMenuOpen = ref(false);
 
 const userInitials = computed(() => {
-  if (!props.user?.name) return 'U';
-  return props.user.name
+  if (!user?.name) return 'U';
+  return user.name
     .split(' ')
     .map(part => part.charAt(0).toUpperCase())
     .slice(0, 2)
@@ -119,7 +122,7 @@ const closeMenu = () => {
 };
 
 const handleOpenSettings = () => {
-  emit('open-settings');
+  settings.openSettings();
   closeMenu();
 };
 

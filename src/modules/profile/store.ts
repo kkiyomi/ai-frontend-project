@@ -20,9 +20,7 @@
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { settingsManager } from '@/modules/core';
 import type { User, ProfileState } from './types';
-import type { SettingsSection } from '@/modules/core';
 
 export const useProfileStore = defineStore('profile', () => {
   // State
@@ -55,8 +53,6 @@ export const useProfileStore = defineStore('profile', () => {
       .join('');
   });
 
-  // Get settings sections from core settings manager
-  const settingsSections = settingsManager.getSections();
   // Actions
   function updateProfile(updates: Partial<User>) {
     if (user.value) {
@@ -128,7 +124,6 @@ export const useProfileStore = defineStore('profile', () => {
     user: computed(() => user.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
-    settingsSections: computed(() => settingsSections.value),
     profileState,
 
     // Computed
