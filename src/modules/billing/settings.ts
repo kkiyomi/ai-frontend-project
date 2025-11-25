@@ -1,4 +1,5 @@
 import { type SettingsSection } from '@/modules/core';
+import BillingSettings from './components/BillingSettings.vue';
 
 export const billingSettings: SettingsSection = {
   id: 'billing',
@@ -10,16 +11,6 @@ export const billingSettings: SettingsSection = {
         d="M3 7h18M3 10h18M7 15h2m4 0h2m-9 4h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
     </svg>
   `,
-  items: [
-    {
-      id: 'plan',
-      type: 'select',
-      label: 'Current Plan',
-      value: 'free',
-      options: [
-        { label: 'Free', value: 'free' },
-        { label: 'Pro', value: 'pro' }
-      ]
-    }
-  ]
+  component: BillingSettings,
+  items: []
 };

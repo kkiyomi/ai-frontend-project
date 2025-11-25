@@ -26,11 +26,12 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { billingAPI } from './api';
-import type { Subscription, BillingState, FeatureKey } from './types';
+import type { Subscription, Plan, BillingState, FeatureKey } from './types';
 
 export const useBillingStore = defineStore('billing', () => {
   // State
   const subscription = ref<Subscription | null>(null);
+  const plans = ref<Plan[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -118,7 +119,7 @@ export const useBillingStore = defineStore('billing', () => {
       usage: usage[key] || 0,
       percentage: getUsagePercentage(key),
       remaining: getRemainingQuota(key),
-    }));
+    })).filter(l => l.limit > 0);
   };
 
   // Convenience methods for known features (backward compatibility)
@@ -152,6 +153,25 @@ export const useBillingStore = defineStore('billing', () => {
     }
   }
 
+  async function loadPlans() {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await billingAPI.getPlans();
+
+      if (response.success && response.data) {
+        plans.value = response.data;
+      } else {
+        error.value = response.error || 'Failed to fetch plans';
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function clearError() {
     error.value = null;
   }
@@ -177,9 +197,13 @@ export const useBillingStore = defineStore('billing', () => {
     });
   }
 
+  fetchSubscription()
+  loadPlans()
+
   return {
     // State
     subscription,
+    plans,
     loading,
     error,
     billingState,
@@ -207,6 +231,7 @@ export const useBillingStore = defineStore('billing', () => {
 
     // Actions
     fetchSubscription,
+    loadPlans,
     clearError,
     updateUsage,
     updateMultipleUsage,

@@ -7,6 +7,7 @@
 export interface Plan {
   id: string;
   name: string;
+  price: number;
   features: Record<string, boolean>;
   limits: Record<string, number>;
 }
