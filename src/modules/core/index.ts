@@ -34,6 +34,10 @@ export type { APIResponse, SettingsItem, SettingsSection } from './types';
 
 export { default as SettingsModal } from './components/SettingsModal.vue';
 
+// Export functionality
+export { useExporter, createExporter } from './composables/useExporter';
+export type { ExportFormat, ExportOptions, ExportResult } from './types/export';
+
 export {
   isDevelopment,
   isProduction,
