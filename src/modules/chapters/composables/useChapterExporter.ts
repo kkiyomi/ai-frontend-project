@@ -102,9 +102,24 @@ export function useChapterExporter() {
     });
   };
 
+  /**
+   * Export current chapter only
+   */
+  const exportCurrentChapter = async (
+    chapter: Chapter,
+    format: 'json' | 'csv' | 'txt',
+    options?: ExportOptions
+  ) => {
+    return exporter.exportData([chapter], format, {
+      filename: `chapter-${chapter.title.replace(/[^a-zA-Z0-9]/g, '-')}`,
+      ...options,
+    });
+  };
+
   return {
     ...exporter,
     exportTranslatedChapters,
     exportChapterStats,
+    exportCurrentChapter,
   };
 }
