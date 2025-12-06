@@ -22,3 +22,12 @@ export interface ChapterUpdateInput {
   translatedContent?: string;
   isTranslated?: boolean;
 }
+
+// Export-specific type for chapters
+export interface ExportChapter {
+  id: string;
+  title: string;
+  seriesId: string;
+  originalText: string;
+  translatedText: string;
+}

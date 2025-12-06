@@ -16,7 +16,7 @@
     </div>
 
     <!-- Subscription -->
-    <div v-if="subscription" class="space-y-6">
+    <div v-if="subscription && currentPlan" class="space-y-6">
       <h2 class="text-lg font-medium text-gray-900">Current Subscription</h2>
 
       <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
@@ -55,86 +55,9 @@
       </div>
     </div>
 
-    <!-- Plans -->
-    <div v-if="plans.length" class="space-y-6">
-      <h2 class="text-lg font-medium text-gray-900">Available Plans</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          v-for="plan in plans"
-          :key="plan.id"
-          class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">
-            {{ plan.name }}
-          </h3>
-
-          <p class="text-gray-700 mb-4">
-            <span v-if="plan.price === 0">Free</span>
-            <span v-else>${{ plan.price }}/mo</span>
-          </p>
-
-          <!-- Features -->
-          <div class="mb-4">
-            <h4 class="text-sm font-medium text-gray-700 mb-2">Features</h4>
-            <ul class="space-y-1 text-sm">
-              <li
-                v-for="(enabled, feature) in plan.features"
-                :key="feature"
-                class="flex items-center"
-              >
-                <span
-                  v-if="enabled"
-                  class="text-green-600 font-medium mr-2"
-                >
-                  ✔
-                </span>
-                <span
-                  v-else
-                  class="text-gray-400 mr-2"
-                >
-                  ✖
-                </span>
-
-                <span
-                  :class="enabled ? 'text-gray-900' : 'text-gray-500'"
-                >
-                  {{ formatFeatureName(feature) }}
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Limits -->
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 mb-2">Limits</h4>
-
-            <ul class="text-sm space-y-1">
-              <li
-                v-for="(limit, key) in plan.limits"
-                :key="key"
-                class="flex justify-between"
-              >
-                <span class="text-gray-700">{{ formatLimitName(key) }}</span>
-                <span class="text-gray-900">{{ limit }}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Button -->
-          <button
-            class="mt-4 w-full py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            :disabled="plan.id === currentPlan.id"
-          >
-            <span v-if="plan.id === currentPlan.id">Current Plan</span>
-            <span v-else>Choose</span>
-          </button>
-        </div>
-      </div>
-    </div>
     <!-- Upgrade Card -->
     <UpgradeCard
-      v-if="nextPlan"
+      v-if="nextPlan && currentPlan"
       :currentPlan="currentPlan"
       :nextPlan="nextPlan"
     />
@@ -153,10 +76,13 @@ const {
   loading,
   error,
   fetchSubscription,
-  currentPlan,
   getAllLimitsWithUsage,
   loadPlans,
 } = useBillingStore();
+
+
+const currentPlan = computed(() => subscription?.plan || null);
+const currentUsage = computed(() => subscription?.usage || null);
 
 const limits = computed(() => getAllLimitsWithUsage());
 
@@ -177,7 +103,7 @@ const nextPlan = computed(() => {
   if (!currentPlan || !plans.length) return null;
 
   const sorted = plans.sort((a, b) => (a.price || 0) - (b.price || 0));
-  const index = sorted.findIndex(p => p.id === currentPlan.id);
+  const index = sorted.findIndex(p => p.id === currentPlan.value?.id);
 
   return sorted[index + 1] || null;
 });

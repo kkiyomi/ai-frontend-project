@@ -26,6 +26,7 @@ export class BillingMockAPI {
       plan: {
         id: "free",
         name: "Free Plan",
+        price: 0,
         features: {
           translation: false,
           advanced_glossary: false,

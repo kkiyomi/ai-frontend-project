@@ -26,10 +26,10 @@ export { default as ChaptersList } from './components/ChaptersList.vue';
 
 // Export functionality
 export { useChapterExporter } from './composables/useChapterExporter';
-export type { ExportChapter } from './composables/useChapterExporter';
 
 export type {
   Chapter,
   ChapterCreateInput,
-  ChapterUpdateInput
+  ChapterUpdateInput,
+  ExportChapter
 } from './types';
