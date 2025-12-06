@@ -1,61 +1,78 @@
 <template>
-  <div class="border rounded-xl p-6 bg-[#1b1b1d] text-white flex flex-col md:flex-row gap-10">
-    <!-- Left Panel -->
-    <div class="flex-1 space-y-6">
+  <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm space-y-6">
+
+    <!-- Title -->
+    <h2 class="text-lg font-medium text-gray-900">
+      Upgrade to {{ nextPlan.name }}
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- Left Side -->
+      <div class="space-y-4">
+
+        <!-- Price -->
+        <div class="text-4xl font-semibold text-gray-900">
+          ${{ nextPlan.price }}
+          <span class="text-base font-normal text-gray-500">
+            per month
+          </span>
+        </div>
+        <div class="text-sm text-gray-500 -mt-2">billed monthly</div>
+
+        <!-- Current Plan -->
+        <div class="text-sm text-gray-600">
+          Your current plan:
+          <span class="font-medium text-gray-900">
+            {{ currentPlan.name }}
+          </span>
+        </div>
+
+        <!-- Button -->
+        <button
+          class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Upgrade
+        </button>
+      </div>
+
+      <!-- Right Side -->
       <div>
-        <h2 class="text-2xl font-bold">Upgrade to {{ nextPlan.name }}</h2>
+        <h3 class="text-sm font-medium text-gray-700 mb-3">Included:</h3>
+
+        <ul class="space-y-2 text-sm">
+
+          <!-- Features -->
+          <li
+            v-for="(enabled, feature) in nextPlan.features"
+            :key="feature"
+            class="flex items-start gap-2"
+          >
+            <span class="text-green-600 font-medium">✔</span>
+            <span class="text-gray-800">
+              {{ pretty(feature) }}
+            </span>
+          </li>
+
+          <!-- Limits -->
+          <li
+            v-for="(limit, key) in nextPlan.limits"
+            :key="key"
+            class="flex justify-between items-start"
+          >
+            <div class="flex items-start gap-2">
+              <span class="text-green-600 font-medium">✔</span>
+              <span class="text-gray-800">
+                {{ pretty(key) }}
+              </span>
+            </div>
+
+            <span class="text-gray-800">
+              {{ limit }}
+            </span>
+          </li>
+        </ul>
       </div>
-
-      <!-- Pricing -->
-      <div class="text-5xl font-semibold">
-        ${{ nextPlan.price }}
-        <span class="text-lg font-normal text-gray-300">per month</span>
-      </div>
-      <div class="text-sm text-gray-400 -mt-4">billed monthly</div>
-
-      <div class="text-sm text-gray-400">
-        Your current plan: <span class="text-white font-medium">{{ currentPlan.name }}</span>
-      </div>
-
-      <button
-        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center font-medium mt-2"
-      >
-        Upgrade
-      </button>
-    </div>
-
-    <!-- Right Panel -->
-    <div class="flex-1">
-      <h3 class="text-lg font-semibold mb-4">You get:</h3>
-      <ul class="space-y-2 text-sm">
-        <li
-          v-for="(enabled, feature) in nextPlan.features"
-          :key="feature"
-          class="flex items-start gap-2"
-        >
-          <span class="text-green-400 font-bold text-xl leading-none">✔</span>
-          <span class="text-gray-200">
-            {{ pretty(feature) }}
-          </span>
-        </li>
-
-        <!-- Limits -->
-        <li
-          v-for="(limit, key) in nextPlan.limits"
-          :key="key + '-limit'"
-          class="flex justify-between gap-2"
-        >
-        <span class="flex gap-2">
-          <span class="text-green-400 font-bold text-xl leading-none">✔</span>
-          <span class="text-gray-200">
-            {{ pretty(key) }}:
-          </span>
-        </span>
-          <span class="text-gray-200">
-            {{ limit }}
-          </span>
-        </li>
-      </ul>
     </div>
   </div>
 </template>
