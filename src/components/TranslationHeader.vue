@@ -22,19 +22,19 @@
       </div>
 
       <!-- Middle: Action Buttons -->
-      <div v-if="currentChapter" class="flex items-center space-x-2">
+      <div v-if="currentSeries" class="flex items-center space-x-2">
 
         <ShareButton :chapters="allChapters" :series="allSeries" />
 
         <!-- Export Dropdown -->
         <ExportButton
-          v-if="currentChapter"
-          :chapters="allChapters"
+          v-if="currentSeries"
+          :chapters="currentSeries.chapters"
           :currentChapter="currentChapter"
         />
 
         <!-- Layout Toggle -->
-        <button
+        <button v-if="currentChapter"
           @click="editor.toggleLayoutMode()"
           class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
           title="Toggle layout"
@@ -66,7 +66,7 @@
         </button>
 
         <!-- Content Toggle -->
-        <button
+        <button v-if="currentChapter"
           @click="editor.toggleContentMode()"
           class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
           title="Toggle content"
@@ -96,7 +96,7 @@
         </button>
 
         <!-- Translate All -->
-        <button
+        <button v-if="currentChapter"
           @click="translateAllParagraphs"
           :disabled="isTranslating"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md text-sm font-semibold
@@ -137,12 +137,17 @@ import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
 import { useEditorStore } from "@/modules/editor";
 import { useTranslationStore } from "@/modules/translation";
+import { useSeriesWithChapters } from '@/composables';
 import type { ExportFormat } from "@/modules/core";
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
 const editor = useEditorStore();
 const profile = useProfileStore();
+
+const {
+  selectedSeriesWithChapters: currentSeries,
+} = useSeriesWithChapters();
 
 const {
   isTranslating,

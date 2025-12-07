@@ -37,6 +37,7 @@ import { SettingsModal } from '@/modules/core';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
+import { useBillingStore } from '@/modules/billing';
 import { useSeriesWithChapters } from '@/composables';
 
 const glossary = useGlossaryStore();
@@ -48,6 +49,7 @@ const {
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+const billingStore = useBillingStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
@@ -55,6 +57,8 @@ const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 onMounted(async () => {
   await seriesStore.fetchSeries();
   await chaptersStore.loadChapters();
+  await billingStore.fetchSubscription();
+  await billingStore.loadPlans();
 });
 
 const closeGlossaryIfClickedOutside = (event: Event) => {

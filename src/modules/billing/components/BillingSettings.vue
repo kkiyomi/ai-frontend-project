@@ -108,11 +108,4 @@ const nextPlan = computed(() => {
   return sorted[index + 1] || null;
 });
 
-
-onMounted(() => {
-  fetchSubscription();
-  loadPlans();
-  console.log(plans)
-  console.log(subscription)
-});
 </script>
