@@ -38,6 +38,9 @@
 // Store
 export { useProfileStore } from './store';
 
+// API
+export { profileAPI } from './api';
+
 // Components
 export { default as AvatarMenu } from './components/AvatarMenu.vue';
 export { default as ProfileMenu } from './components/ProfileMenu.vue';

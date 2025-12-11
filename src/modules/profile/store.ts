@@ -20,17 +20,12 @@
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { profileAPI } from './api';
 import type { User, ProfileState } from './types';
 
 export const useProfileStore = defineStore('profile', () => {
   // State
-  const user = ref<User | null>({
-    id: 'user-1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: undefined,
-    createdAt: new Date('2024-01-15'),
-  });
+  const user = ref<User | null>(null);
   
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -80,9 +75,13 @@ export const useProfileStore = defineStore('profile', () => {
     setError(null);
     
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // Profile is already set with placeholder data
+      const response = await profileAPI.getProfile();
+      
+      if (response.success && response.data) {
+        user.value = response.data;
+      } else {
+        setError(response.error || 'Failed to load profile');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
@@ -95,9 +94,13 @@ export const useProfileStore = defineStore('profile', () => {
     setError(null);
     
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 300));
-      updateProfile(updates);
+      const response = await profileAPI.updateProfile(updates);
+      
+      if (response.success && response.data) {
+        user.value = response.data;
+      } else {
+        setError(response.error || 'Failed to save profile');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {
@@ -109,7 +112,7 @@ export const useProfileStore = defineStore('profile', () => {
     setLoading(true);
     
     try {
-      // TODO: Replace with actual API call
+      // TODO: Add logout API call when needed
       await new Promise(resolve => setTimeout(resolve, 200));
       clearProfile();
     } catch (err) {
@@ -118,6 +121,9 @@ export const useProfileStore = defineStore('profile', () => {
       setLoading(false);
     }
   }
+
+  // Load profile on store initialization
+  loadProfile();
 
   return {
     // State
