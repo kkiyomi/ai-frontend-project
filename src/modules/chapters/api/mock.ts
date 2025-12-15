@@ -14,16 +14,24 @@ const simulateFailure = (failureRate = 0.05): boolean => {
 };
 
 export class ChapterMockAPI {
-  async getChapters(seriesId?: string): Promise<APIResponse<Chapter[]>> {
+  async getChapters(seriesId?: string, chapterIds?: string[]): Promise<APIResponse<Chapter[]>> {
     await simulateDelay(200, 600);
 
-    const chapters = seriesId
-      ? mockChapters.filter(ch => ch.seriesId === seriesId)
-      : mockChapters;
+    let filteredChapters = mockChapters;
+
+    // First filter by chapterIds if provided
+    if (chapterIds && chapterIds.length > 0) {
+      filteredChapters = filteredChapters.filter(ch => chapterIds.includes(ch.id));
+    }
+    
+    // Then filter by seriesId if provided
+    if (seriesId) {
+      filteredChapters = filteredChapters.filter(ch => ch.seriesId === seriesId);
+    }
 
     return {
       success: true,
-      data: chapters,
+      data: filteredChapters,
     };
   }
 

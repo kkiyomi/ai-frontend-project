@@ -29,50 +29,26 @@ export const useChaptersStore = defineStore('chapters', () => {
     return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
   }
 
-  async function loadChapter(chapterId: string): Promise<void> {
-    try {
-      const response = await chapterAPI.getChapters(chapterId);
-      
-      if (response.success && response.data) {
-        const enrichedChapter = {
-          ...response.data,
-          originalParagraphs: buildOriginalParagraphs(response.data.content),
-          translatedParagraphs: buildTranslatedParagraphs(response.data.translatedContent || ''),
-        };
-        
-        const index = chapters.value.findIndex(ch => ch.id === chapterId);
-        if (index !== -1) {
-          chapters.value[index] = enrichedChapter;
-        } else {
-          chapters.value.push(enrichedChapter);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading chapter:', err);
-      error.value = 'Failed to load chapter';
-    }
-  }
-
-  async function loadChapters(seriesId?: string): Promise<void> {
+  async function loadChapters(seriesId?: string, chapterIds?: string[]): Promise<void> {
     if (loadingPromise) {
       return loadingPromise;
     }
 
-    if (dataLoaded && chapters.value.length > 0 && !seriesId) {
+    if (dataLoaded && chapters.value.length > 0 && !seriesId && !chapterIds) {
       return;
     }
 
-    loadingPromise = performLoad(seriesId);
+    loadingPromise = performLoad(seriesId, chapterIds);
     await loadingPromise;
     loadingPromise = null;
   }
 
-  async function performLoad(seriesId?: string): Promise<void> {
+  async function performLoad(seriesId?: string, chapterIds?: string[]): Promise<void> {
     try {
       isLoading.value = true;
       error.value = null;
 
-      const response = await chapterAPI.getChapters(seriesId);
+      const response = await chapterAPI.getChapters(seriesId, chapterIds);
 
       if (response.success && response.data) {
         const enrichedChapters = response.data.map((chapter) => ({
@@ -85,6 +61,11 @@ export const useChaptersStore = defineStore('chapters', () => {
         if (seriesId) {
           chapters.value = [
             ...chapters.value.filter(ch => ch.seriesId !== seriesId),
+            ...enrichedChapters
+          ];
+        } else if (chapterIds) {
+          chapters.value = [
+            ...chapters.value.filter(ch => !chapterIds.includes(ch.id)),
             ...enrichedChapters
           ];
         } else {
@@ -200,11 +181,11 @@ export const useChaptersStore = defineStore('chapters', () => {
     currentChapterId.value = chapterId;
   }
 
-  async function refresh(seriesId?: string): Promise<void> {
-    if (!seriesId) {
+  async function refresh(seriesId?: string, chapterIds?: string[]): Promise<void> {
+    if (!seriesId && !chapterIds) {
       dataLoaded = false;
     }
-    await loadChapters(seriesId);
+    await loadChapters(seriesId, chapterIds);
   }
 
   async function forceReload(): Promise<void> {

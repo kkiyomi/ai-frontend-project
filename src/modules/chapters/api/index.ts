@@ -42,7 +42,7 @@ class ChapterAPIService {
 
   async getChapters(seriesId?: string, chapterIds?: string[]): Promise<APIResponse<Chapter[]>> {
     const api = await this.getAPI();
-    return api.getChapters(seriesId);
+    return api.getChapters(seriesId, chapterIds);
   }
 
   async createChapter(input: ChapterCreateInput): Promise<APIResponse<Chapter>> {
