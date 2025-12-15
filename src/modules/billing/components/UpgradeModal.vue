@@ -3,27 +3,46 @@
   Uses the existing UpgradeCard component to show the next available plan.
 -->
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-8 max-w-2xl w-full shadow-2xl">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">🔒 Translation Feature Locked</h2>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 text-xl">
-          ✕
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    @click="handleBackdropClick"
+  >
+    <div class="bg-white rounded-lg w-full max-w-lg shadow-lg">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">🔒 Translation Feature Locked</h2>
+        <button
+          @click="$emit('close')"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
-      <p class="text-gray-600 mb-6">
+
+      <!-- Description -->
+      <p class="p-6 pb-4 text-gray-600">
         To translate chapters, you need to upgrade to a plan that includes translation feature.
       </p>
-      <UpgradeCard v-if="currentPlan && nextPlan" :currentPlan="currentPlan" :nextPlan="nextPlan" />
-      <div v-else class="text-center py-8 text-gray-500">
-        Loading upgrade options...
+
+      <!-- Upgrade Card -->
+      <div class="px-6 pb-4">
+        <UpgradeCard v-if="currentPlan && nextPlan" :currentPlan="currentPlan" :nextPlan="nextPlan" />
+        <div v-else class="text-center py-8 text-gray-500">
+          Loading upgrade options...
+        </div>
       </div>
-      <button
-        @click="$emit('close')"
-        class="mt-6 w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-      >
-        Maybe Later
-      </button>
+
+      <!-- Maybe Later Button -->
+      <div class="p-6 pt-2 border-t border-gray-200">
+        <button
+          @click="$emit('close')"
+          class="w-full py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+        >
+          Maybe Later
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -32,6 +51,10 @@
 import { computed } from 'vue';
 import { useBillingStore } from '../store';
 import UpgradeCard from './UpgradeCard.vue';
+
+const emit = defineEmits<{
+  close: [];
+}>();
 
 const billingStore = useBillingStore();
 
@@ -53,7 +76,9 @@ const nextPlan = computed(() => {
   return sorted[index + 1] || null;
 });
 
-defineEmits<{
-  close: [];
-}>();
+const handleBackdropClick = (e: MouseEvent) => {
+  if (e.target === e.currentTarget) {
+    emit('close');
+  }
+};
 </script>
