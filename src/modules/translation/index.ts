@@ -32,12 +32,12 @@
  * ```vue
  * <template>
  *   <TranslationToolbar
- *     :isTranslating="translation.isTranslating.value"
+ *     :isTranslating="translation.isTranslating"
  *     @translate="handleTranslate"
  *   />
  *   <TranslationProgress
- *     :progress="translation.translationProgress.value"
- *     :isVisible="translation.isTranslating.value"
+ *     :progress="translation.translationProgress"
+ *     :isVisible="translation.isTranslating"
  *   />
  * </template>
  * ```
