@@ -27,7 +27,7 @@ export const useTranslationStore = defineStore('translation', () => {
   const ongoingTranslations = new Set<string>();
   
   // Add polling state
-  const pollingInterval = ref<NodeJS.Timeout | null>(null);
+  const pollingInterval = ref<number | null>(null);
   const activeJobId = ref<string | null>(null);
 
   // Getters
