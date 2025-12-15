@@ -15,6 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { TranslationMockAPI } from './mock';
 import { TranslationRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
+import type { TranslationJobResponse } from '../types';
 
 class TranslationAPIService {
   private static instance: TranslationAPIService | null = null;
@@ -91,16 +92,11 @@ class TranslationAPIService {
     return api.suggestGlossaryTerms(text);
   }
 
-  // Add these methods to the TranslationAPIService class
-
   async getTranslationJobStatus(
     jobId: string
   ): Promise<APIResponse<TranslationJobResponse>> {
     const api = await this.getAPI();
-    return (api as any).getTranslationJobStatus?.(jobId) || {
-      success: false,
-      error: 'Job status endpoint not implemented'
-    };
+    return api.getTranslationJobStatus(jobId);
   }
 }
 

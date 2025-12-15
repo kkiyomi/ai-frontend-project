@@ -9,6 +9,7 @@
  */
 
 import type { APIResponse } from '@/modules/core';
+import type { TranslationJobResponse } from '../types';
 
 const simulateDelay = (min = 300, max = 1000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -19,7 +20,20 @@ const simulateFailure = (failureRate = 0.05): boolean => {
   return Math.random() < failureRate;
 };
 
+interface MockJob {
+  jobId: string;
+  chapterId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  totalParagraphs: number;
+  processedParagraphs: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class TranslationMockAPI {
+  private mockJobs = new Map<string, MockJob>();
+
   async translateText(
     text: string,
     glossaryContext?: string[]
@@ -91,20 +105,42 @@ export class TranslationMockAPI {
   async translateChapter(
     chapterId: string
   ): Promise<APIResponse<{ jobId: string }>> {
-    await simulateDelay(500, 1500);
-
+    await simulateDelay(500, 1000);
+    
     if (simulateFailure(0.05)) {
       return {
         success: false,
         error: 'Failed to start chapter translation'
       };
     }
-
+    
+    const jobId = `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const job: MockJob = {
+      jobId,
+      chapterId,
+      status: 'pending',
+      progress: 0,
+      totalParagraphs: 10, // Mock number of paragraphs
+      processedParagraphs: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.mockJobs.set(jobId, job);
+    
+    // Start processing after a short delay
+    setTimeout(() => {
+      const currentJob = this.mockJobs.get(jobId);
+      if (currentJob) {
+        currentJob.status = 'processing';
+        currentJob.updatedAt = new Date();
+      }
+    }, 1000);
+    
     return {
       success: true,
-      data: {
-        jobId: `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-      }
+      data: { jobId }
     };
   }
 
@@ -129,19 +165,6 @@ export class TranslationMockAPI {
       data: suggestions,
     };
   }
-
-  // Add these methods to the TranslationMockAPI class
-
-  private mockJobs = new Map<string, {
-    jobId: string;
-    chapterId: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    progress: number;
-    totalParagraphs: number;
-    processedParagraphs: number;
-    createdAt: Date;
-    updatedAt: Date;
-  }>();
 
   async getTranslationJobStatus(
     jobId: string
@@ -184,49 +207,6 @@ export class TranslationMockAPI {
         totalParagraphs: job.totalParagraphs,
         processedParagraphs: job.processedParagraphs
       }
-    };
-  }
-
-  // Update the translateChapter method to store job info
-  async translateChapter(
-    chapterId: string
-  ): Promise<APIResponse<{ jobId: string }>> {
-    await simulateDelay(500, 1000);
-    
-    if (simulateFailure(0.05)) {
-      return {
-        success: false,
-        error: 'Failed to start chapter translation'
-      };
-    }
-    
-    const jobId = `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    const job = {
-      jobId,
-      chapterId,
-      status: 'pending' as const,
-      progress: 0,
-      totalParagraphs: 10, // Mock number of paragraphs
-      processedParagraphs: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.mockJobs.set(jobId, job);
-    
-    // Start processing after a short delay
-    setTimeout(() => {
-      const currentJob = this.mockJobs.get(jobId);
-      if (currentJob) {
-        currentJob.status = 'processing';
-        currentJob.updatedAt = new Date();
-      }
-    }, 1000);
-    
-    return {
-      success: true,
-      data: { jobId }
     };
   }
 }
