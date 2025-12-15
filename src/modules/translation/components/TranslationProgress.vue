@@ -18,12 +18,10 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  progress: number;
-  isVisible?: boolean;
-}
+import { useTranslationStore } from '../store';
+import { computed } from 'vue';
 
-withDefaults(defineProps<Props>(), {
-  isVisible: true
-});
+const store = useTranslationStore();
+const progress = computed(() => store.translationProgress);
+const isVisible = computed(() => store.isTranslating && progress.value > 0);
 </script>
