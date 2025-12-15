@@ -101,54 +101,57 @@ async function retranslateParagraph(
 }
 
 async function translateChapter(
-  paragraphs: string[],
-  glossaryContext?: string[]
-): Promise<string[]> {
-  const chapterKey = `chapter:${JSON.stringify(paragraphs)}:${JSON.stringify(glossaryContext)}`;
+  chapterId: string
+): Promise<{ jobId: string } | null> {
+  const chapterKey = `chapter:${chapterId}`;
 
   if (ongoingTranslations.has(chapterKey)) {
     console.log('[Translation Store] Chapter translation already in progress');
-    return paragraphs.map(() => 'Translation in progress...');
+    return null;
   }
 
   ongoingTranslations.add(chapterKey);
   setTranslating(true);
+  setCurrentChapterId(chapterId);
   setProgress(0);
 
-  const translations: string[] = [];
-
   try {
-    const batchSize = 3;
-
-    for (let i = 0; i < paragraphs.length; i += batchSize) {
-      const batch = paragraphs.slice(i, i + batchSize);
-
-      const batchPromises = batch.map(async (paragraph) => {
-        try {
-          const response = await translationAPI.translateText(paragraph, glossaryContext);
-          if (!response.success) {
-            console.error('[Translation Store] Paragraph translation failed:', response.error);
-            return 'Translation failed';
-          }
-          return response.data || 'Translation failed';
-        } catch (error) {
-          console.error('[Translation Store] Paragraph translation error:', error);
-          return 'Translation failed';
-        }
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      translations.push(...batchResults);
-
-      setProgress((Math.min(i + batchSize, paragraphs.length) / paragraphs.length) * 100);
+    const response = await translationAPI.translateChapter(chapterId);
+    
+    if (!response.success) {
+      console.error('[Translation Store] Failed to start chapter translation:', response.error);
+      return null;
     }
-  } finally {
+    
+    // Simulate progress updates (in real app, this would come from WebSocket/SSE/polling)
+    // For now, we'll simulate progress
+    const simulateProgress = () => {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        setProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTranslating(false);
+          setProgress(0);
+          ongoingTranslations.delete(chapterKey);
+          setCurrentChapterId(null);
+        }
+      }, 500);
+    };
+    
+    // Start progress simulation
+    setTimeout(simulateProgress, 100);
+    
+    return response.data || null;
+  } catch (error) {
+    console.error('[Translation Store] Chapter translation error:', error);
     ongoingTranslations.delete(chapterKey);
     setTranslating(false);
     setProgress(0);
+    setCurrentChapterId(null);
+    return null;
   }
-
-  return translations;
 }
 
 async function suggestGlossaryTerms(text: string): Promise<string[]> {

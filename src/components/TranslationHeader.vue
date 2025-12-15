@@ -181,15 +181,23 @@ const translateAllParagraphs = async () => {
   if (!currentChapter.value) return;
 
   try {
-    const fullText = currentChapter.value.content;
-    const translatedText = await translateParagraph(fullText);
-
-    const updatedChapter = {
-      translatedContent: translatedText,
-    };
-    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+    // Start chapter translation via translation API
+    const result = await translateChapter(currentChapter.value.id);
+    
+    if (result) {
+      console.log('Translation job started:', result.jobId);
+      // In a real implementation, you would:
+      // 1. Poll for translation status using the jobId
+      // 2. When translation is complete, refetch the chapter
+      // 3. Update the UI with the new translated content
+      
+      // For now, we'll simulate refetching after a delay
+      setTimeout(async () => {
+        await chaptersStore.refresh();
+      }, 3000);
+    }
   } catch (error) {
-    console.error('Error translating all paragraphs:', error);
+    console.error('Error starting chapter translation:', error);
   }
 };
 

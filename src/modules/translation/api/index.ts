@@ -70,6 +70,13 @@ class TranslationAPIService {
     return api.translateParagraph(text, chapterId, paragraphIndex, glossaryContext);
   }
 
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
+    const api = await this.getAPI();
+    return api.translateChapter(chapterId);
+  }
+
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,

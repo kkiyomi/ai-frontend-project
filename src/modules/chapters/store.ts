@@ -29,6 +29,30 @@ export const useChaptersStore = defineStore('chapters', () => {
     return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
   }
 
+  async function loadChapter(chapterId: string): Promise<void> {
+    try {
+      const response = await chapterAPI.getChapter(chapterId);
+      
+      if (response.success && response.data) {
+        const enrichedChapter = {
+          ...response.data,
+          originalParagraphs: buildOriginalParagraphs(response.data.content),
+          translatedParagraphs: buildTranslatedParagraphs(response.data.translatedContent || ''),
+        };
+        
+        const index = chapters.value.findIndex(ch => ch.id === chapterId);
+        if (index !== -1) {
+          chapters.value[index] = enrichedChapter;
+        } else {
+          chapters.value.push(enrichedChapter);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading chapter:', err);
+      error.value = 'Failed to load chapter';
+    }
+  }
+
   async function loadChapters(seriesId?: string): Promise<void> {
     if (loadingPromise) {
       return loadingPromise;

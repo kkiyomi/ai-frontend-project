@@ -36,6 +36,14 @@ export class TranslationRealAPI {
     });
   }
 
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
+    return apiClient.post<{ jobId: string }>('/translate-chapter', {
+      chapterId
+    });
+  }
+
   async retranslateWithGlossary(
     originalText: string,
     currentTranslation: string,

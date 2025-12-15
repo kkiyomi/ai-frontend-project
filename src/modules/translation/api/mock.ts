@@ -88,6 +88,26 @@ export class TranslationMockAPI {
     };
   }
 
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
+    await simulateDelay(500, 1500);
+
+    if (simulateFailure(0.05)) {
+      return {
+        success: false,
+        error: 'Failed to start chapter translation'
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        jobId: `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+      }
+    };
+  }
+
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
     await simulateDelay(400, 800);
 
