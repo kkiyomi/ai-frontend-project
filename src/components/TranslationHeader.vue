@@ -167,11 +167,8 @@ const translateAllParagraphs = async () => {
     
     if (result) {
       console.log('Translation job started:', result.jobId);
-      // In a real implementation, you would poll for translation status
-      // For now, we'll simulate refetching after the translation completes
-      setTimeout(async () => {
-        await chaptersStore.refresh();
-      }, 5000); // Simulate longer translation time
+      // Polling is now handled automatically by the store
+      // No need for setTimeout or manual refresh calls
     }
   } catch (error) {
     console.error('Error starting chapter translation:', error);

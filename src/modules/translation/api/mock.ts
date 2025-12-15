@@ -129,4 +129,104 @@ export class TranslationMockAPI {
       data: suggestions,
     };
   }
+
+  // Add these methods to the TranslationMockAPI class
+
+  private mockJobs = new Map<string, {
+    jobId: string;
+    chapterId: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    progress: number;
+    totalParagraphs: number;
+    processedParagraphs: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }>();
+
+  async getTranslationJobStatus(
+    jobId: string
+  ): Promise<APIResponse<TranslationJobResponse>> {
+    await simulateDelay(200, 500);
+    
+    const job = this.mockJobs.get(jobId);
+    
+    if (!job) {
+      return {
+        success: false,
+        error: 'Job not found'
+      };
+    }
+    
+    // Simulate progress for in-progress jobs
+    if (job.status === 'processing') {
+      const elapsed = Date.now() - job.createdAt.getTime();
+      const totalTime = 8000; // 8 seconds simulated translation time
+      
+      if (elapsed >= totalTime) {
+        job.status = 'completed';
+        job.progress = 100;
+        job.processedParagraphs = job.totalParagraphs;
+        job.updatedAt = new Date();
+      } else {
+        const progress = Math.min(95, Math.floor((elapsed / totalTime) * 100));
+        job.progress = progress;
+        job.processedParagraphs = Math.floor((progress / 100) * job.totalParagraphs);
+        job.updatedAt = new Date();
+      }
+    }
+    
+    return {
+      success: true,
+      data: {
+        jobId: job.jobId,
+        status: job.status,
+        progress: job.progress,
+        totalParagraphs: job.totalParagraphs,
+        processedParagraphs: job.processedParagraphs
+      }
+    };
+  }
+
+  // Update the translateChapter method to store job info
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
+    await simulateDelay(500, 1000);
+    
+    if (simulateFailure(0.05)) {
+      return {
+        success: false,
+        error: 'Failed to start chapter translation'
+      };
+    }
+    
+    const jobId = `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const job = {
+      jobId,
+      chapterId,
+      status: 'pending' as const,
+      progress: 0,
+      totalParagraphs: 10, // Mock number of paragraphs
+      processedParagraphs: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.mockJobs.set(jobId, job);
+    
+    // Start processing after a short delay
+    setTimeout(() => {
+      const currentJob = this.mockJobs.get(jobId);
+      if (currentJob) {
+        currentJob.status = 'processing';
+        currentJob.updatedAt = new Date();
+      }
+    }, 1000);
+    
+    return {
+      success: true,
+      data: { jobId }
+    };
+  }
 }

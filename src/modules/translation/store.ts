@@ -14,7 +14,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { translationAPI } from './api';
-import type { TranslationState } from './types';
+import type { TranslationState, TranslationJobResponse } from './types';
 
 export const useTranslationStore = defineStore('translation', () => {
   // State
@@ -25,6 +25,10 @@ export const useTranslationStore = defineStore('translation', () => {
   });
 
   const ongoingTranslations = new Set<string>();
+  
+  // Add polling state
+  const pollingInterval = ref<NodeJS.Timeout | null>(null);
+  const activeJobId = ref<string | null>(null);
 
   // Getters
   const isTranslating = computed(() => translationState.value.isTranslating);
@@ -42,6 +46,59 @@ export const useTranslationStore = defineStore('translation', () => {
 
   function setCurrentChapterId(chapterId: string | null) {
     translationState.value.currentChapterId = chapterId;
+  }
+
+  // Polling methods
+  function startPolling(jobId: string) {
+    stopPolling(); // Clear any existing polling
+    
+    activeJobId.value = jobId;
+    
+    // Start polling immediately
+    pollJobStatus(jobId);
+    
+    // Set up interval for polling (every 1.5 seconds)
+    pollingInterval.value = setInterval(() => {
+      if (activeJobId.value) {
+        pollJobStatus(activeJobId.value);
+      }
+    }, 1500);
+  }
+
+  function stopPolling() {
+    if (pollingInterval.value) {
+      clearInterval(pollingInterval.value);
+      pollingInterval.value = null;
+    }
+    activeJobId.value = null;
+  }
+
+  async function pollJobStatus(jobId: string) {
+    try {
+      const response = await translationAPI.getTranslationJobStatus(jobId);
+      
+      if (response.success && response.data) {
+        const jobData = response.data;
+        setProgress(jobData.progress);
+        
+        // Update translation state based on job status
+        if (jobData.status === 'processing' || jobData.status === 'pending') {
+          setTranslating(true);
+        } else if (jobData.status === 'completed' || jobData.status === 'failed') {
+          setTranslating(false);
+          stopPolling();
+          
+          // Clean up chapter translation from ongoing set
+          const chapterKey = `chapter:${currentChapterId.value}`;
+          ongoingTranslations.delete(chapterKey);
+          setCurrentChapterId(null);
+        }
+      } else {
+        console.warn('[Translation Store] Failed to poll job status:', response.error);
+      }
+    } catch (error) {
+      console.error('[Translation Store] Error polling job status:', error);
+    }
   }
 
   async function translateParagraph(
@@ -123,42 +180,33 @@ export const useTranslationStore = defineStore('translation', () => {
     setTranslating(true);
     setCurrentChapterId(chapterId);
     setProgress(0);
+    stopPolling(); // Clear any existing polling
 
     try {
       const response = await translationAPI.translateChapter(chapterId);
       
-      if (!response.success) {
+      if (!response.success || !response.data) {
         console.error('[Translation Store] Failed to start chapter translation:', response.error);
+        ongoingTranslations.delete(chapterKey);
+        setTranslating(false);
+        setProgress(0);
+        setCurrentChapterId(null);
         return null;
       }
       
-      // Simulate progress updates (in real app, this would come from WebSocket/SSE/polling)
-      // For now, we'll simulate progress
-      const simulateProgress = () => {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 10;
-          setProgress(progress);
-          if (progress >= 100) {
-            clearInterval(interval);
-            setTranslating(false);
-            setProgress(0);
-            ongoingTranslations.delete(chapterKey);
-            setCurrentChapterId(null);
-          }
-        }, 500);
-      };
+      const jobId = response.data.jobId;
       
-      // Start progress simulation
-      setTimeout(simulateProgress, 100);
+      // Start polling for this job
+      startPolling(jobId);
       
-      return response.data || null;
+      return { jobId };
     } catch (error) {
       console.error('[Translation Store] Chapter translation error:', error);
       ongoingTranslations.delete(chapterKey);
       setTranslating(false);
       setProgress(0);
       setCurrentChapterId(null);
+      stopPolling();
       return null;
     }
   }
@@ -181,6 +229,7 @@ export const useTranslationStore = defineStore('translation', () => {
     ongoingTranslations.clear();
     setTranslating(false);
     setProgress(0);
+    stopPolling();
   }
 
   return {
@@ -199,5 +248,8 @@ export const useTranslationStore = defineStore('translation', () => {
     translateChapter,
     suggestGlossaryTerms,
     clearOngoingTranslations,
+    
+    // Polling action
+    stopPolling,
   };
 });
