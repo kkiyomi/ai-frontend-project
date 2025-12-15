@@ -11,7 +11,7 @@
       <div class="flex-1 flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">🔒 Translation Feature Locked</h2>
+          <h2 class="text-lg font-semibold text-gray-900">🔒 {{ titleText }}</h2>
           <button
             @click="$emit('close')"
             class="text-gray-400 hover:text-gray-600 transition-colors"
@@ -24,7 +24,7 @@
 
         <!-- Description -->
         <p class="p-6 pb-4 text-gray-600">
-          To translate chapters, you need to upgrade to a plan that includes translation feature.
+          To use {{ featureName || 'this feature' }}, you need to upgrade to a plan that includes it.
         </p>
 
         <!-- Upgrade Card -->
@@ -54,6 +54,14 @@ import { computed } from 'vue';
 import { useBillingStore } from '../store';
 import UpgradeCard from './UpgradeCard.vue';
 
+interface Props {
+  featureName?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  featureName: '',
+});
+
 const emit = defineEmits<{
   close: [];
 }>();
@@ -68,14 +76,20 @@ const nextPlan = computed(() => {
   const sorted = [...billingStore.plans].sort((a, b) => (a.price || 0) - (b.price || 0));
   const index = sorted.findIndex(p => p.id === currentPlan.value?.id);
 
-  // Find the next plan that includes translation feature
+  // Find the next plan that includes the required feature
   for (let i = index + 1; i < sorted.length; i++) {
-    if (sorted[i].features.translation) {
-      return sorted[i];
+    const plan = sorted[i];
+    // If a specific feature is requested, only accept plans that include it
+    if (props.featureName ? plan.features[props.featureName] : true) {
+      return plan;
     }
   }
-  // If no later plan has translation, return the immediate next plan
-  return sorted[index + 1] || null;
+  // If no later plan has the required feature, return null
+  return null;
+});
+
+const titleText = computed(() => {
+  return props.featureName ? `${props.featureName} Feature Locked` : 'Feature Locked';
 });
 
 const handleBackdropClick = (e: MouseEvent) => {
