@@ -14,6 +14,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { translationAPI } from './api';
+import { useBillingStore } from '@/modules/billing';
 import type { TranslationState, TranslationJobResponse } from './types';
 
 export const useTranslationStore = defineStore('translation', () => {
@@ -105,6 +106,12 @@ export const useTranslationStore = defineStore('translation', () => {
     originalText: string,
     glossaryContext?: string[]
   ): Promise<string> {
+    // Check feature access
+    const billingStore = useBillingStore();
+    if (!billingStore.hasFeature('translation')) {
+      throw new Error('Translation feature requires a paid plan. Please upgrade.');
+    }
+    
     const translationKey = `${originalText}:${JSON.stringify(glossaryContext)}`;
 
     if (ongoingTranslations.has(translationKey)) {
@@ -169,6 +176,12 @@ export const useTranslationStore = defineStore('translation', () => {
   async function translateChapter(
     chapterId: string
   ): Promise<{ jobId: string } | null> {
+    // Check feature access
+    const billingStore = useBillingStore();
+    if (!billingStore.hasFeature('translation')) {
+      throw new Error('Translation feature requires a paid plan. Please upgrade.');
+    }
+    
     const chapterKey = `chapter:${chapterId}`;
 
     if (ongoingTranslations.has(chapterKey)) {

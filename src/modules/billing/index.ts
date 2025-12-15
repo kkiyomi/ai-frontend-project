@@ -103,3 +103,4 @@ export type {
 export { FEATURE_KEYS } from './types';
 
 export { billingSettings } from './settings';
+export { default as UpgradeModal } from './components/UpgradeModal.vue';
