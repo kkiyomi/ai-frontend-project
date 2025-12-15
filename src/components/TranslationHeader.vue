@@ -95,16 +95,13 @@
           </div>
         </button>
 
-        <!-- Translate All -->
-        <button v-if="currentChapter"
-          @click="translateAllParagraphs"
-          :disabled="isTranslating"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md text-sm font-semibold
-                 transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span v-if="isTranslating">Translating…</span>
-          <span v-else>Translate All</span>
-        </button>
+        <!-- Translate All Button using TranslationToolbar component -->
+        <TranslationToolbar
+          v-if="currentChapter"
+          :disabled="!currentChapter"
+          :buttonText="translationStore.isTranslating ? 'Translating…' : 'Translate All'"
+          @translate="translateAllParagraphs"
+        />
 
       </div>
 
@@ -112,18 +109,11 @@
       <AvatarMenu @logout="handleLogout" />
     </div>
 
-    <!-- Progress Bar -->
-    <div v-if="isTranslating" class="mt-3">
-      <div class="bg-gray-200 rounded-full h-3 overflow-hidden">
-        <div
-          class="bg-blue-600 h-full rounded-full transition-all duration-300"
-          :style="{ width: `${translationProgress}%` }"
-        ></div>
-      </div>
-      <p class="text-sm text-gray-600 mt-2 font-medium">
-        {{ Math.round(translationProgress) }}% complete
-      </p>
-    </div>
+    <!-- Translation Progress using TranslationProgress component -->
+    <TranslationProgress />
+    
+    <!-- Translation Status using TranslationStatus component -->
+    <TranslationStatus />
   </div>
 </template>
 
@@ -136,9 +126,16 @@ import { AvatarMenu, useProfileStore } from "@/modules/profile";
 import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
 import { useEditorStore } from "@/modules/editor";
-import { useTranslationStore } from "@/modules/translation";
 import { useSeriesWithChapters } from '@/composables';
 import type { ExportFormat } from "@/modules/core";
+
+// Import translation module components and store
+import { 
+  useTranslationStore,
+  TranslationProgress,
+  TranslationStatus,
+  TranslationToolbar
+} from "@/modules/translation";
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
@@ -149,11 +146,8 @@ const {
   selectedSeriesWithChapters: currentSeries,
 } = useSeriesWithChapters();
 
-const {
-  isTranslating,
-  translationProgress,
-  translateParagraph,
-} = useTranslationStore();
+// Use translation store
+const translationStore = useTranslationStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const allChapters = computed(() => chaptersStore.chapters);
@@ -165,36 +159,19 @@ const allSeries = computed(() =>
   }))
 );
 
-const hasTranslatedContent = computed(() => {
-  return allChapters.value.some(chapter =>
-    chapter.translatedParagraphs.some(p => p.trim())
-  );
-});
-
-const translatedChaptersCount = computed(() => {
-  return allChapters.value.filter(chapter =>
-    chapter.translatedParagraphs.some(p => p.trim())
-  ).length;
-});
-
 const translateAllParagraphs = async () => {
   if (!currentChapter.value) return;
 
   try {
-    // Start chapter translation via translation API
-    const result = await translateChapter(currentChapter.value.id);
+    const result = await translationStore.translateChapter(currentChapter.value.id);
     
     if (result) {
       console.log('Translation job started:', result.jobId);
-      // In a real implementation, you would:
-      // 1. Poll for translation status using the jobId
-      // 2. When translation is complete, refetch the chapter
-      // 3. Update the UI with the new translated content
-      
-      // For now, we'll simulate refetching after a delay
+      // In a real implementation, you would poll for translation status
+      // For now, we'll simulate refetching after the translation completes
       setTimeout(async () => {
         await chaptersStore.refresh();
-      }, 3000);
+      }, 5000); // Simulate longer translation time
     }
   } catch (error) {
     console.error('Error starting chapter translation:', error);
@@ -204,7 +181,6 @@ const translateAllParagraphs = async () => {
 const handleLogout = async () => {
   try {
     await profile.logout();
-    // Handle post-logout logic here if needed
     console.log('User logged out successfully');
   } catch (error) {
     console.error('Logout failed:', error);
