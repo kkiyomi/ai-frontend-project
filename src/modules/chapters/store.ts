@@ -31,7 +31,7 @@ export const useChaptersStore = defineStore('chapters', () => {
 
   async function loadChapter(chapterId: string): Promise<void> {
     try {
-      const response = await chapterAPI.getChapter(chapterId);
+      const response = await chapterAPI.getChapters(chapterId);
       
       if (response.success && response.data) {
         const enrichedChapter = {

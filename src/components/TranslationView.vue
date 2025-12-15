@@ -17,8 +17,8 @@
       :chapterId="currentChapterId"
       :highlightTermsInText="glossary.highlightTermsInText"
       :isHighlightEnabled="glossary.isHighlightEnabled.value"
-      :isTranslating="translation.isTranslating.value"
-      :translationProgress="translation.translationProgress.value"
+      :isTranslating="translation.isTranslating"
+      :translationProgress="translation.translationProgress"
     />
   </div>
 
