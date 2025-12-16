@@ -4,6 +4,7 @@
 -->
 <template>
   <div
+    v-if="billingStore.isUpgradeModalVisible"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     @click="handleBackdropClick"
   >
@@ -13,7 +14,7 @@
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">🔒 {{ titleText }}</h2>
           <button
-            @click="$emit('close')"
+            @click="billingStore.closeUpgradeModal()"
             class="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +39,7 @@
         <!-- Maybe Later Button -->
         <div class="p-6 pt-2 border-t border-gray-200">
           <button
-            @click="$emit('close')"
+            @click="billingStore.closeUpgradeModal()"
             class="w-full py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
           >
             Maybe Later
@@ -54,20 +55,9 @@ import { computed } from 'vue';
 import { useBillingStore } from '../store';
 import UpgradeCard from './UpgradeCard.vue';
 
-interface Props {
-  featureName?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  featureName: '',
-});
-
-const emit = defineEmits<{
-  close: [];
-}>();
-
 const billingStore = useBillingStore();
 
+const featureName = computed(() => billingStore.currentUpgradeContext?.featureName || '');
 const currentPlan = computed(() => billingStore.subscription?.plan || null);
 
 const nextPlan = computed(() => {
@@ -80,7 +70,7 @@ const nextPlan = computed(() => {
   for (let i = index + 1; i < sorted.length; i++) {
     const plan = sorted[i];
     // If a specific feature is requested, only accept plans that include it
-    if (props.featureName ? plan.features[props.featureName] : true) {
+    if (featureName.value ? plan.features[featureName.value] : true) {
       return plan;
     }
   }
@@ -89,12 +79,12 @@ const nextPlan = computed(() => {
 });
 
 const titleText = computed(() => {
-  return props.featureName ? `${props.featureName} Feature Locked` : 'Feature Locked';
+  return featureName.value ? `${featureName.value} Feature Locked` : 'Feature Locked';
 });
 
 const handleBackdropClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
-    emit('close');
+    billingStore.closeUpgradeModal();
   }
 };
 </script>

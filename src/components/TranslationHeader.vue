@@ -115,11 +115,6 @@
     <!-- Translation Status using TranslationStatus component -->
     <TranslationStatus />
 
-    <!-- Upgrade Modal -->
-    <UpgradeModal
-      v-if="showUpgradeModal"
-      @close="showUpgradeModal = false"
-    />
   </div>
 </template>
 
@@ -144,7 +139,6 @@ import {
 } from "@/modules/translation";
 
 import { useBillingStore } from "@/modules/billing";
-import UpgradeModal from "@/modules/billing/components/UpgradeModal.vue";
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
@@ -158,7 +152,6 @@ const {
 // Use translation store
 const translationStore = useTranslationStore();
 const billingStore = useBillingStore();
-const showUpgradeModal = ref(false);
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const allChapters = computed(() => chaptersStore.chapters);
@@ -175,7 +168,7 @@ const translateAllParagraphs = async () => {
 
   // Check if the user has access to translation feature
   if (!billingStore.hasFeature('translation')) {
-    showUpgradeModal.value = true;
+    billingStore.openUpgradeModal({ featureName: 'translation' });
     return;
   }
 

@@ -34,6 +34,11 @@ export const useBillingStore = defineStore('billing', () => {
   const plans = ref<Plan[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const showUpgradeModal = ref(false);
+  const upgradeModalContext = ref<{
+    featureName?: string;
+    [key: string]: any;
+  } | null>(null);
 
   // Computed
   const billingState = computed<BillingState>(() => ({
@@ -41,6 +46,9 @@ export const useBillingStore = defineStore('billing', () => {
     loading: loading.value,
     error: error.value,
   }));
+
+  const isUpgradeModalVisible = computed(() => showUpgradeModal.value);
+  const currentUpgradeContext = computed(() => upgradeModalContext.value);
 
   const currentPlan = computed(() => subscription.value?.plan || null);
   const currentUsage = computed(() => subscription.value?.usage || null);
@@ -197,6 +205,28 @@ export const useBillingStore = defineStore('billing', () => {
     });
   }
 
+  // Modal actions
+  function openUpgradeModal(context?: { featureName?: string }) {
+    upgradeModalContext.value = context || null;
+    showUpgradeModal.value = true;
+  }
+
+  function closeUpgradeModal() {
+    showUpgradeModal.value = false;
+    // Optional: Clear context after a delay to avoid flicker
+    setTimeout(() => {
+      upgradeModalContext.value = null;
+    }, 300);
+  }
+
+  function toggleUpgradeModal(context?: { featureName?: string }) {
+    if (showUpgradeModal.value) {
+      closeUpgradeModal();
+    } else {
+      openUpgradeModal(context);
+    }
+  }
+
   fetchSubscription()
   loadPlans()
 
@@ -206,6 +236,9 @@ export const useBillingStore = defineStore('billing', () => {
     plans,
     loading,
     error,
+    showUpgradeModal,
+    isUpgradeModalVisible,
+    currentUpgradeContext,
     billingState,
 
     // Computed
@@ -235,5 +268,8 @@ export const useBillingStore = defineStore('billing', () => {
     clearError,
     updateUsage,
     updateMultipleUsage,
+    openUpgradeModal,
+    closeUpgradeModal,
+    toggleUpgradeModal,
   };
 });
