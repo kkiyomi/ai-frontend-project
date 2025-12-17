@@ -1,3 +1,19 @@
+/**
+ * Chapters Module - Pinia Store
+ *
+ * Manages chapter state and operations including file parsing, 
+ * content management, and chapter organization by series.
+ *
+ * Usage Example:
+ * ```typescript
+ * import { useChaptersStore } from '@/modules/chapters';
+ *
+ * const chapters = useChaptersStore();
+ * await chapters.loadChapters('series-id');
+ * await chapters.createChapter({ title: 'New Chapter', ... });
+ * ```
+ */
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { chapterAPI } from './api';
@@ -194,6 +210,10 @@ export const useChaptersStore = defineStore('chapters', () => {
     await loadChapters();
   }
 
+  function clearError() {
+    error.value = null;
+  }
+
   return {
     chapters: computed(() => chapters.value),
     currentChapter,
@@ -210,5 +230,6 @@ export const useChaptersStore = defineStore('chapters', () => {
     deleteChapter,
     refresh,
     forceReload,
+    clearError,
   };
 });

@@ -83,7 +83,7 @@ export const useSharingStore = defineStore('sharing', () => {
   }
 
   function getShareStats(
-    chapters: any[],
+    chapters: Array<{ id: string; seriesId: string; originalParagraphs?: string[]; translatedParagraphs?: string[] }>,
     selectedChapterIds: string[],
     selectedSeriesIds: string[]
   ): ShareStats | null {
@@ -165,5 +165,8 @@ export const useSharingStore = defineStore('sharing', () => {
     setShareError,
     getShareStats,
     loadFromLocalStorage,
+    clearError: () => {
+      shareError.value = null;
+    },
   };
 });
