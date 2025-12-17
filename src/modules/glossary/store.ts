@@ -3,7 +3,8 @@
  *
  * Reactive state management for glossary terms with support for series and chapter-level organization.
  * Features include: term highlighting in text content, smart term suggestions from text,
- * popup display on hover, contextual filtering by series/chapter, and category-based grouping.
+ * contextual filtering by series/chapter, and category-based grouping. Note: Popup display
+ * functionality is handled by the separate `useGlossaryPopup` composable.
  * Integrates with glossary API layer with automatic mock/real switching.
  *
  * Usage Example:

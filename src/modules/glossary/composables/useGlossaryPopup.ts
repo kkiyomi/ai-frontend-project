@@ -1,3 +1,20 @@
+/**
+ * Glossary Popup Composable
+ *
+ * Provides reactive state and event handlers for displaying glossary term popups on hover.
+ * Manages popup visibility, position calculation, and event listeners for glossary highlights.
+ * Features include: smart positioning to avoid viewport edges, click-outside detection,
+ * and hover delay handling for smooth user experience.
+ *
+ * Usage Example:
+ * ```typescript
+ * import { useGlossaryPopup } from '@/modules/glossary/composables/useGlossaryPopup';
+ *
+ * const { showPopup, hoveredTerm, popupPosition, closePopup } = useGlossaryPopup();
+ *
+ * // In template, conditionally render a popup using showPopup, hoveredTerm, and popupPosition
+ * ```
+ */
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { GlossaryTerm } from '../types';
 import { useGlossaryStore } from '../store';
