@@ -19,9 +19,9 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { GlossaryTerm } from '../types';
 import { useGlossaryStore } from '../store';
 
-const { terms: glossaryTerms, isHighlightEnabled } = useGlossaryStore();
 
 export function useGlossaryPopup() {
+  const { terms: glossaryTerms, isHighlightEnabled } = useGlossaryStore();
   const showPopup = ref(false);
   const hoveredTerm = ref<GlossaryTerm | null>(null);
   const popupPosition = ref({ x: 0, y: 0 });
