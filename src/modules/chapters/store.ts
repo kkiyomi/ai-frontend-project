@@ -1,8 +1,10 @@
 /**
  * Chapters Module - Pinia Store
  *
- * Manages chapter state and operations including file parsing, 
- * content management, and chapter organization by series.
+ * Manages chapter state and operations including file parsing using `parseFileContent` utility,
+ * content management, and chapter organization by series. Supports both file uploads and
+ * direct text input for chapter creation. Features automatic paragraph parsing and
+ * enriched chapter data structure with original/translated paragraph arrays.
  *
  * Usage Example:
  * ```typescript
@@ -10,7 +12,15 @@
  *
  * const chapters = useChaptersStore();
  * await chapters.loadChapters('series-id');
- * await chapters.createChapter({ title: 'New Chapter', ... });
+ *
+ * // Add chapter from file (auto-parses content)
+ * await chapters.addChapter(file, 'series-id');
+ *
+ * // Add chapter from text
+ * await chapters.addChapterFromText('Content', 'Title', 'series-id');
+ *
+ * // Update chapter content
+ * await chapters.updateChapter('chapter-id', { content: 'New content' });
  * ```
  */
 

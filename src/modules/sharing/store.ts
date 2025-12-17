@@ -3,23 +3,28 @@ import { ref, computed } from 'vue';
 import type { SharedContent, ShareStats } from './types';
 
 /**
- * Sharing Store - manages sharing state and operations
+ * Sharing Store - Pinia Store
  *
- * Usage example:
+ * Manages sharing state and operations with localStorage persistence for recent shares.
+ * Features include: share creation statistics, expiration tracking, and automatic
+ * persistence of up to 10 recent shares. Provides comprehensive share statistics
+ * calculation including translation progress metrics.
  *
+ * Usage Example:
+ * ```typescript
  * import { useSharingStore } from '@/modules/sharing';
  *
- * const sharingStore = useSharingStore();
+ * const sharing = useSharingStore();
  *
  * // Create a share
- * await sharingStore.createShare({
- *   chapterIds: ['ch1', 'ch2'],
- *   seriesIds: ['s1'],
- *   title: 'My Translation',
- * });
+ * await sharing.setActiveShare(shareData);
  *
- * // Get share stats
- * const stats = sharingStore.getShareStats(chapters, series);
+ * // Get share statistics for selected content
+ * const stats = sharing.getShareStats(chapters, ['ch1'], ['s1']);
+ *
+ * // Access persisted recent shares
+ * console.log(sharing.recentShares);
+ * ```
  */
 export const useSharingStore = defineStore('sharing', () => {
   // State

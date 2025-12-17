@@ -4,38 +4,29 @@ import { seriesAPI } from './api';
 import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from './types';
 
 /**
- * Series Store - manages series state using Pinia
+ * Series Module - Pinia Store
  *
- * HOW TO USE IN COMPONENTS:
+ * Manages series state and operations including CRUD operations and series selection.
+ * Provides comprehensive error handling, loading states, and computed properties
+ * for accessing the currently selected series. Integrates with series API layer
+ * with automatic mock/real switching based on environment configuration.
  *
- * 1. Import the store:
- *    import { useSeriesStore } from '@/modules/series';
+ * Usage Example:
+ * ```typescript
+ * import { useSeriesStore } from '@/modules/series';
  *
- * 2. Use in setup():
- *    const seriesStore = useSeriesStore();
+ * const series = useSeriesStore();
+ * await series.fetchSeries();
  *
- * 3. Access state:
- *    - seriesStore.series (all series)
- *    - seriesStore.selectedSeries (currently selected series)
- *    - seriesStore.loading (loading state)
- *    - seriesStore.error (error message)
+ * // Create a new series
+ * await series.createSeries({ name: 'My Series', description: 'Description' });
  *
- * 4. Call actions:
- *    await seriesStore.fetchSeries();
- *    await seriesStore.createSeries({ name: 'My Series', description: 'Description' });
- *    await seriesStore.updateSeries('s1', { name: 'New Name' });
- *    await seriesStore.deleteSeries('s1');
- *    seriesStore.selectSeries('s1');
+ * // Select a series
+ * series.selectSeries('series-id');
  *
- * TOGGLE BETWEEN MOCK AND REAL API:
- *
- * The store automatically uses the configured API (mock or real).
- * To switch between them, modify src/modules/core/utils/environment.ts:
- * - Set `useMockAPI = true` for mock data
- * - Set `useMockAPI = false` for real backend
- *
- * The store doesn't need any changes - it just calls the API methods
- * and the API layer handles the mock/real switching automatically.
+ * // Access selected series
+ * console.log(series.selectedSeries?.name);
+ * ```
  */
 
 export const useSeriesStore = defineStore('series', () => {

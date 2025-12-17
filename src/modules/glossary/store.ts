@@ -1,8 +1,10 @@
 /**
  * Glossary Module - Pinia Store
  *
- * Reactive state management for glossary terms.
- * Uses the Glossary API layer which handles mock/real switching internally.
+ * Reactive state management for glossary terms with support for series and chapter-level organization.
+ * Features include: term highlighting in text content, smart term suggestions from text,
+ * popup display on hover, contextual filtering by series/chapter, and category-based grouping.
+ * Integrates with glossary API layer with automatic mock/real switching.
  *
  * Usage Example:
  * ```typescript
@@ -10,7 +12,18 @@
  *
  * const glossary = useGlossaryStore();
  * await glossary.loadTerms('series-id');
+ *
+ * // Add a term
  * glossary.addTerm({ term: 'example', translation: 'translation' });
+ *
+ * // Highlight terms in text
+ * const highlighted = glossary.highlightTermsInText('Some text with terms');
+ *
+ * // Get smart term suggestions
+ * const suggestions = glossary.suggestTermsFromText('text with potential terms');
+ *
+ * // Toggle highlight visibility
+ * glossary.toggleHighlight();
  * ```
  */
 

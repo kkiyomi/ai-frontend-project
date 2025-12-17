@@ -1,20 +1,27 @@
 /**
  * Profile Module - Pinia Store
  *
- * Manages user profile state and settings.
- * Provides placeholder data without API connections for now.
+ * Manages user profile state and settings with full API integration.
+ * Automatically loads user profile on store initialization using the profile API.
+ * Provides computed properties for authentication state, user initials,
+ * and comprehensive error handling for profile operations.
  *
  * Usage Example:
  * ```typescript
  * import { useProfileStore } from '@/modules/profile';
  *
  * const profile = useProfileStore();
- * 
- * // Access user data
- * console.log(profile.user?.name);
- * 
- * // Update profile
- * profile.updateProfile({ name: 'New Name' });
+ *
+ * // Check authentication state
+ * if (profile.isLoggedIn) {
+ *   console.log(profile.user?.name);
+ * }
+ *
+ * // Update profile with API persistence
+ * await profile.saveProfile({ name: 'New Name' });
+ *
+ * // Logout
+ * await profile.logout();
  * ```
  */
 

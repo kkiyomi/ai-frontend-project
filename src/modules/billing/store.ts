@@ -21,6 +21,9 @@
  *   // Show translation button
  * }
  * ```
+ *
+ * Automatically loads subscription and plans on store initialization.
+ * Features dynamic usage updating, limit consumption tracking, and comprehensive quota management.
  */
 
 import { defineStore } from 'pinia';

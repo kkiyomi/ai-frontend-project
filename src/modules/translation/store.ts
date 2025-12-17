@@ -1,14 +1,31 @@
 /**
- * Translation Module - Store
+ * Translation Module - Pinia Store
  *
- * Reactive state management for translation operations.
- * Uses the Translation API layer which handles mock/real switching internally.
+ * Manages translation operations with support for paragraph and chapter-level translation.
+ * Features include: request deduplication, progress polling, job status tracking,
+ * automatic billing feature checks, and smart glossary term suggestions.
+ * Integrates with translation API layer with automatic mock/real switching.
  *
- * Features:
- * - Translation state tracking (isTranslating, progress)
- * - Deduplication of concurrent translation requests
- * - Batch translation with progress tracking
- * - Single paragraph and retranslation support
+ * Usage Example:
+ * ```typescript
+ * import { useTranslationStore } from '@/modules/translation';
+ *
+ * const translation = useTranslationStore();
+ *
+ * // Translate a single paragraph
+ * const result = await translation.translateParagraph('Text to translate');
+ *
+ * // Translate an entire chapter (starts automatic polling)
+ * const job = await translation.translateChapter('chapter-id');
+ *
+ * // Monitor progress
+ * watch(() => translation.translationProgress, (progress) => {
+ *   console.log(`Progress: ${progress}%`);
+ * });
+ *
+ * // Stop ongoing translations
+ * translation.clearOngoingTranslations();
+ * ```
  */
 
 import { defineStore } from 'pinia';
