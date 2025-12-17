@@ -1,3 +1,16 @@
+/**
+ * Chapters Module - API Layer
+ *
+ * This file handles switching between mock and real APIs for the Chapters module.
+ *
+ * To switch between mock and real APIs:
+ * 1. Set VITE_USE_MOCK_API=true in .env for mock mode
+ * 2. Set VITE_USE_MOCK_API=false in .env for real API mode
+ * 3. Set VITE_API_BASE_URL to your backend URL when using real API
+ *
+ * The decision is made at runtime based on environment configuration.
+ */
+
 import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { ChapterMockAPI } from './mock';
 import { ChapterRealAPI } from './real';
