@@ -27,7 +27,7 @@ const mockPlanPro = {
     series_limit: 10,
     chapter_limit: 2000,
     glossary_limit: 5000,
-    translation_tokens: 1000,
+    translation_tokens_limit: 1000,
   }
 }
 
@@ -47,7 +47,7 @@ const mockPlanTeam = {
     series_limit: 50,
     chapter_limit: 10000,
     glossary_limit: 25000,
-    translation_tokens: 5000,
+    translation_tokens_limit: 5000,
     export_count_per_month: 200,
     collaborators_limit: 10,
   }
@@ -59,7 +59,7 @@ export const mockSubscription: Subscription = {
     series_limit: 0,
     chapter_limit: 0,
     glossary_limit: 0,
-    translation_tokens: 12,
+    translation_tokens_limit: 12,
   }
 };
 
