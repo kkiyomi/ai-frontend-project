@@ -78,8 +78,10 @@ const nextPlan = computed(() => {
   return null;
 });
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 const titleText = computed(() => {
-  return featureName.value ? `${featureName.value} Feature Locked` : 'Feature Locked';
+  return featureName.value ? `${capitalize(featureName.value)} Feature Locked` : 'Feature Locked';
 });
 
 const handleBackdropClick = (e: MouseEvent) => {
