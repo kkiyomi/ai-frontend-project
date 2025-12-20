@@ -5,11 +5,13 @@ const mockPlanFree = {
   name: "Free Plan",
   price: 0,
   features: {
+    translation: true,
   },
   limits: {
     series_limit: 1,
     chapter_limit: 200,
     glossary_limit: 250,
+    translation_tokens_limit: 10,
   }
 }
 

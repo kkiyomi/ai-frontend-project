@@ -43,7 +43,7 @@
             <div class="w-full h-2 bg-gray-200 rounded-lg">
               <div
                 class="h-full bg-blue-600 rounded-lg"
-                :style="{ width: limit.percentage + '%' }"
+                :style="{ width: Math.min(limit.percentage, 100) + '%' }"
               />
             </div>
 
