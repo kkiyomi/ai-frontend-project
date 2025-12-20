@@ -172,6 +172,12 @@ const translateAllParagraphs = async () => {
     return;
   }
 
+  // Check if the user has translation tokens available
+  if (!billingStore.canConsume('translation_tokens_limit')) {
+    billingStore.openLimitUpgradeModal('translation_tokens_limit');
+    return;
+  }
+
   try {
     const result = await translationStore.translateChapter(currentChapter.value.id);
     
