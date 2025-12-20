@@ -1,6 +1,6 @@
 import type { APIResponse } from '@/modules/core/types';
 import type { Subscription } from '../types';
-import { mockSubscription, mockPlans } from '../../mock/billing';
+import { mockSubscription, mockPlans } from '@/mock/billing';
 
 const simulateDelay = (min = 200, max = 800): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
