@@ -326,29 +326,13 @@ const verifyPassword = async () => {
   passwordError.value = '';
   
   try {
-    // In a real implementation, you would verify the password with the backend
-    // For now, we'll simulate password verification
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const response = await sharingAPI.verifySharePassword(shareId.value, passwordInput.value);
     
-    // For demo purposes, we'll check against a stored password in localStorage
-    // In production, this would be handled securely on the backend
-    const storedShare = localStorage.getItem(`share-${shareId.value}`);
-    if (storedShare) {
-      const shareData = JSON.parse(storedShare);
-      if (shareData.isPasswordProtected) {
-        // For demo, we'll assume password is stored (in real app, this would be hashed)
-        if (shareData.password === passwordInput.value) {
-          isPasswordVerified.value = true;
-          passwordError.value = '';
-        } else {
-          passwordError.value = 'Incorrect password. Please try again.';
-        }
-      } else {
-        // Not password protected, allow access
-        isPasswordVerified.value = true;
-      }
+    if (response.success && response.data === true) {
+      isPasswordVerified.value = true;
+      passwordError.value = '';
     } else {
-      passwordError.value = 'Share not found or has expired.';
+      passwordError.value = response.error || 'Incorrect password. Please try again.';
     }
   } catch (error) {
     passwordError.value = 'Failed to verify password. Please try again.';

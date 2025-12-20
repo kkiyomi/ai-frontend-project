@@ -58,9 +58,17 @@ class SharingAPIService {
     return api.createShare(request);
   }
 
-  async getShare(shareId: string, password?: string): Promise<APIResponse<SharedContent>> {
+  async getSharedContent(shareId: string): Promise<APIResponse<SharedContent>> {
     const api = await this.getAPI();
-    return api.getShare(shareId, password);
+    return api.getSharedContent(shareId);
+  }
+
+  async verifySharePassword(
+    shareId: string,
+    password: string
+  ): Promise<APIResponse<boolean>> {
+    const api = await this.getAPI();
+    return api.verifySharePassword(shareId, password);
   }
 
   async getShareStats(shareId: string): Promise<APIResponse<ShareStats>> {
@@ -71,6 +79,16 @@ class SharingAPIService {
   async deleteShare(shareId: string): Promise<APIResponse<void>> {
     const api = await this.getAPI();
     return api.deleteShare(shareId);
+  }
+
+  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
+    const api = await this.getAPI();
+    return api.getChaptersByIds(chapterIds);
+  }
+
+  async listShares(): Promise<APIResponse<SharedContent[]>> {
+    const api = await this.getAPI();
+    return api.listShares();
   }
 }
 
