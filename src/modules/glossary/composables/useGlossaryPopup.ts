@@ -49,7 +49,7 @@ export function useGlossaryPopup() {
   }
 
   function handleGlossaryHover(event: MouseEvent) {
-    if (!isHighlightEnabled.value) return;
+    if (!isHighlightEnabled) return;
 
     const target = event.target as HTMLElement;
     if (!target.classList.contains('glossary-highlight')) return;
@@ -57,7 +57,7 @@ export function useGlossaryPopup() {
     const termId = target.getAttribute('data-term-id');
     if (!termId) return;
 
-    const term = glossaryTerms.value.find(t => t.id === termId);
+    const term = glossaryTerms.find((t: GlossaryTerm) => t.id === termId);
     if (!term) return;
 
     const tooltipEl = document.querySelector('div.glossary-popup') as HTMLElement | undefined;
