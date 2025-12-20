@@ -209,8 +209,13 @@ export const useBillingStore = defineStore('billing', () => {
   }
 
   // Modal actions
-  function openUpgradeModal(context?: { featureName?: string }) {
+  function openUpgradeModal(context?: { featureName?: string; limitKey?: string }) {
     upgradeModalContext.value = context || null;
+    showUpgradeModal.value = true;
+  }
+
+  function openLimitUpgradeModal(limitKey: string) {
+    upgradeModalContext.value = { limitKey };
     showUpgradeModal.value = true;
   }
 
@@ -222,7 +227,7 @@ export const useBillingStore = defineStore('billing', () => {
     }, 300);
   }
 
-  function toggleUpgradeModal(context?: { featureName?: string }) {
+  function toggleUpgradeModal(context?: { featureName?: string; limitKey?: string }) {
     if (showUpgradeModal.value) {
       closeUpgradeModal();
     } else {
@@ -272,6 +277,7 @@ export const useBillingStore = defineStore('billing', () => {
     updateUsage,
     updateMultipleUsage,
     openUpgradeModal,
+    openLimitUpgradeModal,
     closeUpgradeModal,
     toggleUpgradeModal,
   };

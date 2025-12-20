@@ -25,7 +25,7 @@
 
         <!-- Description -->
         <p class="p-6 pb-4 text-gray-600">
-          To use {{ featureName || 'this feature' }}, you need to upgrade to a plan that includes it.
+          {{ descriptionText }}
         </p>
 
         <!-- Upgrade Card -->
@@ -58,7 +58,34 @@ import UpgradeCard from './UpgradeCard.vue';
 const billingStore = useBillingStore();
 
 const featureName = computed(() => billingStore.currentUpgradeContext?.featureName || '');
+const limitKey = computed(() => billingStore.currentUpgradeContext?.limitKey || '');
 const currentPlan = computed(() => billingStore.subscription?.plan || null);
+
+const isLimit = computed(() => !!limitKey.value);
+
+const humanize = (key: string) => {
+  // Replace underscores with spaces, capitalize first letters
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const titleText = computed(() => {
+  if (isLimit.value) {
+    return `${humanize(limitKey.value)} Limit Reached`;
+  }
+  if (featureName.value) {
+    return `${humanize(featureName.value)} Feature Locked`;
+  }
+  return 'Feature Locked';
+});
+
+const descriptionText = computed(() => {
+  if (isLimit.value) {
+    return `You've reached your ${humanize(limitKey.value).toLowerCase()} limit. Upgrade to a plan with higher ${humanize(limitKey.value).toLowerCase()}.`;
+  }
+  return `To use ${humanize(featureName.value) || 'this feature'}, you need to upgrade to a plan that includes it.`;
+});
 
 const nextPlan = computed(() => {
   if (!currentPlan.value || !billingStore.plans.length) return null;
@@ -66,7 +93,20 @@ const nextPlan = computed(() => {
   const sorted = [...billingStore.plans].sort((a, b) => (a.price || 0) - (b.price || 0));
   const index = sorted.findIndex(p => p.id === currentPlan.value?.id);
 
-  // Find the next plan that includes the required feature
+  // For limit upgrades, find next plan with higher limit for that key
+  if (isLimit.value) {
+    const currentLimit = currentPlan.value.limits[limitKey.value] ?? 0;
+    for (let i = index + 1; i < sorted.length; i++) {
+      const plan = sorted[i];
+      const planLimit = plan.limits[limitKey.value] ?? 0;
+      if (planLimit > currentLimit) {
+        return plan;
+      }
+    }
+    return null;
+  }
+
+  // For feature upgrades, find next plan that includes the required feature
   for (let i = index + 1; i < sorted.length; i++) {
     const plan = sorted[i];
     // If a specific feature is requested, only accept plans that include it
@@ -76,12 +116,6 @@ const nextPlan = computed(() => {
   }
   // If no later plan has the required feature, return null
   return null;
-});
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-const titleText = computed(() => {
-  return featureName.value ? `${capitalize(featureName.value)} Feature Locked` : 'Feature Locked';
 });
 
 const handleBackdropClick = (e: MouseEvent) => {
