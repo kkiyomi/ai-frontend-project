@@ -92,9 +92,9 @@
           <li
             v-for="(limit, key) in nextPlan.limits"
             :key="key"
-            class="flex justify-between items-start"
+            class="flex items-start justify-between"
           >
-            <div class="flex items-start gap-2">
+            <div class="flex items-start gap-2 flex-1">
               <span class="text-green-600 font-medium">
                 <svg
                   class="w-4 h-4"
@@ -108,14 +108,15 @@
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
-              <span class="text-gray-800">
-                {{ pretty(key) }}
-              </span>
+              <div class="flex-1">
+                <div class="text-gray-800 font-medium">{{ limit.name }}</div>
+                <div v-if="limit.description" class="text-sm text-gray-500">{{ limit.description }}</div>
+              </div>
             </div>
 
-            <span class="text-gray-800">
-              {{ limit }}
-            </span>
+            <div class="text-gray-800 font-medium whitespace-nowrap ml-4">
+              {{ formatLimit(limit) }}
+            </div>
           </li>
         </ul>
       </div>
@@ -126,7 +127,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useBillingStore } from '../store';
-import type { Plan } from '../types';
+import type { Plan, LimitDefinition } from '../types';
 
 interface Props {
   currentPlan: Plan,
@@ -137,5 +138,13 @@ const props = defineProps<Props>();
 
 function pretty(str: string) {
   return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatLimit(limit: LimitDefinition): string {
+  if (!limit) return '';
+  if (limit.unit) {
+    return `${limit.value} ${limit.unit}`;
+  }
+  return String(limit.value);
 }
 </script>

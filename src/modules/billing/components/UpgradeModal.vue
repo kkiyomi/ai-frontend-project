@@ -95,10 +95,12 @@ const nextPlan = computed(() => {
 
   // For limit upgrades, find next plan with higher limit for that key
   if (isLimit.value) {
-    const currentLimit = currentPlan.value.limits[limitKey.value] ?? 0;
+    const currentLimitObj = currentPlan.value.limits[limitKey.value];
+    const currentLimit = currentLimitObj?.value ?? 0;
     for (let i = index + 1; i < sorted.length; i++) {
       const plan = sorted[i];
-      const planLimit = plan.limits[limitKey.value] ?? 0;
+      const planLimitObj = plan.limits[limitKey.value];
+      const planLimit = planLimitObj?.value ?? 0;
       if (planLimit > currentLimit) {
         return plan;
       }
