@@ -4,6 +4,8 @@
  * Defines all types for billing and subscription functionality with dynamic features and limits
  */
 
+export type LimitType = 'permanent' | 'recurring' | 'topup';
+
 export interface FeatureDefinition {
   key: string;
   enabled: boolean;
@@ -13,21 +15,55 @@ export interface FeatureDefinition {
   category?: string;   // For grouping features in UI
 }
 
+export interface LimitDefinition {
+  key: string;
+  type: LimitType;           // 'permanent', 'recurring', or 'topup'
+  value: number;
+  name: string;
+  description?: string;
+  unit?: string;
+  icon?: string;
+  category?: string;
+  resetPeriod?: 'monthly' | 'yearly' | 'custom'; // For recurring limits
+  expiresAt?: Date;          // For topups
+}
+
 export interface Plan {
   id: string;
   name: string;
   price: number;
   features: Record<string, FeatureDefinition>;
-  limits: Record<string, number>;
+  limits: Record<string, LimitDefinition>; // Now has metadata
+}
+
+export interface UsageRecord {
+  value: number;
+  lastUpdated: Date;
+  periodStart?: Date;        // For recurring limits
 }
 
 export interface Usage {
-  [key: string]: number;
+  [key: string]: UsageRecord; // Changed from simple number to record
+}
+
+export interface Topup {
+  id: string;
+  limitKey: string;
+  amount: number;
+  usedAmount: number;
+  purchasedAt: Date;
+  expiresAt: Date;
+  isActive: boolean;
 }
 
 export interface Subscription {
   plan: Plan;
   usage: Usage;
+  topups: Topup[];          // One-time purchases
+  currentPeriod: {
+    start: Date;
+    end: Date;
+  };
 }
 
 export interface BillingState {

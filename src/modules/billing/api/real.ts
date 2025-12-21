@@ -9,7 +9,7 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { Subscription } from '../types';
+import type { Subscription, Topup } from '../types';
 
 export class BillingRealAPI {
   async getSubscription(): Promise<APIResponse<Subscription>> {
@@ -26,5 +26,9 @@ export class BillingRealAPI {
 
   async cancelSubscription(): Promise<APIResponse<void>> {
     return apiClient.delete<void>('/billing/subscription');
+  }
+
+  async purchaseTopup(limitKey: string, amount: number, durationMonths: number): Promise<APIResponse<Topup>> {
+    return apiClient.post<Topup>('/billing/topups', { limitKey, amount, durationMonths });
   }
 }

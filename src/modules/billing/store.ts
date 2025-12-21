@@ -29,7 +29,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { billingAPI } from './api';
-import type { Subscription, Plan, BillingState, FeatureKey, FeatureDefinition } from './types';
+import { LimitCalculator } from './utils';
+import type { Subscription, Plan, BillingState, FeatureKey, FeatureDefinition, Topup } from './types';
 
 export const useBillingStore = defineStore('billing', () => {
   // State
@@ -63,46 +64,85 @@ export const useBillingStore = defineStore('billing', () => {
     return feat?.enabled || false;
   };
 
-  // Dynamic limit checking
-  const canConsume = (limitKey: string): boolean => {
+  // Dynamic limit checking with topup support
+  const canConsume = (limitKey: string, amount: number = 1): boolean => {
     if (!subscription.value) return false;
-    const { usage, plan } = subscription.value;
     
-    // Check if limit exists in plan
-    if (!(limitKey in plan.limits)) return true; // No limit defined means unlimited
+    const limitDef = subscription.value.plan.limits[limitKey];
+    if (!limitDef) return true; // No limit defined means unlimited
     
-    // Check if usage exists, default to 0 if not tracked yet
-    const currentUsage = usage[limitKey] || 0;
-    const limit = plan.limits[limitKey];
+    // For recurring limits, check if we need to reset
+    if (limitDef.type === 'recurring') {
+      const usageRecord = subscription.value.usage[limitKey];
+      if (usageRecord?.periodStart) {
+        const now = new Date();
+        const periodStart = new Date(usageRecord.periodStart);
+        
+        if (limitDef.resetPeriod === 'monthly' && 
+            (now.getMonth() !== periodStart.getMonth() || 
+             now.getFullYear() !== periodStart.getFullYear())) {
+          // Reset usage for new month
+          updateUsage(limitKey, -usageRecord.value); // Reset to zero
+        }
+      }
+    }
     
-    return currentUsage < limit;
+    // Calculate total available including topups
+    const totalAvailable = LimitCalculator.getTotalAvailable(subscription.value, limitKey);
+    const currentUsage = subscription.value.usage[limitKey]?.value || 0;
+    
+    return currentUsage + amount <= totalAvailable;
   };
 
   // Get usage percentage for any limit
   const getUsagePercentage = (limitKey: string): number => {
     if (!subscription.value) return 0;
-    const { usage, plan } = subscription.value;
     
-    if (!(limitKey in plan.limits)) return 0;
+    const limitDef = subscription.value.plan.limits[limitKey];
+    if (!limitDef) return 0;
     
-    const currentUsage = usage[limitKey] || 0;
-    const limit = plan.limits[limitKey];
+    const totalAvailable = LimitCalculator.getTotalAvailable(subscription.value, limitKey);
+    const currentUsage = subscription.value.usage[limitKey]?.value || 0;
     
-    if (limit === 0) return 100; // Avoid division by zero
-    return Math.round((currentUsage / limit) * 100);
+    if (totalAvailable === 0) return 100;
+    return Math.round((currentUsage / totalAvailable) * 100);
   };
 
   // Get remaining quota for any limit
   const getRemainingQuota = (limitKey: string): number => {
     if (!subscription.value) return 0;
-    const { usage, plan } = subscription.value;
+    return LimitCalculator.getRemainingQuota(subscription.value, limitKey);
+  };
+
+  // Get information about a specific limit including topups
+  const getLimitInfo = (limitKey: string) => {
+    if (!subscription.value) return null;
     
-    if (!(limitKey in plan.limits)) return Infinity;
+    const limitDef = subscription.value.plan.limits[limitKey];
+    if (!limitDef) return null;
     
-    const currentUsage = usage[limitKey] || 0;
-    const limit = plan.limits[limitKey];
+    const usageRecord = subscription.value.usage[limitKey];
+    const currentUsage = usageRecord?.value || 0;
+    const totalAvailable = LimitCalculator.getTotalAvailable(subscription.value, limitKey);
+    const remaining = getRemainingQuota(limitKey);
     
-    return Math.max(0, limit - currentUsage);
+    // Get active topups for this limit
+    const activeTopups = subscription.value.topups.filter(
+      topup => topup.limitKey === limitKey && 
+               topup.isActive && 
+               new Date(topup.expiresAt) > new Date()
+    );
+    
+    return {
+      ...limitDef,
+      currentUsage,
+      totalAvailable,
+      remaining,
+      percentage: getUsagePercentage(limitKey),
+      activeTopups,
+      lastUpdated: usageRecord?.lastUpdated,
+      periodStart: usageRecord?.periodStart,
+    };
   };
 
   // Get all available features
@@ -113,25 +153,44 @@ export const useBillingStore = defineStore('billing', () => {
     );
   };
 
-  // Get all limits with their current usage
+  // Get all limits with their current usage and metadata
   const getAllLimitsWithUsage = (): Array<{
     key: string;
     limit: number;
     usage: number;
     percentage: number;
     remaining: number;
+    name: string;
+    description?: string;
+    unit?: string;
+    icon?: string;
+    category?: string;
   }> => {
     if (!subscription.value) return [];
     
-    const { usage, plan } = subscription.value;
+    const { plan } = subscription.value;
     
-    return Object.keys(plan.limits).map(key => ({
-      key,
-      limit: plan.limits[key],
-      usage: usage[key] || 0,
-      percentage: getUsagePercentage(key),
-      remaining: getRemainingQuota(key),
-    })).filter(l => l.limit > 0);
+    return Object.keys(plan.limits).map(key => {
+      const limitDef = plan.limits[key];
+      const limitValue = limitDef.value;
+      const usageRecord = subscription.value!.usage[key];
+      const currentUsage = usageRecord?.value || 0;
+      const remaining = getRemainingQuota(key);
+      const percentage = getUsagePercentage(key);
+      
+      return {
+        key,
+        limit: limitValue,
+        usage: currentUsage,
+        percentage,
+        remaining,
+        name: limitDef.name,
+        description: limitDef.description,
+        unit: limitDef.unit,
+        icon: limitDef.icon,
+        category: limitDef.category,
+      };
+    }).filter(l => l.limit > 0);
   };
 
   // Get full feature info
@@ -218,12 +277,56 @@ export const useBillingStore = defineStore('billing', () => {
   function updateUsage(limitKey: string, delta: number) {
     if (!subscription.value) return;
 
-    // Initialize usage if it doesn't exist
-    if (!(limitKey in subscription.value.usage)) {
-      subscription.value.usage[limitKey] = 0;
+    const limitDef = subscription.value.plan.limits[limitKey];
+    const now = new Date();
+    
+    // Initialize usage record if it doesn't exist
+    if (!subscription.value.usage[limitKey]) {
+      subscription.value.usage[limitKey] = {
+        value: 0,
+        lastUpdated: now,
+        periodStart: limitDef?.type === 'recurring' ? now : undefined,
+      };
     }
-
-    subscription.value.usage[limitKey] = Math.max(0, subscription.value.usage[limitKey] + delta);
+    
+    const usageRecord = subscription.value.usage[limitKey];
+    
+    // For recurring limits, check if we need to reset
+    if (limitDef?.type === 'recurring' && usageRecord.periodStart) {
+      const periodStart = new Date(usageRecord.periodStart);
+      
+      if (limitDef.resetPeriod === 'monthly' && 
+          (now.getMonth() !== periodStart.getMonth() || 
+           now.getFullYear() !== periodStart.getFullYear())) {
+        // Reset for new period
+        usageRecord.value = 0;
+        usageRecord.periodStart = now;
+      }
+    }
+    
+    // Update usage value
+    usageRecord.value = Math.max(0, usageRecord.value + delta);
+    usageRecord.lastUpdated = now;
+    
+    // Consume from topups first if available
+    if (delta > 0) {
+      let remainingDelta = delta;
+      const activeTopups = subscription.value.topups
+        .filter(t => t.limitKey === limitKey && t.isActive && new Date(t.expiresAt) > now)
+        .sort((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()); // Use oldest first
+      
+      for (const topup of activeTopups) {
+        const available = topup.amount - topup.usedAmount;
+        const consumeFromTopup = Math.min(available, remainingDelta);
+        
+        if (consumeFromTopup > 0) {
+          topup.usedAmount += consumeFromTopup;
+          remainingDelta -= consumeFromTopup;
+        }
+        
+        if (remainingDelta <= 0) break;
+      }
+    }
   }
 
   // Batch update usage
@@ -259,6 +362,32 @@ export const useBillingStore = defineStore('billing', () => {
       closeUpgradeModal();
     } else {
       openUpgradeModal(context);
+    }
+  }
+
+  async function purchaseTopup(limitKey: string, amount: number, durationMonths: number = 3) {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      // Call API to purchase topup
+      const response = await billingAPI.purchaseTopup(limitKey, amount, durationMonths);
+      
+      if (response.success && response.data) {
+        // Add topup to subscription
+        if (subscription.value) {
+          subscription.value.topups.push(response.data);
+        }
+        return response.data;
+      } else {
+        error.value = response.error || 'Failed to purchase topup';
+        return null;
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error';
+      return null;
+    } finally {
+      loading.value = false;
     }
   }
 

@@ -1,4 +1,38 @@
-import type { Subscription } from '../modules/billing/types';
+import type { Subscription, Usage, Topup } from '../modules/billing/types';
+
+const now = new Date();
+const currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+const currentPeriodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+const createUsageRecord = (value: number, periodStart?: Date) => ({
+  value,
+  lastUpdated: now,
+  periodStart,
+});
+
+const createLimitDef = (
+  key: string,
+  type: 'permanent' | 'recurring' | 'topup',
+  value: number,
+  name: string,
+  description?: string,
+  unit?: string,
+  icon?: string,
+  category?: string,
+  resetPeriod?: 'monthly' | 'yearly' | 'custom',
+  expiresAt?: Date
+) => ({
+  key,
+  type,
+  value,
+  name,
+  description,
+  unit,
+  icon,
+  category,
+  resetPeriod,
+  expiresAt,
+});
 
 const mockPlanFree = {
   id: "free",
@@ -15,10 +49,47 @@ const mockPlanFree = {
     },
   },
   limits: {
-    translation_tokens_limit: 10,
-    series_limit: 1,
-    chapter_limit: 200,
-    glossary_limit: 250,
+    translation_tokens_limit: createLimitDef(
+      'translation_tokens_limit',
+      'recurring',
+      10,
+      'Monthly Translation Tokens',
+      'AI translation tokens available this month',
+      'tokens',
+      'translate',
+      'translation',
+      'monthly'
+    ),
+    series_limit: createLimitDef(
+      'series_limit',
+      'permanent',
+      1,
+      'Series Limit',
+      'Maximum number of series you can create',
+      'series',
+      'folder',
+      'content'
+    ),
+    chapter_limit: createLimitDef(
+      'chapter_limit',
+      'permanent',
+      200,
+      'Chapter Limit',
+      'Maximum number of chapters you can create',
+      'chapters',
+      'file-text',
+      'content'
+    ),
+    glossary_limit: createLimitDef(
+      'glossary_limit',
+      'permanent',
+      250,
+      'Glossary Limit',
+      'Maximum number of glossary terms',
+      'terms',
+      'book',
+      'glossary'
+    ),
   }
 };
 
@@ -61,10 +132,47 @@ const mockPlanPro = {
     },
   },
   limits: {
-    translation_tokens_limit: 1000,
-    series_limit: 10,
-    chapter_limit: 2000,
-    glossary_limit: 5000,
+    translation_tokens_limit: createLimitDef(
+      'translation_tokens_limit',
+      'recurring',
+      1000,
+      'Monthly Translation Tokens',
+      'AI translation tokens available this month',
+      'tokens',
+      'translate',
+      'translation',
+      'monthly'
+    ),
+    series_limit: createLimitDef(
+      'series_limit',
+      'permanent',
+      10,
+      'Series Limit',
+      'Maximum number of series you can create',
+      'series',
+      'folder',
+      'content'
+    ),
+    chapter_limit: createLimitDef(
+      'chapter_limit',
+      'permanent',
+      2000,
+      'Chapter Limit',
+      'Maximum number of chapters you can create',
+      'chapters',
+      'file-text',
+      'content'
+    ),
+    glossary_limit: createLimitDef(
+      'glossary_limit',
+      'permanent',
+      5000,
+      'Glossary Limit',
+      'Maximum number of glossary terms',
+      'terms',
+      'book',
+      'glossary'
+    ),
   }
 };
 
@@ -112,7 +220,7 @@ const mockPlanTeam = {
       description: 'Share projects and work together in real-time',
       icon: 'users',
       category: 'collaboration'
-    },
+    ),
     priority_support: {
       key: 'priority_support',
       enabled: true,
@@ -123,23 +231,84 @@ const mockPlanTeam = {
     },
   },
   limits: {
-    translation_tokens_limit: 5000,
-    series_limit: 50,
-    chapter_limit: 10000,
-    glossary_limit: 25000,
-    export_count_per_month: 200,
-    collaborators_limit: 10,
+    translation_tokens_limit: createLimitDef(
+      'translation_tokens_limit',
+      'recurring',
+      5000,
+      'Monthly Translation Tokens',
+      'AI translation tokens available this month',
+      'tokens',
+      'translate',
+      'translation',
+      'monthly'
+    ),
+    series_limit: createLimitDef(
+      'series_limit',
+      'permanent',
+      50,
+      'Series Limit',
+      'Maximum number of series you can create',
+      'series',
+      'folder',
+      'content'
+    ),
+    chapter_limit: createLimitDef(
+      'chapter_limit',
+      'permanent',
+      10000,
+      'Chapter Limit',
+      'Maximum number of chapters you can create',
+      'chapters',
+      'file-text',
+      'content'
+    ),
+    glossary_limit: createLimitDef(
+      'glossary_limit',
+      'permanent',
+      25000,
+      'Glossary Limit',
+      'Maximum number of glossary terms',
+      'terms',
+      'book',
+      'glossary'
+    ),
+    export_count_per_month: createLimitDef(
+      'export_count_per_month',
+      'recurring',
+      200,
+      'Monthly Exports',
+      'Number of exports allowed per month',
+      'exports',
+      'download',
+      'export',
+      'monthly'
+    ),
+    collaborators_limit: createLimitDef(
+      'collaborators_limit',
+      'permanent',
+      10,
+      'Collaborators Limit',
+      'Maximum number of collaborators',
+      'collaborators',
+      'users',
+      'collaboration'
+    ),
   }
 };
 
 export const mockSubscription: Subscription = {
   plan: mockPlanFree,
   usage: {
-    series_limit: 0,
-    chapter_limit: 0,
-    glossary_limit: 0,
-    translation_tokens_limit: 12,
-  }
+    series_limit: createUsageRecord(0),
+    chapter_limit: createUsageRecord(0),
+    glossary_limit: createUsageRecord(0),
+    translation_tokens_limit: createUsageRecord(12, currentPeriodStart),
+  },
+  topups: [],
+  currentPeriod: {
+    start: currentPeriodStart,
+    end: currentPeriodEnd,
+  },
 };
 
 export const mockPlans = [ mockPlanFree, mockPlanPro, mockPlanTeam ];

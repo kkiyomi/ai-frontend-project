@@ -15,7 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { BillingMockAPI } from './mock';
 import { BillingRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
-import type { Subscription } from '../types';
+import type { Subscription, Topup } from '../types';
 
 class BillingAPIService {
   private static instance: BillingAPIService | null = null;
@@ -82,6 +82,17 @@ class BillingAPIService {
     return {
       success: false,
       error: 'Cancel subscription not available in mock mode'
+    };
+  }
+
+  async purchaseTopup(limitKey: string, amount: number, durationMonths: number): Promise<APIResponse<Topup>> {
+    const api = await this.getAPI();
+    if ('purchaseTopup' in api) {
+      return api.purchaseTopup(limitKey, amount, durationMonths);
+    }
+    return {
+      success: false,
+      error: 'Purchase topup not available in mock mode'
     };
   }
 }

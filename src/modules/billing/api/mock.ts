@@ -45,4 +45,12 @@ export class BillingMockAPI {
       data: mockPlans,
     };
   }
+
+  async purchaseTopup(limitKey: string, amount: number, durationMonths: number): Promise<APIResponse<Topup>> {
+    await simulateDelay(400, 800);
+    return {
+      success: false,
+      error: 'Purchase topup not available in mock mode'
+    };
+  }
 }
