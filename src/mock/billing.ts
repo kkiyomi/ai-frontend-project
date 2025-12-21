@@ -8,10 +8,10 @@ const mockPlanFree = {
     translation: true,
   },
   limits: {
+    translation_tokens_limit: 10,
     series_limit: 1,
     chapter_limit: 200,
     glossary_limit: 250,
-    translation_tokens_limit: 10,
   }
 }
 
@@ -26,10 +26,10 @@ const mockPlanPro = {
     priority_support: true,
   },
   limits: {
+    translation_tokens_limit: 1000,
     series_limit: 10,
     chapter_limit: 2000,
     glossary_limit: 5000,
-    translation_tokens_limit: 1000,
   }
 }
 
@@ -46,10 +46,10 @@ const mockPlanTeam = {
     priority_support: true,
   },
   limits: {
+    translation_tokens_limit: 5000,
     series_limit: 50,
     chapter_limit: 10000,
     glossary_limit: 25000,
-    translation_tokens_limit: 5000,
     export_count_per_month: 200,
     collaborators_limit: 10,
   }
