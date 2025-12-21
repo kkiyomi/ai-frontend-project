@@ -48,9 +48,40 @@
             :key="feat.key"
             class="flex items-start gap-2"
           >
-            <span :class="feat.enabled ? 'text-green-600 font-medium' : 'text-gray-400'">
-              {{ feat.enabled ? '✔' : '✗' }}
+            <span
+              class="inline-flex items-center"
+              :class="feat.enabled ? 'text-green-600' : 'text-gray-400'"
+              aria-hidden="true"
+            >
+              <!-- Check icon -->
+              <svg
+                v-if="feat.enabled"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+
+              <!-- X icon -->
+              <svg
+                v-else
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </span>
+
             <div class="flex-1">
               <div class="text-gray-800 font-medium">{{ feat.name }}</div>
               <div v-if="feat.description" class="text-sm text-gray-500">{{ feat.description }}</div>
@@ -64,7 +95,19 @@
             class="flex justify-between items-start"
           >
             <div class="flex items-start gap-2">
-              <span class="text-green-600 font-medium">✔</span>
+              <span class="text-green-600 font-medium">
+                <svg
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </span>
               <span class="text-gray-800">
                 {{ pretty(key) }}
               </span>
