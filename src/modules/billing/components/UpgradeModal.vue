@@ -110,9 +110,11 @@ const nextPlan = computed(() => {
   for (let i = index + 1; i < sorted.length; i++) {
     const plan = sorted[i];
     // If a specific feature is requested, only accept plans that include it
-    if (featureName.value ? plan.features[featureName.value] : true) {
-      return plan;
+    if (featureName.value) {
+      const feat = plan.features[featureName.value];
+      if (!feat || !feat.enabled) continue;
     }
+    return plan;
   }
   // If no later plan has the required feature, return null
   return null;

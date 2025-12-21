@@ -44,14 +44,17 @@
 
           <!-- Features -->
           <li
-            v-for="(enabled, feature) in nextPlan.features"
-            :key="feature"
+            v-for="feat in Object.values(nextPlan.features)"
+            :key="feat.key"
             class="flex items-start gap-2"
           >
-            <span class="text-green-600 font-medium">✔</span>
-            <span class="text-gray-800">
-              {{ pretty(feature) }}
+            <span :class="feat.enabled ? 'text-green-600 font-medium' : 'text-gray-400'">
+              {{ feat.enabled ? '✔' : '✗' }}
             </span>
+            <div class="flex-1">
+              <div class="text-gray-800 font-medium">{{ feat.name }}</div>
+              <div v-if="feat.description" class="text-sm text-gray-500">{{ feat.description }}</div>
+            </div>
           </li>
 
           <!-- Limits -->

@@ -29,7 +29,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { billingAPI } from './api';
-import type { Subscription, Plan, BillingState, FeatureKey } from './types';
+import type { Subscription, Plan, BillingState, FeatureKey, FeatureDefinition } from './types';
 
 export const useBillingStore = defineStore('billing', () => {
   // State
@@ -59,7 +59,8 @@ export const useBillingStore = defineStore('billing', () => {
   // Dynamic feature checking
   const hasFeature = (feature: string): boolean => {
     if (!subscription.value?.plan) return false;
-    return !!subscription.value.plan.features[feature];
+    const feat = subscription.value.plan.features[feature];
+    return feat?.enabled || false;
   };
 
   // Dynamic limit checking
@@ -108,7 +109,7 @@ export const useBillingStore = defineStore('billing', () => {
   const getAvailableFeatures = (): string[] => {
     if (!subscription.value?.plan) return [];
     return Object.keys(subscription.value.plan.features).filter(
-      feature => subscription.value!.plan.features[feature]
+      feature => subscription.value!.plan.features[feature]?.enabled
     );
   };
 
@@ -131,6 +132,32 @@ export const useBillingStore = defineStore('billing', () => {
       percentage: getUsagePercentage(key),
       remaining: getRemainingQuota(key),
     })).filter(l => l.limit > 0);
+  };
+
+  // Get full feature info
+  const getFeatureInfo = (featureKey: string): FeatureDefinition | null => {
+    if (!subscription.value?.plan) return null;
+    return subscription.value.plan.features[featureKey] || null;
+  };
+
+  // Get all enabled features with metadata
+  const getEnabledFeatures = (): FeatureDefinition[] => {
+    if (!subscription.value?.plan) return [];
+    return Object.values(subscription.value.plan.features)
+      .filter(feature => feature.enabled);
+  };
+
+  // Get features grouped by category
+  const getFeaturesByCategory = (): Record<string, FeatureDefinition[]> => {
+    if (!subscription.value?.plan) return {};
+    const features = Object.values(subscription.value.plan.features);
+    
+    return features.reduce((acc, feature) => {
+      const category = feature.category || 'other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(feature);
+      return acc;
+    }, {} as Record<string, FeatureDefinition[]>);
   };
 
   // Convenience methods for known features (backward compatibility)

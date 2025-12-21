@@ -4,11 +4,20 @@
  * Defines all types for billing and subscription functionality with dynamic features and limits
  */
 
+export interface FeatureDefinition {
+  key: string;
+  enabled: boolean;
+  name: string;        // Human-readable name
+  description?: string;
+  icon?: string;       // Optional icon identifier
+  category?: string;   // For grouping features in UI
+}
+
 export interface Plan {
   id: string;
   name: string;
   price: number;
-  features: Record<string, boolean>;
+  features: Record<string, FeatureDefinition>;
   limits: Record<string, number>;
 }
 
