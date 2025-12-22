@@ -220,7 +220,7 @@ const mockPlanTeam = {
       description: 'Share projects and work together in real-time',
       icon: 'users',
       category: 'collaboration'
-    ),
+    },
     priority_support: {
       key: 'priority_support',
       enabled: true,

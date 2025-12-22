@@ -103,7 +103,7 @@ const currentUsage = computed(() => subscription?.usage || null);
 const limits = computed(() => getAllLimitsWithUsage());
 
 const enhancedLimits = computed(() => {
-  const defs = subscription.value?.plan.limits ?? {};
+  const defs = subscription?.plan.limits ?? {};
   return limits.value.map(limit => ({
     ...limit,
     type: defs[limit.key]?.type,

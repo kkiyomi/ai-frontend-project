@@ -365,32 +365,6 @@ export const useBillingStore = defineStore('billing', () => {
     }
   }
 
-  async function purchaseTopup(limitKey: string, amount: number, durationMonths: number = 3) {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      // Call API to purchase topup
-      const response = await billingAPI.purchaseTopup(limitKey, amount, durationMonths);
-      
-      if (response.success && response.data) {
-        // Add topup to subscription
-        if (subscription.value) {
-          subscription.value.topups.push(response.data);
-        }
-        return response.data;
-      } else {
-        error.value = response.error || 'Failed to purchase topup';
-        return null;
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error';
-      return null;
-    } finally {
-      loading.value = false;
-    }
-  }
-
   fetchSubscription()
   loadPlans()
 

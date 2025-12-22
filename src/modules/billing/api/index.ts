@@ -84,17 +84,6 @@ class BillingAPIService {
       error: 'Cancel subscription not available in mock mode'
     };
   }
-
-  async purchaseTopup(limitKey: string, amount: number, durationMonths: number): Promise<APIResponse<Topup>> {
-    const api = await this.getAPI();
-    if ('purchaseTopup' in api) {
-      return api.purchaseTopup(limitKey, amount, durationMonths);
-    }
-    return {
-      success: false,
-      error: 'Purchase topup not available in mock mode'
-    };
-  }
 }
 
 export const billingAPI = BillingAPIService.getInstance();
