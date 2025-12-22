@@ -11,7 +11,7 @@ export interface FeatureFlag {
   name: string;
   description: string;
   enabled: boolean;
-  category: 'ui' | 'export' | 'sharing' | 'integration' | 'experimental';
+  category: 'ui' | 'export' | 'sharing' | 'integration' | 'experimental' | 'billing';
   requiresAuth?: boolean;
   defaultEnv?: 'development' | 'staging' | 'production';
 }
