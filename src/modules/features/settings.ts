@@ -1,6 +1,6 @@
 import { defineComponent, computed } from 'vue';
 import { useSettingsStore } from '@/modules/core';
-import { useFeaturesStore } from './index';
+import { useFeaturesStore } from './store';
 
 export const FeatureFlagsSection = defineComponent({
   name: 'FeatureFlagsSection',
