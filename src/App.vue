@@ -38,7 +38,7 @@
 import { onMounted, computed, watch } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
-import DevFeaturePanel from './components/DevFeaturePanel.vue';
+import { DevFeaturePanel } from '@/modules/features';
 import { SettingsModal } from '@/modules/core';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
