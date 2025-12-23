@@ -44,7 +44,14 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // --- Settings Modal Management ---
   function openSettings(sectionId?: string) {
-    activeSectionId.value = sectionId || null;
+    if (sectionId) {
+      activeSectionId.value = sectionId;
+    } else if (sections.value.length > 0) {
+      // default to first registered section
+      activeSectionId.value = sections.value[0].id;
+    } else {
+      activeSectionId.value = null;
+    }
     showSettings.value = true;
   }
 

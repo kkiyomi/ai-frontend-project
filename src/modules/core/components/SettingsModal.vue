@@ -15,9 +15,9 @@
           <button
             v-for="section in settings.allSections"
             :key="section.id"
-            @click="activeSection = section.id"
+            @click="settings.setActiveSection(section.id)"
             class="w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-left"
-            :class="activeSection === section.id ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
+            :class="settings.activeSectionId === section.id ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
           >
             <span v-if="section.icon" class="mr-3" v-html="section.icon"></span>
             <svg v-else class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,17 +110,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useSettingsStore } from '../store';
 import type { SettingsItem, SettingsSection } from '../types';
 
 const settings = useSettingsStore();
 
-const activeSection = ref('profile');
-
-const currentSection = computed(() =>
-  settings.allSections.find((s: SettingsSection) => s.id === activeSection.value) || null
-);
+const currentSection = computed(() => {
+  const id = settings.activeSectionId;
+  const all = settings.allSections;
+  if (id) {
+    const found = all.find((s: SettingsSection) => s.id === id);
+    if (found) return found;
+  }
+  // fallback to first section if any
+  return all[0] || null;
+});
 
 const handleBackdropClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) {
