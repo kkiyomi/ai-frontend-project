@@ -38,6 +38,7 @@ const mockPlanFree = {
   id: "free",
   name: "Free Plan",
   price: 0,
+  period: 'monthly',
   features: {
     translation: {
       key: 'translation',
@@ -97,6 +98,7 @@ const mockPlanPro = {
   id: "pro",
   name: "Pro Plan",
   price: 19.99,
+  period: 'monthly',
   features: {
     translation: {
       key: 'translation',
@@ -180,6 +182,7 @@ const mockPlanTeam = {
   id: "team",
   name: "Team Plan",
   price: 49.99,
+  period: 'monthly',
   features: {
     translation: {
       key: 'translation',
