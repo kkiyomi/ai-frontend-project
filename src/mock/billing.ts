@@ -1,4 +1,4 @@
-import type { Subscription, Usage, Topup } from '../modules/billing/types';
+import type { Plan, Subscription, Usage, Topup } from '../modules/billing/types';
 
 const now = new Date();
 const currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -34,7 +34,7 @@ const createLimitDef = (
   expiresAt,
 });
 
-const mockPlanFree = {
+const mockPlanFree: Plan = {
   id: "free",
   name: "Free Plan",
   price: 0,
@@ -94,7 +94,7 @@ const mockPlanFree = {
   }
 };
 
-const mockPlanPro = {
+const mockPlanPro: Plan = {
   id: "pro",
   name: "Pro Plan",
   price: 19.99,
@@ -178,7 +178,7 @@ const mockPlanPro = {
   }
 };
 
-const mockPlanTeam = {
+const mockPlanTeam: Plan = {
   id: "team",
   name: "Team Plan",
   price: 49.99,
@@ -314,4 +314,4 @@ export const mockSubscription: Subscription = {
   },
 };
 
-export const mockPlans = [ mockPlanFree, mockPlanPro, mockPlanTeam ];
+export const mockPlans: Plan[] = [ mockPlanFree, mockPlanPro, mockPlanTeam ];
