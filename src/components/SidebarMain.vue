@@ -5,11 +5,9 @@
     :class="isExpanded ? 'w-80' : 'w-12'" 
     @mouseenter="handleMouseEnter"
   >
-    <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length" :is-glossary-visible="isGlossaryVisible"
-      @toggle-glossary="toggleGlossaryVisibility" />
+    <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length"/>
 
-    <SidebarExpanded v-if="isExpanded" :is-glossary-visible="isGlossaryVisible"
-      @toggle-glossary="toggleGlossaryVisibility" />
+    <SidebarExpanded v-if="isExpanded"/>
   </div>
 </template>
 

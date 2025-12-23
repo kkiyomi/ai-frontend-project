@@ -13,7 +13,7 @@
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
-            <button v-if="currentSeriesId" @click="$emit('toggle-glossary')"
+            <button v-if="currentSeriesId" @click="glossary.toggleVisibility"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -26,7 +26,6 @@
                 <p class="text-xs text-gray-500">{{ getTotalStats() }}</p>
             </div>
         </div>
-        <!-- <ProfileMenu /> -->
     </div>
 </template>
 
@@ -35,22 +34,15 @@ import { computed } from 'vue';
 import ChaptersSection from './ChaptersSection.vue';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
-// import { ProfileMenu } from '@/modules/profile';
-
-interface Props {
-    isGlossaryVisible: boolean;
-}
-
-defineProps<Props>();
-defineEmits<{
-    'toggle-glossary': [];
-}>();
+import { useGlossaryStore } from '@/modules/glossary';
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+const glossary = useGlossaryStore();
 
 const series = computed(() => seriesStore.series);
 const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
+const isGlossaryVisible = computed(() => glossary.isGlossaryVisible);
 
 const getTotalStats = (): string => {
     const allChapters = chaptersStore.chapters;

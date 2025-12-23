@@ -46,18 +46,13 @@ import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
 import { useSeriesWithChapters } from '@/composables';
 
-const glossary = useGlossaryStore();
-const {
-  isGlossaryVisible,
-  toggleVisibility: toggleGlossaryVisibility,
-  loadTerms: loadGlossaryTerms,
-} = glossary;
-
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+const glossaryStore = useGlossaryStore();
 const billingStore = useBillingStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
+const isGlossaryVisible = computed(() => glossaryStore.isGlossaryVisible);
 const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 
 onMounted(async () => {
@@ -69,14 +64,14 @@ onMounted(async () => {
 
 const closeGlossaryIfClickedOutside = (event: Event) => {
   if (event.target === event.currentTarget) {
-    toggleGlossaryVisibility();
+    glossaryStore.toggleVisibility();
   }
 };
 
 // Watch for chapter changes and reload glossary
 watch(() => currentChapter.value?.id, () => {
   if (currentChapter.value) {
-    loadGlossaryTerms(currentSeries.value?.id, currentChapter.value?.id);
+    glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
 </script>

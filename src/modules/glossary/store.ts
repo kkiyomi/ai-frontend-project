@@ -235,6 +235,9 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   function toggleVisibility() {
+    console.log('toggleVisibility')
+    console.log(isGlossaryVisible)
+    console.log(isGlossaryVisible.value)
     isGlossaryVisible.value = !isGlossaryVisible.value;
   }
 
