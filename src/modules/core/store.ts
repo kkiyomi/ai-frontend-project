@@ -10,6 +10,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // --- State ---
   const sections = ref<SettingsSection[]>([]);
   const showSettings = ref(false); // modal visibility
+  const activeSectionId = ref<string | null>(null);
 
   // --- Getters ---
   const allSections = computed(() => sections.value);
@@ -42,16 +43,22 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // --- Settings Modal Management ---
-  function openSettings() {
+  function openSettings(sectionId?: string) {
+    activeSectionId.value = sectionId || null;
     showSettings.value = true;
   }
 
   function closeSettings() {
     showSettings.value = false;
+    activeSectionId.value = null;
   }
 
   function toggleSettings() {
     showSettings.value = !showSettings.value;
+  }
+
+  function setActiveSection(sectionId: string) {
+    activeSectionId.value = sectionId;
   }
 
   // --- Return state, getters, actions ---
@@ -59,6 +66,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // state
     sections,
     showSettings,
+    activeSectionId,
 
     // getters
     allSections,
@@ -72,5 +80,6 @@ export const useSettingsStore = defineStore('settings', () => {
     openSettings,
     closeSettings,
     toggleSettings,
+    setActiveSection,
   };
 });
