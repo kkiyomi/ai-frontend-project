@@ -72,7 +72,7 @@ const humanize = (key: string) => {
 
 const titleText = computed(() => {
   if (isLimit.value) {
-    return `${humanize(limitKey.value)} Limit Reached`;
+    return `${humanize(limitKey.value)} Reached`;
   }
   if (featureName.value) {
     return `${humanize(featureName.value)} Feature Locked`;
@@ -82,7 +82,7 @@ const titleText = computed(() => {
 
 const descriptionText = computed(() => {
   if (isLimit.value) {
-    return `You've reached your ${humanize(limitKey.value).toLowerCase()} limit. Upgrade to a plan with higher ${humanize(limitKey.value).toLowerCase()}.`;
+    return `You've reached your ${humanize(limitKey.value).toLowerCase()}. Upgrade to a plan with higher ${humanize(limitKey.value).toLowerCase()}.`;
   }
   return `To use ${humanize(featureName.value) || 'this feature'}, you need to upgrade to a plan that includes it.`;
 });
