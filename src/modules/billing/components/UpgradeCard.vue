@@ -15,10 +15,10 @@
         <div class="text-4xl font-semibold text-gray-900">
           ${{ nextPlan.price }}
           <span class="text-base font-normal text-gray-500">
-            per month
+            per {{ formatPeriod(nextPlan.period) }}
           </span>
         </div>
-        <div class="text-sm text-gray-500 -mt-2">billed monthly</div>
+        <div class="text-sm text-gray-500 -mt-2">billed {{ formatPeriodAdjective(nextPlan.period) }}</div>
 
         <!-- Current Plan -->
         <div class="text-sm text-gray-600">
@@ -146,5 +146,25 @@ function formatLimit(limit: LimitDefinition): string {
     return `${limit.value} ${limit.unit}`;
   }
   return String(limit.value);
+}
+
+function formatPeriod(period: string): string {
+  switch (period) {
+    case 'monthly': return 'month';
+    case 'yearly': return 'year';
+    case 'quarterly': return 'quarter';
+    case 'lifetime': return 'lifetime';
+    default: return period.replace(/ly$/, '');
+  }
+}
+
+function formatPeriodAdjective(period: string): string {
+  switch (period) {
+    case 'monthly': return 'monthly';
+    case 'yearly': return 'yearly';
+    case 'quarterly': return 'quarterly';
+    case 'lifetime': return 'once for lifetime';
+    default: return period;
+  }
 }
 </script>

@@ -32,6 +32,7 @@ export interface Plan {
   id: string;
   name: string;
   price: number;
+  period: 'monthly' | 'yearly' | 'quarterly' | 'lifetime'; // Added period
   features: Record<string, FeatureDefinition>;
   limits: Record<string, LimitDefinition>; // Now has metadata
 }

@@ -349,6 +349,26 @@ export const useBillingStore = defineStore('billing', () => {
     showUpgradeModal.value = true;
   }
 
+  async function upgradeToPlan(planId: string, period?: string) {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await billingAPI.updateSubscription(planId, period);
+
+      if (response.success && response.data) {
+        subscription.value = response.data;
+        closeUpgradeModal();
+      } else {
+        error.value = response.error || 'Failed to update subscription';
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error';
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function closeUpgradeModal() {
     showUpgradeModal.value = false;
     // Optional: Clear context after a delay to avoid flicker
@@ -408,6 +428,7 @@ export const useBillingStore = defineStore('billing', () => {
     updateMultipleUsage,
     openUpgradeModal,
     openLimitUpgradeModal,
+    upgradeToPlan,
     closeUpgradeModal,
     toggleUpgradeModal,
   };

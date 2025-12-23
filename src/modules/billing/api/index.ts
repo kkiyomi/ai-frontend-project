@@ -63,10 +63,10 @@ class BillingAPIService {
     return api.getPlans();
   }
 
-  async updateSubscription(planId: string): Promise<APIResponse<Subscription>> {
+  async updateSubscription(planId: string, period?: string): Promise<APIResponse<Subscription>> {
     const api = await this.getAPI();
     if ('updateSubscription' in api) {
-      return api.updateSubscription(planId);
+      return api.updateSubscription(planId, period);
     }
     return {
       success: false,
