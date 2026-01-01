@@ -16,8 +16,8 @@ export class BillingRealAPI {
     return apiClient.get<Subscription>('/billing/subscription');
   }
 
-  async getPlans(): Promise<APIResponse<any[]>> {
-    return apiClient.get<any[]>('/billing/plans');
+  async getPlans(): Promise<APIResponse<Plan[]>> {
+    return apiClient.get<Plan[]>('/billing/plans');
   }
 
   async updateSubscription(planId: string, period?: string): Promise<APIResponse<Subscription>> {

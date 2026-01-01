@@ -58,7 +58,7 @@ class BillingAPIService {
     return api.getSubscription();
   }
 
-  async getPlans(): Promise<APIResponse<any[]>> {
+  async getPlans(): Promise<APIResponse<Plan[]>> {
     const api = await this.getAPI();
     return api.getPlans();
   }

@@ -29,7 +29,7 @@ export class BillingMockAPI {
     };
   }
 
-  async getPlans(): Promise<APIResponse<any[]>> {
+  async getPlans(): Promise<APIResponse<Plan[]>> {
     await simulateDelay(200, 400);
 
     if (simulateFailure()) {
