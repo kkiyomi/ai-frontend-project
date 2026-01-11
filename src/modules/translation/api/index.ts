@@ -53,38 +53,11 @@ class TranslationAPIService {
     return this.apiInstance!;
   }
 
-  async translateText(
-    text: string,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    const api = await this.getAPI();
-    return api.translateText(text, glossaryContext);
-  }
-
-  async translateParagraph(
-    text: string,
-    chapterId: string,
-    paragraphIndex: number,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    const api = await this.getAPI();
-    return api.translateParagraph(text, chapterId, paragraphIndex, glossaryContext);
-  }
-
   async translateChapter(
     chapterId: string
   ): Promise<APIResponse<{ jobId: string }>> {
     const api = await this.getAPI();
     return api.translateChapter(chapterId);
-  }
-
-  async retranslateWithGlossary(
-    originalText: string,
-    currentTranslation: string,
-    glossaryTerms: string[]
-  ): Promise<APIResponse<string>> {
-    const api = await this.getAPI();
-    return api.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {

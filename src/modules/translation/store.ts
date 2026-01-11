@@ -12,9 +12,6 @@
  *
  * const translation = useTranslationStore();
  *
- * // Translate a single paragraph
- * const result = await translation.translateParagraph('Text to translate');
- *
  * // Translate an entire chapter (starts automatic polling)
  * const job = await translation.translateChapter('chapter-id');
  *
@@ -119,77 +116,6 @@ export const useTranslationStore = defineStore('translation', () => {
     }
   }
 
-  async function translateParagraph(
-    originalText: string,
-    glossaryContext?: string[]
-  ): Promise<string> {
-    // Check feature access
-    const billingStore = useBillingStore();
-    if (!billingStore.hasFeature('translation')) {
-      throw new Error('Translation feature requires a paid plan. Please upgrade.');
-    }
-    
-    const translationKey = `${originalText}:${JSON.stringify(glossaryContext)}`;
-
-    if (ongoingTranslations.has(translationKey)) {
-      console.log('[Translation Store] Translation already in progress, skipping duplicate');
-      return 'Translation in progress...';
-    }
-
-    ongoingTranslations.add(translationKey);
-    setTranslating(true);
-
-    try {
-      const response = await translationAPI.translateText(originalText, glossaryContext);
-      if (!response.success) {
-        console.error('[Translation Store] Translation failed:', response.error);
-        return 'Translation failed - please try again';
-      }
-      return response.data || '';
-    } catch (error) {
-      console.error('[Translation Store] Translation error:', error);
-      return 'Translation failed - please try again';
-    } finally {
-      ongoingTranslations.delete(translationKey);
-      setTranslating(false);
-    }
-  }
-
-  async function retranslateParagraph(
-    originalText: string,
-    currentTranslation: string,
-    glossaryTerms: string[]
-  ): Promise<string> {
-    const retranslationKey = `retranslate:${originalText}:${currentTranslation}:${JSON.stringify(glossaryTerms)}`;
-
-    if (ongoingTranslations.has(retranslationKey)) {
-      console.log('[Translation Store] Retranslation already in progress, skipping duplicate');
-      return currentTranslation;
-    }
-
-    ongoingTranslations.add(retranslationKey);
-    setTranslating(true);
-
-    try {
-      const response = await translationAPI.retranslateWithGlossary(
-        originalText,
-        currentTranslation,
-        glossaryTerms
-      );
-      if (!response.success) {
-        console.error('[Translation Store] Retranslation failed:', response.error);
-        return currentTranslation;
-      }
-      return response.data || currentTranslation;
-    } catch (error) {
-      console.error('[Translation Store] Retranslation error:', error);
-      return currentTranslation;
-    } finally {
-      ongoingTranslations.delete(retranslationKey);
-      setTranslating(false);
-    }
-  }
-
   async function translateChapter(
     chapterId: string
   ): Promise<{ jobId: string } | null> {
@@ -273,8 +199,6 @@ export const useTranslationStore = defineStore('translation', () => {
     
     // Actions
     setCurrentChapterId,
-    translateParagraph,
-    retranslateParagraph,
     translateChapter,
     suggestGlossaryTerms,
     clearOngoingTranslations,

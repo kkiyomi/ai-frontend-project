@@ -16,9 +16,6 @@
  *
  * const translation = useTranslationStore();
  *
- * // Translate a single paragraph
- * const result = await translation.translateParagraph(text, glossaryContext);
- *
  * // Translate an entire chapter
  * const translations = await translation.translateChapter(paragraphs, glossaryContext);
  *
@@ -56,8 +53,4 @@ export { default as TranslationToolbar } from './components/TranslationToolbar.v
 
 export type {
   TranslationState,
-  TranslationRequest,
-  ParagraphTranslationRequest,
-  RetranslationRequest,
-  ChapterTranslationRequest
 } from './types';
