@@ -272,8 +272,38 @@ export const useEditorStore = defineStore('editor', () => {
         : currentChapter.value.translatedParagraphs;
 
     const previousContent = targetParagraphs[index];
-    if (previousContent.trim() === content.trim()) return stopEditingParagraph(index, type);
-    targetParagraphs[index] = content;
+    
+    // Split content by double newlines to detect multiple paragraphs
+    const contentParagraphs = content.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
+    
+    if (contentParagraphs.length === 0) {
+      // Empty content - just stop editing
+      stopEditingParagraph(index, type);
+      return;
+    }
+    
+    if (contentParagraphs.length === 1) {
+      // Single paragraph - update the current paragraph only if changed
+      if (previousContent.trim() === contentParagraphs[0]) {
+        stopEditingParagraph(index, type);
+        return;
+      }
+      
+      targetParagraphs[index] = contentParagraphs[0];
+    } else {
+      // Multiple paragraphs - update current and add the rest
+      const firstParagraph = contentParagraphs[0];
+      const remainingParagraphs = contentParagraphs.slice(1);
+      
+      // Update current paragraph with the first one
+      targetParagraphs[index] = firstParagraph;
+      
+      // Insert remaining paragraphs after the current index
+      targetParagraphs.splice(index + 1, 0, ...remainingParagraphs);
+      
+      // Remove the current paragraph from editing state
+      stopEditingParagraph(index, type);
+    }
 
     rebuildContent(type);
     recordChange('paragraph');
