@@ -16,8 +16,8 @@ export interface TranslationJobResponse {
   jobId: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: number;
-  totalParagraphs: number;
-  processedParagraphs: number;
+  totalParagraphs?: number;
+  processedParagraphs?: number;
   translatedParagraphs?: string[];
   errorMessage?: string;
 }

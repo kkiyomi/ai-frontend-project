@@ -126,11 +126,8 @@ function formatLimitName(key: string) {
 
 const nextPlan = computed(() => {
   if (!currentPlan || !plans.length) return null;
-
-  const sorted = plans.sort((a, b) => (a.price || 0) - (b.price || 0));
-  const index = sorted.findIndex(p => p.id === currentPlan.value?.id);
-
-  return sorted[index + 1] || null;
+  const index = plans.findIndex(p => p.uuid === currentPlan.value?.uuid);
+  return plans[index + 1] || null;
 });
 
 // Helper functions

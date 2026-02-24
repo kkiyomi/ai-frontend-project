@@ -108,11 +108,9 @@ const handleCreateChapter = async (title: string) => {
   if (!props.series.id) return;
 
   try {
-    const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
-
     const newChapter = await chaptersStore.createChapter({
       title,
-      content: `Chapter: ${title}\n\n[Add your content here...]`,
+      content: '[Add your content here...]',
       translatedContent: '[Add your translation here...]',
       seriesId: props.series.id
     });
