@@ -35,6 +35,7 @@ export interface Plan {
   period: 'monthly' | 'yearly' | 'quarterly' | 'lifetime'; // Added period
   features: Record<string, FeatureDefinition>;
   limits: Record<string, LimitDefinition>; // Now has metadata
+  product_page?: string;
 }
 
 export interface UsageRecord {

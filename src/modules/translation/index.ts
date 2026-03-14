@@ -29,8 +29,6 @@
  * ```vue
  * <template>
  *   <TranslationToolbar
- *     :isTranslating="translation.isTranslating"
- *     @translate="handleTranslate"
  *   />
  *   <TranslationProgress
  *     :progress="translation.translationProgress"

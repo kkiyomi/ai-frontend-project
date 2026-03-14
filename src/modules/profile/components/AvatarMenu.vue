@@ -33,15 +33,6 @@
       <!-- User Info Header -->
       <div class="px-4 py-3 border-b border-gray-100">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-            <img
-              v-if="user?.avatar"
-              :src="user.avatar"
-              :alt="user.name"
-              class="w-10 h-10 rounded-full object-cover"
-            />
-            <span v-else>{{ userInitials }}</span>
-          </div>
           <div>
             <div class="text-sm font-medium text-gray-900">{{ user?.name || 'User' }}</div>
             <div class="text-xs text-gray-500">{{ user?.email || '' }}</div>

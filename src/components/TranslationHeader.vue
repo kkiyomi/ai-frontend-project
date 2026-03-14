@@ -102,9 +102,8 @@
         <!-- Translate All Button using TranslationToolbar component -->
         <TranslationToolbar
           v-if="currentChapter"
+          :chapterId="currentChapterId"
           :disabled="!currentChapter"
-          :buttonText="translationStore.isTranslating ? 'Translating…' : 'Translate All'"
-          @translate="translateAllParagraphs"
         />
 
       </div>
@@ -160,6 +159,7 @@ const billingStore = useBillingStore();
 const features = useFeatures();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
+const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const allChapters = computed(() => chaptersStore.chapters);
 
 const allSeries = computed(() =>
@@ -168,34 +168,6 @@ const allSeries = computed(() =>
     chapters: chaptersStore.getChaptersBySeriesId(s.id),
   }))
 );
-
-const translateAllParagraphs = async () => {
-  if (!currentChapter.value) return;
-
-  // Check if the user has access to translation feature
-  if (!billingStore.hasFeature('translation')) {
-    billingStore.openUpgradeModal({ featureName: 'translation' });
-    return;
-  }
-
-  // Check if the user has translation tokens available
-  if (!billingStore.canConsume('translation_tokens_limit')) {
-    billingStore.openLimitUpgradeModal('translation_tokens_limit');
-    return;
-  }
-
-  try {
-    const result = await translationStore.translateChapter(currentChapter.value.id);
-    
-    if (result) {
-      console.log('Translation job started:', result.jobId);
-      // Polling is now handled automatically by the store
-      // No need for setTimeout or manual refresh calls
-    }
-  } catch (error) {
-    console.error('Error starting chapter translation:', error);
-  }
-};
 
 const handleLogout = async () => {
   try {

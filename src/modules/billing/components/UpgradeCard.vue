@@ -31,6 +31,7 @@
         <!-- Button -->
         <button
           class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          @click="goToProduct"
         >
           Upgrade
         </button>
@@ -165,6 +166,12 @@ function formatPeriodAdjective(period: string): string {
     case 'quarterly': return 'quarterly';
     case 'lifetime': return 'once for lifetime';
     default: return period;
+  }
+}
+
+const goToProduct = () => {
+  if (props.nextPlan?.product_page) {
+    window.open(props.nextPlan.product_page, '_blank')
   }
 }
 </script>
