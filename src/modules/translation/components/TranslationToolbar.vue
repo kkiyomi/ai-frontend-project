@@ -49,7 +49,7 @@ interface Props {
   showClearButton?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   chapterId: null,
   disabled: false,
   showTranslateButton: true,

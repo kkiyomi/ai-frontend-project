@@ -85,15 +85,21 @@ export const useChaptersStore = defineStore('chapters', () => {
         }));
 
         if (seriesId) {
-          chapters.value = [
-            ...chapters.value.filter(ch => ch.seriesId !== seriesId),
-            ...enrichedChapters
-          ];
+          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
+
+          chapters.value = chapters.value.map(ch =>
+            ch.seriesId === seriesId && updates.has(ch.id)
+              ? updates.get(ch.id)!
+              : ch
+          );
         } else if (chapterIds) {
-          chapters.value = [
-            ...chapters.value.filter(ch => !chapterIds.includes(ch.id)),
-            ...enrichedChapters
-          ];
+          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
+
+          chapters.value = chapters.value.map(ch =>
+            chapterIds.includes(ch.id) && updates.has(ch.id)
+              ? updates.get(ch.id)!
+              : ch
+          );
         } else {
           chapters.value = enrichedChapters;
           dataLoaded = true;

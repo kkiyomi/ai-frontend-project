@@ -44,6 +44,7 @@ export const useTranslationStore = defineStore('translation', () => {
   // Add polling state
   const pollingInterval = ref<number | null>(null);
   const activeJobId = ref<string | null>(null);
+  const currentJobData = ref<TranslationJobResponse | null>(null);
 
   // Getters
   const isTranslating = computed(() => translationState.value.isTranslating);
@@ -68,16 +69,19 @@ export const useTranslationStore = defineStore('translation', () => {
     stopPolling(); // Clear any existing polling
     
     activeJobId.value = jobId;
+    currentJobData.value = null;
     
-    // Start polling immediately
-    pollJobStatus(jobId);
-    
-    // Set up interval for polling (every 1.5 seconds)
-    pollingInterval.value = setInterval(() => {
+    // Set up interval FIRST to prevent race condition
+    const intervalId = setInterval(() => {
       if (activeJobId.value) {
         pollJobStatus(activeJobId.value);
       }
     }, 1500);
+    
+    pollingInterval.value = intervalId;
+    
+    // Then poll immediately
+    pollJobStatus(jobId);
   }
 
   function stopPolling() {
@@ -86,6 +90,7 @@ export const useTranslationStore = defineStore('translation', () => {
       pollingInterval.value = null;
     }
     activeJobId.value = null;
+    currentJobData.value = null;
   }
 
   async function pollJobStatus(jobId: string) {
@@ -94,6 +99,7 @@ export const useTranslationStore = defineStore('translation', () => {
       
       if (response.success && response.data) {
         const jobData = response.data;
+        currentJobData.value = jobData;
         setProgress(jobData.progress);
         
         // Update translation state based on job status
@@ -101,12 +107,17 @@ export const useTranslationStore = defineStore('translation', () => {
           setTranslating(true);
         } else if (jobData.status === 'completed' || jobData.status === 'failed') {
           setTranslating(false);
-          stopPolling();
+          
+          // Stop polling interval but keep job data for components
+          if (pollingInterval.value) {
+            clearInterval(pollingInterval.value);
+            pollingInterval.value = null;
+          }
+          activeJobId.value = null;
           
           // Clean up chapter translation from ongoing set
           const chapterKey = `chapter:${currentChapterId.value}`;
           ongoingTranslations.delete(chapterKey);
-          setCurrentChapterId(null);
         }
       } else {
         console.warn('[Translation Store] Failed to poll job status:', response.error);
@@ -185,6 +196,7 @@ export const useTranslationStore = defineStore('translation', () => {
     ongoingTranslations.clear();
     setTranslating(false);
     setProgress(0);
+    setCurrentChapterId(null);
     stopPolling();
   }
 
@@ -196,6 +208,7 @@ export const useTranslationStore = defineStore('translation', () => {
     isTranslating,
     translationProgress,
     currentChapterId,
+    currentJobData: computed(() => currentJobData.value),
     
     // Actions
     setCurrentChapterId,

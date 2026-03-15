@@ -28,6 +28,6 @@ export class TranslationRealAPI {
   async getTranslationJobStatus(
     jobId: string
   ): Promise<APIResponse<TranslationJobResponse>> {
-    return apiClient.get<TranslationJobResponse>(`/translation-job/${jobId}`);
+    return apiClient.get<TranslationJobResponse>(`/translation-job/${jobId}`, { bypassCache: true });
   }
 }

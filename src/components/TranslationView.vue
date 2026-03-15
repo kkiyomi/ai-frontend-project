@@ -84,4 +84,31 @@ watch(
   }
 );
 
+// Watch for translation completion and refresh chapter
+watch(
+  () => translation.currentJobData?.status,
+  async (status, previousStatus) => {
+    // When translation completes successfully
+    if (previousStatus === 'processing' && status === 'completed') {
+      const chapterId = translation.currentChapterId;
+      if (chapterId) {
+        // Refetch updated chapter from backend
+        await chaptersStore.refresh(undefined, [chapterId]);
+
+        // Update editor store if same chapter is loaded
+        if (editor.currentChapterId === chapterId) {
+          const updatedChapter = chaptersStore.chapters.find(ch => ch.id === chapterId);
+          if (updatedChapter) {
+            editor.loadChapter(updatedChapter);
+          }
+        }
+      }
+    }
+    // Handle failed translations
+    if (previousStatus === 'processing' && status === 'failed') {
+      console.error('Translation failed:', translation.currentJobData?.errorMessage);
+    }
+  }
+);
+
 </script>

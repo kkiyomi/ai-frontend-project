@@ -117,7 +117,12 @@ export class TranslationMockAPI {
       const elapsed = Date.now() - job.createdAt.getTime();
       const totalTime = 8000; // 8 seconds simulated translation time
       
-      if (elapsed >= totalTime) {
+      // Simulate occasional failure
+      if (simulateFailure(0.02)) {
+        job.status = 'failed';
+        job.progress = 0;
+        job.updatedAt = new Date();
+      } else if (elapsed >= totalTime) {
         job.status = 'completed';
         job.progress = 100;
         job.processedParagraphs = job.totalParagraphs;
@@ -136,8 +141,7 @@ export class TranslationMockAPI {
         jobId: job.jobId,
         status: job.status,
         progress: job.progress,
-        totalParagraphs: job.totalParagraphs,
-        processedParagraphs: job.processedParagraphs
+        errorMessage: job.status === 'failed' ? 'Translation job failed' : undefined
       }
     };
   }
