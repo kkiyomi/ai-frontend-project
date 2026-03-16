@@ -296,6 +296,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useGlossaryStore } from '../store';
 import { GlossaryImportButton } from '@/modules/glossary';
 import type { GlossaryTerm } from '../types';
@@ -309,12 +310,16 @@ interface Props {
 const props = defineProps<Props>();
 
 const store = useGlossaryStore();
+const state = storeToRefs(store);
 
 const {
   termsByCurrentChapter: glossaryTerms,
   isLoading,
   isHighlightEnabled,
   termsByCategory,
+} = state;
+
+const {
   loadTerms: loadGlossaryTerms,
   addTerm,
   updateTerm,
@@ -340,7 +345,6 @@ const showAddForm = ref(false);
 const termExistsError = ref('');
 
 const handleAddTerm = async () => {
-  console.log('handleAddTerm');
   if (!newTerm.value.term.trim() || !newTerm.value.translation.trim()) return;
   if (!props.currentSeries) return;
 
@@ -376,7 +380,6 @@ const handleAddTerm = async () => {
 };
 
 const cancelAddForm = () => {
-  console.log('cancelAddForm');
   // Reset form
   newTerm.value = {
     term: '',
@@ -397,31 +400,26 @@ watch(() => newTerm.value.term, () => {
 });
 
 const startEditingTerm = (term: GlossaryTerm) => {
-  console.log('startEditingTerm');
   editingTerms.value.add(term.id);
 };
 
 const saveTermEdit = async (term: GlossaryTerm) => {
-  console.log('saveTermEdit');
   await updateTerm(term.id, term);
   editingTerms.value.delete(term.id);
 };
 
 const cancelTermEdit = (term: GlossaryTerm) => {
-  console.log('cancelTermEdit');
   editingTerms.value.delete(term.id);
   // Reload terms to reset any unsaved changes
   loadGlossaryTerms();
 };
 
 const addSuggestedTerm = (suggestion: string) => {
-  console.log('addSuggestedTerm');
   newTerm.value.term = suggestion;
   // Focus on translation input would be nice here
 };
 
 const onRemoveTerm = async (termId: string) => {
-  console.log('onRemoveTerm');
   await removeTerm(termId);
 };
 
@@ -438,17 +436,6 @@ const generateSuggestions = () => {
     isGeneratingSuggestions.value = false;
   }, 1000);
 };
-
-// const getCategoryIcon = (category: string): string => {
-//   const icons = {
-//     'Character': '👤',
-//     'Place': '📍',
-//     'Cultural': '🏛️',
-//     'Idiom': '💭',
-//     'Other': '📝',
-//   };
-//   return icons[category] || '📝';
-// };
 
 // Load glossary terms when component mounts or chapter changes
 onMounted(() => {

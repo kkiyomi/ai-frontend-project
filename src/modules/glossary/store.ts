@@ -68,8 +68,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
     }
 
     const filteredTerms = termsList.filter(term =>
-      (term.chapterId === null && term.seriesId === seriesId) ||
-      (term.chapterId !== null && term.chapterId === chapterId) ||
+      (!term.chapterId && term.seriesId === seriesId) ||
+      (term.chapterId && term.chapterId === chapterId) ||
       (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
     );
 
@@ -91,10 +91,15 @@ export const useGlossaryStore = defineStore('glossary', () => {
       const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId);
       if (response.success && response.data) {
         const filteredTerms = getFilteredTerms(response.data, seriesId, chapterId);
-        terms.value = [
-          ...terms.value.filter(t => !filteredTerms.some(nt => nt.id === t.id)),
-          ...filteredTerms
-        ];
+        filteredTerms.forEach(newTerm => {
+          const index = terms.value.findIndex(t => t.id === newTerm.id);
+
+          if (index !== -1) {
+            terms.value[index] = newTerm; // update existing
+          } else {
+            terms.value.push(newTerm); // add new
+          }
+        });
       } else {
         error.value = response.error || 'Failed to load glossary terms';
       }
@@ -235,9 +240,6 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   function toggleVisibility() {
-    console.log('toggleVisibility')
-    console.log(isGlossaryVisible)
-    console.log(isGlossaryVisible.value)
     isGlossaryVisible.value = !isGlossaryVisible.value;
   }
 
@@ -251,13 +253,13 @@ export const useGlossaryStore = defineStore('glossary', () => {
 
   return {
     // State
-    terms: computed(() => terms.value),
-    isLoading: computed(() => isLoading.value),
-    error: computed(() => error.value),
-    isGlossaryVisible: computed(() => isGlossaryVisible.value),
-    isHighlightEnabled: computed(() => isHighlightEnabled.value),
-    currentSeriesId: computed(() => currentSeriesId.value),
-    currentChapterId: computed(() => currentChapterId.value),
+    terms,
+    isLoading,
+    error,
+    isGlossaryVisible,
+    isHighlightEnabled,
+    currentSeriesId,
+    currentChapterId,
     
     // Computed
     termsByCategory,
