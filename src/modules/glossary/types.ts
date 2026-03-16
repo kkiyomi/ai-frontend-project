@@ -10,3 +10,10 @@ export interface GlossaryTerm {
   chapterId?: string;
   chapterIds?: string[];
 }
+
+export interface GlossaryImportResponse {
+  created_count: number;
+  failed_count: number;
+  failed: Array<{ row: number; error: string }>;
+  terms: GlossaryTerm[];
+}

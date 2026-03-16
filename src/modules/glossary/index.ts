@@ -37,8 +37,11 @@
 
 export { useGlossaryStore } from './store';
 export { useGlossaryPopup } from './composables/useGlossaryPopup';
+export { useGlossaryImporter, createGlossaryImporter } from './composables/useGlossaryImporter';
 
 export { default as GlossaryPanel } from './components/GlossaryPanel.vue';
 export { default as GlossaryTermPopup } from './components/GlossaryTermPopup.vue';
+export { default as GlossaryImportButton } from './components/GlossaryImportButton.vue';
 
 export type { GlossaryTerm } from './types';
+export type { GlossaryImporterConfig } from './composables/useGlossaryImporter';

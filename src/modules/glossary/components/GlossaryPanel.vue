@@ -53,6 +53,17 @@
           <span>{{ currentSeries ? 'Add New Term' : 'Select Series First' }}</span>
         </button>
       </div>
+
+      <!-- Import Terms Button -->
+      <div class="mt-2 flex justify-center">
+        <GlossaryImportButton
+          :series-id="currentSeries?.id"
+          :chapter-id="currentChapter?.id"
+          :disabled="!currentSeries"
+          button-class="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          button-title="Import glossary terms from CSV"
+        />
+      </div>
     </div>
 
     <!-- Add Term Form -->
@@ -286,6 +297,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useGlossaryStore } from '../store';
+import { GlossaryImportButton } from '@/modules/glossary';
 import type { GlossaryTerm } from '../types';
 import type { Chapter, Series } from '@/types';
 

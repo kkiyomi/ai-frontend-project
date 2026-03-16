@@ -15,7 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { GlossaryMockAPI } from './mock';
 import { GlossaryRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
-import type { GlossaryTerm } from '../types';
+import type { GlossaryTerm, GlossaryImportResponse } from '../types';
 
 class GlossaryAPIService {
   private static instance: GlossaryAPIService | null = null;
@@ -61,6 +61,11 @@ class GlossaryAPIService {
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
     const api = await this.getAPI();
     return api.createGlossaryTerm(term);
+  }
+
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+    const api = await this.getAPI();
+    return api.importGlossaryTerms(terms);
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {

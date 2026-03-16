@@ -9,7 +9,7 @@
  */
 
 import type { APIResponse } from '@/modules/core';
-import type { GlossaryTerm } from '../types';
+import type { GlossaryTerm, GlossaryImportResponse } from '../types';
 import mockData from '@/mock';
 
 let mockGlossaryTerms = [...mockData.mockGlossaryTerms];
@@ -65,6 +65,58 @@ export class GlossaryMockAPI {
     return {
       success: true,
       data: newTerm,
+    };
+  }
+
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+    await simulateDelay(500, 1000);
+
+    const results: GlossaryTerm[] = [];
+    const failed: Array<{ row: number; error: string }> = [];
+    
+    terms.forEach((term, index) => {
+      // Validate required fields
+      if (!term.term?.trim() || !term.seriesId?.trim() || !term.translation?.trim()) {
+        failed.push({ row: index + 1, error: 'Missing required field: term, seriesId, or translation' });
+        return;
+      }
+
+      // Check for duplicates in this batch
+      const duplicateInBatch = results.some(t => 
+        t.term.toLowerCase() === term.term.toLowerCase() && t.seriesId === term.seriesId
+      );
+      if (duplicateInBatch) {
+        failed.push({ row: index + 1, error: 'Duplicate term in this import batch' });
+        return;
+      }
+
+      // Check for duplicates in existing mock data
+      const existingTerm = mockGlossaryTerms.find(
+        t => t.term.toLowerCase() === term.term.toLowerCase() && t.seriesId === term.seriesId
+      );
+      if (existingTerm) {
+        failed.push({ row: index + 1, error: 'Term already exists in this series' });
+        return;
+      }
+
+      const newTerm: GlossaryTerm = {
+        ...term,
+        id: `term${Date.now()}-${index}`,
+        frequency: 1,
+      };
+
+      mockGlossaryTerms.push(newTerm);
+      results.push(newTerm);
+    });
+
+    return {
+      success: true,
+      data: {
+        created_count: results.length,
+        failed_count: failed.length,
+        failed,
+        terms: results,
+      },
     };
   }
 
