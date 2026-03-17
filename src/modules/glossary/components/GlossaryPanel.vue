@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full bg-white flex flex-col">
+  <div class="h-full bg-white flex flex-col overflow-y-auto" ref="scrollContainer" @scroll="onScroll">
     <!-- Header -->
     <div class="p-4 border-b border-gray-200">
       <div class="flex items-center justify-between">
@@ -76,7 +76,7 @@
     />
 
     <!-- Terms List -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 ">
       <div v-if="isLoading" class="p-8 text-center">
         <div class="text-4xl mb-3">⏳</div>
         <p class="text-sm text-gray-500">Loading glossary terms...</p>
@@ -102,8 +102,10 @@
       </div>
 
       <div v-else class="p-4 space-y-4">
-        <div class="space-y-2">
-          <template v-for="item in termsByCategoryFlat" :key="item.id">
+        <div
+          class="space-y-2"
+        >
+          <template v-for="item in visibleItems" :key="item.id">
 
             <!-- Header -->
             <div
@@ -136,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGlossaryStore } from '../store';
 import { GlossaryImportButton } from '@/modules/glossary';
@@ -213,4 +215,31 @@ watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
     generateSuggestions();
   }
 });
+
+const scrollContainer = ref(null);
+
+const VISIBLE_COUNT = 50; // number of items in DOM
+const startIndex = ref(0);
+
+const visibleItems = computed(() =>
+  termsByCategoryFlat.value.slice(startIndex.value, startIndex.value + VISIBLE_COUNT)
+);
+
+function onScroll() {
+  const el = scrollContainer.value;
+  if (!el) return;
+
+  // when near bottom, increase startIndex to show next chunk
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+
+    if (startIndex.value + VISIBLE_COUNT < termsByCategoryFlat.value.length) {
+      startIndex.value += VISIBLE_COUNT;
+    }
+  }
+
+  // optional: handle scrolling up to prepend items
+  if (el.scrollTop < 100 && startIndex.value > 0) {
+    startIndex.value = Math.max(0, startIndex.value - VISIBLE_COUNT);
+  }
+}
 </script>
