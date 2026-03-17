@@ -102,19 +102,24 @@
       </div>
 
       <div v-else class="p-4 space-y-4">
-        <!-- Category Groups -->
-        <div v-for="(terms, category) in termsByCategory" :key="category" class="space-y-2">
-          <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-            {{ category }} ({{ terms.length }})
-          </h3>
+        <div class="space-y-2">
+          <template v-for="item in termsByCategoryFlat" :key="item.id">
 
-          <div class="space-y-2">
+            <!-- Header -->
+            <div
+              v-if="item.type === 'header'"
+              class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
+            >
+              {{ item.category }} ({{ item.count }})
+            </div>
+
+            <!-- Term -->
             <GlossaryTermItem
-              v-for="term in terms"
-              :key="term.id"
-              :term="term"
+              v-else
+              :term="item"
             />
-          </div>
+
+          </template>
         </div>
       </div>
     </div>
