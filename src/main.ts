@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import VueVirtualScroller from 'vue-virtual-scroller'
 import router from './router'
 import './style.css'
 import App from './App.vue'
@@ -13,6 +14,6 @@ logEnvironmentConfig().then(() => {
 const app = createApp(App);
 const pinia = createPinia();
 
-app.use(pinia).use(router).mount('#app')
+app.use(pinia).use(router).use(VueVirtualScroller).mount('#app')
 
 loadSettings();

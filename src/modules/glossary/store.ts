@@ -55,6 +55,29 @@ export const useGlossaryStore = defineStore('glossary', () => {
     return grouped;
   });
 
+  const termsByCategoryFlat = computed(() => {
+    const items = []
+
+    for (const [category, flatTerms] of Object.entries(termsByCategory.value as Record<string, GlossaryTerm[]>)) {
+      items.push({
+        type: "header",
+        id: `header-${category}`,
+        category,
+        count: flatTerms.length
+      })
+
+      for (const term of flatTerms) {
+        items.push({
+          type: "term",
+          ...term,
+          category
+        })
+      }
+    }
+
+    return items
+  })
+
   const termsByCurrentChapter = computed(() => {
     return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value);
   });
@@ -264,6 +287,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     // Computed
     termsByCategory,
     termsByCurrentChapter,
+    termsByCategoryFlat,
     
     // Actions
     loadTerms,

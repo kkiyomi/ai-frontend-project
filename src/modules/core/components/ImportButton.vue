@@ -1,5 +1,4 @@
 <template>
-  <div class="relative inline-block">
     <!-- Upload Button -->
     <button
       @click="triggerFileInput"
@@ -156,7 +155,6 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
