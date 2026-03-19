@@ -16,12 +16,18 @@
  * ```
  */
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { storeToRefs } from 'pinia';
 import type { GlossaryTerm } from '../types';
 import { useGlossaryStore } from '../store';
 
 
 export function useGlossaryPopup() {
-  const { terms: glossaryTerms, isHighlightEnabled } = useGlossaryStore();
+  const store = useGlossaryStore();
+  const state = storeToRefs(store);
+  const {
+    termsByCurrentChapter: glossaryTerms,
+    isHighlightEnabled
+  } = state;
   const showPopup = ref(false);
   const hoveredTerm = ref<GlossaryTerm | null>(null);
   const popupPosition = ref({ x: 0, y: 0 });
@@ -49,7 +55,7 @@ export function useGlossaryPopup() {
   }
 
   function handleGlossaryHover(event: MouseEvent) {
-    if (!isHighlightEnabled) return;
+    if (!isHighlightEnabled.value) return;
 
     const target = event.target as HTMLElement;
     if (!target.classList.contains('glossary-highlight')) return;
@@ -57,7 +63,7 @@ export function useGlossaryPopup() {
     const termId = target.getAttribute('data-term-id');
     if (!termId) return;
 
-    const term = glossaryTerms.find((t: GlossaryTerm) => t.id === termId);
+    const term = glossaryTerms.value.find((t: GlossaryTerm) => t.id === termId);
     if (!term) return;
 
     const tooltipEl = document.querySelector('div.glossary-popup') as HTMLElement | undefined;

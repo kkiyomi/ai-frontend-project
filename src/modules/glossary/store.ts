@@ -240,26 +240,56 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   function highlightTermsInText(text: string): string {
-    let highlightedText = text;
-    const sortedTerms = terms.value
-      .slice()
-      .sort((a, b) => Math.max(b.term.length, b.translation.length) - Math.max(a.term.length, a.translation.length));
+    const terms = termsByCurrentChapter.value;
+    if (!terms.length) return text;
 
-    sortedTerms.forEach(term => {
-      const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapeRegex = (s: string) =>
+      s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-      const regex = new RegExp(
-        `${escapeRegex(term.term)}|${escapeRegex(term.translation)}`,
-        "gi"
-      );
+    const termMap = new Map<string, string>();
 
-      highlightedText = highlightedText.replace(
-        regex,
-        `<span class="glossary-highlight glossary-popup" data-term-id="${term.id}">$&</span>`
-      );
-    });
+    const patterns: string[] = [];
 
-    return highlightedText;
+    for (const t of terms) {
+      const term = t.term.trim();
+      const translation = t.translation.trim();
+
+      if (term) {
+        termMap.set(term.toLowerCase(), t.id);
+        patterns.push(escapeRegex(term));
+      }
+
+      if (translation) {
+        termMap.set(translation.toLowerCase(), t.id);
+        patterns.push(escapeRegex(translation));
+      }
+    }
+
+    // Sort longest first (critical)
+    patterns.sort((a, b) => b.length - a.length);
+
+    // ⚠️ NO \b
+    const chunkSize = 300; // prevents regex explosion
+    const chunks = [];
+
+    for (let i = 0; i < patterns.length; i += chunkSize) {
+      chunks.push(patterns.slice(i, i + chunkSize));
+    }
+
+    let result = text;
+
+    for (const chunk of chunks) {
+      const regex = new RegExp(`(${chunk.join("|")})`, "gi");
+
+      result = result.replace(regex, (match) => {
+        const id = termMap.get(match.toLowerCase());
+        if (!id) return match;
+
+        return `<span class="glossary-highlight glossary-popup" data-term-id="${id}">${match}</span>`;
+      });
+    }
+
+    return result;
   }
 
   function toggleVisibility() {

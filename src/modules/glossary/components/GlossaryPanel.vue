@@ -105,8 +105,9 @@
         <div
           class="space-y-2"
         >
-          <template v-for="item in visibleItems" :key="item.id">
-
+          <div :style="{ height: topSpacer + 'px' }" />
+          <template v-for="(item, i) in visibleItems" :key="item.id">
+            <div :ref="el => setItemRef(el, i)">
             <!-- Header -->
             <div
               v-if="item.type === 'header'"
@@ -120,8 +121,9 @@
               v-else
               :term="item"
             />
-
+            </div>
           </template>
+          <div :style="{ height: bottomSpacer + 'px' }" />
         </div>
       </div>
     </div>
@@ -138,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, watchEffect, nextTick } from "vue";
 import { storeToRefs } from 'pinia';
 import { useGlossaryStore } from '../store';
 import { GlossaryImportButton } from '@/modules/glossary';
@@ -218,28 +220,115 @@ watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
 
 const scrollContainer = ref(null);
 
-const VISIBLE_COUNT = 50; // number of items in DOM
-const startIndex = ref(0);
+const VISIBLE_COUNT = 60;
+const BUFFER = 10;
 
+const startIndex = ref(0);
+const itemRefs = ref([]);
+
+// Visible slice
 const visibleItems = computed(() =>
-  termsByCategoryFlat.value.slice(startIndex.value, startIndex.value + VISIBLE_COUNT)
+  termsByCategoryFlat.value.slice(
+    startIndex.value,
+    startIndex.value + VISIBLE_COUNT
+  )
 );
+
+// --- Dynamic height tracking ---
+const heights = ref({}); // index -> height
+
+function setItemRef(el, i) {
+  if (!el) return;
+
+  itemRefs.value[i] = el;
+
+  nextTick(() => {
+    const h = el.offsetHeight;
+    heights.value[startIndex.value + i] = h;
+  });
+}
+
+// --- Spacer calculations ---
+const avgHeight = computed(() => {
+  const vals = Object.values(heights.value);
+  if (!vals.length) return 40;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+});
+
+const topSpacer = computed(() => {
+  return startIndex.value * avgHeight.value;
+});
+
+const bottomSpacer = computed(() => {
+  const remaining =
+    termsByCategoryFlat.value.length -
+    (startIndex.value + VISIBLE_COUNT);
+
+  return remaining * avgHeight.value;
+});
+
+// --- IntersectionObserver ---
+let observer;
+
+function handleIntersect(entries) {
+  const visible = entries
+    .filter(e => e.isIntersecting)
+    .map(e => itemRefs.value.indexOf(e.target))
+    .sort((a, b) => a - b);
+
+  if (!visible.length) return;
+
+  const first = visible[0];
+  const last = visible[visible.length - 1];
+
+  // Scroll down
+  if (last >= VISIBLE_COUNT - BUFFER) {
+    shiftWindow(startIndex.value + BUFFER);
+  }
+
+  // Scroll up
+  if (first <= BUFFER) {
+    shiftWindow(startIndex.value - BUFFER);
+  }
+}
+
+function shiftWindow(newStart) {
+  const maxStart =
+    termsByCategoryFlat.value.length - VISIBLE_COUNT;
+
+  startIndex.value = Math.max(0, Math.min(newStart, maxStart));
+}
 
 function onScroll() {
   const el = scrollContainer.value;
   if (!el) return;
 
-  // when near bottom, increase startIndex to show next chunk
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+  const scrollTop = el.scrollTop;
+  const viewport = el.clientHeight;
 
-    if (startIndex.value + VISIBLE_COUNT < termsByCategoryFlat.value.length) {
-      startIndex.value += VISIBLE_COUNT;
-    }
-  }
+  // Approximate current index
+  const estimatedIndex = Math.floor(scrollTop / avgHeight.value);
 
-  // optional: handle scrolling up to prepend items
-  if (el.scrollTop < 100 && startIndex.value > 0) {
-    startIndex.value = Math.max(0, startIndex.value - VISIBLE_COUNT);
+  // If user jumps far, force sync
+  if (Math.abs(estimatedIndex - startIndex.value) > VISIBLE_COUNT) {
+    shiftWindow(estimatedIndex - BUFFER);
   }
 }
+
+// --- Setup observer ---
+onMounted(() => {
+  observer = new IntersectionObserver(handleIntersect, {
+    root: scrollContainer.value,
+    threshold: 0.1
+  });
+
+  watchEffect(() => {
+    observer.disconnect();
+    itemRefs.value.forEach(el => el && observer.observe(el));
+  });
+});
+
+onUnmounted(() => {
+  observer?.disconnect();
+});
 </script>
