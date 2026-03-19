@@ -241,13 +241,12 @@ export const useGlossaryStore = defineStore('glossary', () => {
 
   function highlightTermsInText(text: string): string {
     const terms = termsByCurrentChapter.value;
-    if (!terms.length) return text;
+    if (!terms.length || !text) return text;
 
     const escapeRegex = (s: string) =>
       s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const termMap = new Map<string, string>();
-
     const patterns: string[] = [];
 
     for (const t of terms) {
@@ -265,31 +264,86 @@ export const useGlossaryStore = defineStore('glossary', () => {
       }
     }
 
-    // Sort longest first (critical)
     patterns.sort((a, b) => b.length - a.length);
 
-    // ⚠️ NO \b
-    const chunkSize = 300; // prevents regex explosion
-    const chunks = [];
+    // chunk to avoid huge regex
+    const chunkSize = 300;
+    const chunks: RegExp[] = [];
 
     for (let i = 0; i < patterns.length; i += chunkSize) {
-      chunks.push(patterns.slice(i, i + chunkSize));
+      chunks.push(new RegExp(`(${patterns.slice(i, i + chunkSize).join("|")})`, "gi"));
     }
 
-    let result = text;
+    // Parse HTML safely
+    const container = document.createElement("div");
+    container.innerHTML = text;
 
-    for (const chunk of chunks) {
-      const regex = new RegExp(`(${chunk.join("|")})`, "gi");
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT
+    );
 
-      result = result.replace(regex, (match) => {
-        const id = termMap.get(match.toLowerCase());
-        if (!id) return match;
-
-        return `<span class="glossary-highlight glossary-popup" data-term-id="${id}">${match}</span>`;
-      });
+    const textNodes: Text[] = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      // skip already highlighted nodes
+      if ((node.parentElement as HTMLElement)?.classList?.contains("glossary-highlight")) {
+        continue;
+      }
+      textNodes.push(node as Text);
     }
 
-    return result;
+    for (const textNode of textNodes) {
+      let content = textNode.nodeValue;
+      if (!content) continue;
+
+      let replaced = false;
+
+      for (const regex of chunks) {
+        if (!regex.test(content)) continue;
+
+        replaced = true;
+
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+
+        content.replace(regex, (match, _, offset) => {
+          const id = termMap.get(match.toLowerCase());
+          if (!id) return match;
+
+          // text before match
+          if (offset > lastIndex) {
+            fragment.appendChild(
+              document.createTextNode(content!.slice(lastIndex, offset))
+            );
+          }
+
+          // span
+          const span = document.createElement("span");
+          span.className = "glossary-highlight glossary-popup";
+          span.dataset.termId = id;
+          span.textContent = match;
+
+          fragment.appendChild(span);
+
+          lastIndex = offset + match.length;
+          return match;
+        });
+
+        if (lastIndex < content.length) {
+          fragment.appendChild(
+            document.createTextNode(content.slice(lastIndex))
+          );
+        }
+
+        textNode.replaceWith(fragment);
+        break; // important: don't reprocess newly inserted nodes
+      }
+
+      if (replaced) continue;
+    }
+
+    return container.innerHTML;
   }
 
   function toggleVisibility() {
