@@ -31,13 +31,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { debounce } from 'perfect-debounce';
 import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import {
   useGlossaryStore, useGlossaryPopup,
   GlossaryTermPopup, type GlossaryTerm
 } from '@/modules/glossary';
 import { useTranslationStore } from '@/modules/translation';
-import { useChaptersStore, type Chapter } from '@/modules/chapters';
+import { useChaptersStore, type Chapter, type ChapterUpdateInput } from '@/modules/chapters';
 import TranslationHeader from './TranslationHeader.vue';
 
 const chaptersStore = useChaptersStore();
@@ -54,39 +55,41 @@ const {
   popupPosition,
 } = useGlossaryPopup();
 
-const handleChapterUpdate = async () => {
-  const currentEditorChapter = editor.currentChapter;
-
-  if (!currentEditorChapter || !currentEditorChapter.id) {
+const saveChapter = debounce(async () => {
+  if (!editor.currentChapter || editor.dirtyFields.length === 0 || editor.isSaving) {
     return;
   }
 
+  // Cancel any pending save
+  editor.cancelPendingSave();
+  editor.setSaving(true);
+  
+  const fieldsToSave = [...editor.dirtyFields];
+  
   try {
-    const updateData = {};
-
-    if (currentEditorChapter.content !== currentChapter.content) {
-      updateData.content = currentEditorChapter.content;
+    const updateData: ChapterUpdateInput = {};
+    if (fieldsToSave.includes('content')) {
+      updateData.content = editor.currentChapter.content;
     }
-
-    if (currentEditorChapter.translatedContent !== currentChapter.translatedContent) {
-      updateData.translatedContent = currentEditorChapter.translatedContent;
+    if (fieldsToSave.includes('translatedContent')) {
+      updateData.translatedContent = editor.currentChapter.translatedContent;
     }
-
-    if (updateData) {
-      await chaptersStore.updateChapter(currentEditorChapter.id, updateData);
-    }
-    editor.resetSaveFlag();
+    
+    await chaptersStore.updateChapter(editor.currentChapter.id, updateData);
+    editor.markFieldsSaved(fieldsToSave);
   } catch (error) {
     console.error('Failed to save chapter:', error);
-    editor.resetSaveFlag();
+    editor.markSaveFailed();
+  } finally {
+    editor.setSaving(false);
   }
-};
+}, 500);
 
 watch(
-  () => editor.shouldInitiateChapterSave,
-  (shouldSave) => {
-    if (shouldSave && !editor.hasUnsavedChanges) {
-      handleChapterUpdate();
+  () => editor.dirtyFields.length,
+  () => {
+    if (editor.dirtyFields.length > 0) {
+      saveChapter();
     }
   }
 );

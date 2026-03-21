@@ -29,6 +29,7 @@
 
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { debounce } from 'perfect-debounce';
 import type { Chapter, EditorState, LayoutMode, ContentMode } from './types';
 
 export const useEditorStore = defineStore('editor', () => {
@@ -39,10 +40,15 @@ export const useEditorStore = defineStore('editor', () => {
   const isEditingTranslated = ref(false);
   const editingOriginalParagraphs = ref<Set<number>>(new Set());
   const editingTranslatedParagraphs = ref<Set<number>>(new Set());
-  const hasUnsavedChanges = ref(false);
+  const hasUnsavedChanges = computed(() => dirtyFields.value.size > 0);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const shouldInitiateChapterSave = ref(false);
+  
+  // New state for optimized save system
+  const dirtyFields = ref<Set<'content' | 'translatedContent'>>(new Set());
+  const isSaving = ref(false);
+  const pendingSaveAbortController = ref<AbortController | null>(null);
 
   // History management for undo/redo
   const history = ref<Array<{ 
@@ -69,6 +75,8 @@ export const useEditorStore = defineStore('editor', () => {
     hasUnsavedChanges: hasUnsavedChanges.value,
   }));
 
+  const dirtyFieldsArray = computed(() => Array.from(dirtyFields.value));
+
   // Actions
 
   /**
@@ -79,7 +87,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (chapter) {
       currentChapter.value = chapter;
       currentChapterId.value = chapter.id;
-      hasUnsavedChanges.value = false;
+      dirtyFields.value.clear();
       // Initialize history with the loaded chapter
       addToHistory('full', chapter.content, chapter.translatedContent, chapter.originalParagraphs, chapter.translatedParagraphs);
     }
@@ -101,11 +109,11 @@ export const useEditorStore = defineStore('editor', () => {
   /**
    * Helper function to record state change to history and mark as unsaved
    */
-  function recordChange(changeType: 'paragraph' | 'full'): void {
+  function recordChange(changeType: 'paragraph' | 'full', field: 'content' | 'translatedContent'): void {
     if (!currentChapter.value) return;
 
     addToHistory(changeType, currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-    hasUnsavedChanges.value = true;
+    dirtyFields.value.add(field);
   }
 
   /**
@@ -149,7 +157,8 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
       currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
       
-      hasUnsavedChanges.value = true;
+      dirtyFields.value.add('content');
+      dirtyFields.value.add('translatedContent');
     }
   }
 
@@ -167,7 +176,8 @@ export const useEditorStore = defineStore('editor', () => {
       currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
       currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
       
-      hasUnsavedChanges.value = true;
+      dirtyFields.value.add('content');
+      dirtyFields.value.add('translatedContent');
     }
   }
 
@@ -191,7 +201,13 @@ export const useEditorStore = defineStore('editor', () => {
   function updateLocalChapter(updates: Partial<Chapter>) {
     if (currentChapter.value) {
       currentChapter.value = { ...currentChapter.value, ...updates };
-      hasUnsavedChanges.value = true;
+      // Mark fields as dirty based on what was updated
+      if (updates.content !== undefined) {
+        dirtyFields.value.add('content');
+      }
+      if (updates.translatedContent !== undefined) {
+        dirtyFields.value.add('translatedContent');
+      }
     }
   }
 
@@ -201,7 +217,6 @@ export const useEditorStore = defineStore('editor', () => {
   function saveChapter() {
     if (!currentChapter.value) return;
     shouldInitiateChapterSave.value = true;
-    hasUnsavedChanges.value = false;
   }
 
   /**
@@ -306,7 +321,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
 
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
     stopEditingParagraph(index, type);
     saveChapter();
   }
@@ -323,7 +338,7 @@ export const useEditorStore = defineStore('editor', () => {
 
     paragraphs.splice(index, 0, content);
     rebuildContent(type);
-    recordChange('paragraph');
+    addToHistory('paragraph', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
     startEditingParagraph(index, type);
   }
 
@@ -339,7 +354,7 @@ export const useEditorStore = defineStore('editor', () => {
 
     paragraphs.splice(index, 1);
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
     saveChapter();
   }
 
@@ -356,7 +371,7 @@ export const useEditorStore = defineStore('editor', () => {
     const paragraph = paragraphs.splice(fromIndex, 1)[0];
     paragraphs.splice(toIndex, 0, paragraph);
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
     saveChapter();
   }
 
@@ -387,7 +402,7 @@ export const useEditorStore = defineStore('editor', () => {
     // Add to history after making changes
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
-    hasUnsavedChanges.value = true;
+    dirtyFields.value.add('content');
     saveChapter();
   }
 
@@ -411,7 +426,7 @@ export const useEditorStore = defineStore('editor', () => {
     // Add to history after making changes
     addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
 
-    hasUnsavedChanges.value = true;
+    dirtyFields.value.add('translatedContent');
     saveChapter();
   }
 
@@ -448,7 +463,7 @@ export const useEditorStore = defineStore('editor', () => {
   function clearChapter() {
     currentChapter.value = null;
     currentChapterId.value = null;
-    hasUnsavedChanges.value = false;
+    dirtyFields.value.clear();
     isEditingOriginal.value = false;
     isEditingTranslated.value = false;
     editingOriginalParagraphs.value.clear();
@@ -456,6 +471,34 @@ export const useEditorStore = defineStore('editor', () => {
     error.value = null;
     history.value = [];
     historyIndex.value = -1;
+    // Cancel any pending save
+    if (pendingSaveAbortController.value) {
+      pendingSaveAbortController.value.abort();
+      pendingSaveAbortController.value = null;
+    }
+    isSaving.value = false;
+  }
+
+  function markFieldsSaved(fields: Array<'content' | 'translatedContent'>) {
+    fields.forEach(field => dirtyFields.value.delete(field));
+    shouldInitiateChapterSave.value = false;
+  }
+
+  function markSaveFailed() {
+    // Keep dirtyFields as is, just reset the save flag
+    shouldInitiateChapterSave.value = false;
+  }
+
+  function cancelPendingSave() {
+    if (pendingSaveAbortController.value) {
+      pendingSaveAbortController.value.abort();
+      pendingSaveAbortController.value = null;
+    }
+    isSaving.value = false;
+  }
+
+  function setSaving(value: boolean) {
+    isSaving.value = value;
   }
 
   // Initialize view preferences
@@ -470,6 +513,8 @@ export const useEditorStore = defineStore('editor', () => {
     editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
     editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
     hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
+    dirtyFields: dirtyFieldsArray,
+    isSaving: computed(() => isSaving.value),
     shouldInitiateChapterSave: computed(() => shouldInitiateChapterSave.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
@@ -482,6 +527,10 @@ export const useEditorStore = defineStore('editor', () => {
     updateLocalChapter,
     saveChapter,
     resetSaveFlag,
+    markFieldsSaved,
+    markSaveFailed,
+    setSaving,
+    cancelPendingSave,
     toggleEditingOriginal,
     toggleEditingTranslated,
     startEditingParagraph,
