@@ -66,6 +66,7 @@
     
     <textarea
       v-else
+      v-focus="isEditing"
       v-model="editableContent"
       @keyup.escape="handleCancel"
       class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:border-secondary-500 reading-text resize-none"
@@ -79,6 +80,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useEditorStore } from '../store';
+import focus from '../directives/focus';
+
+defineOptions({
+  directives: {
+    focus
+  }
+});
 
 interface Props {
   content: string;

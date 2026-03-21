@@ -62,12 +62,19 @@ const handleChapterUpdate = async () => {
   }
 
   try {
-    const updateData = {
-      content: currentEditorChapter.content,
-      translatedContent: currentEditorChapter.translatedContent,
-    };
+    const updateData = {};
 
-    await chaptersStore.updateChapter(currentEditorChapter.id, updateData);
+    if (currentEditorChapter.content !== currentChapter.content) {
+      updateData.content = currentEditorChapter.content;
+    }
+
+    if (currentEditorChapter.translatedContent !== currentChapter.translatedContent) {
+      updateData.translatedContent = currentEditorChapter.translatedContent;
+    }
+
+    if (updateData) {
+      await chaptersStore.updateChapter(currentEditorChapter.id, updateData);
+    }
     editor.resetSaveFlag();
   } catch (error) {
     console.error('Failed to save chapter:', error);

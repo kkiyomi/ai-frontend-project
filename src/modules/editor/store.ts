@@ -324,6 +324,7 @@ export const useEditorStore = defineStore('editor', () => {
     paragraphs.splice(index, 0, content);
     rebuildContent(type);
     recordChange('paragraph');
+    startEditingParagraph(index, type);
   }
 
   /**
