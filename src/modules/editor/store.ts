@@ -92,6 +92,21 @@ export const useEditorStore = defineStore('editor', () => {
       : currentChapter.value.translatedParagraphs;
   }
 
+  function clearEditingParagraphs(type: 'original' | 'translated'): void {
+    const set = type === 'original' ? editingOriginalParagraphs.value : editingTranslatedParagraphs.value;
+    set.clear();
+  }
+
+  function setOnlyEditingParagraph(index: number, type: 'original' | 'translated'): void {
+    const paragraphs = getParagraphs(type);
+    if ( index === -1 || index === paragraphs.length) {
+      addParagraph(Math.max(0, index), type);
+      return;
+    }
+    clearEditingParagraphs(type);
+    setEditingParagraph(index, type, true);
+  }
+
   /** Rebuilds the full-text content string from paragraph array. */
   function rebuildContent(type: 'original' | 'translated'): void {
     const ch = currentChapter.value;
@@ -261,7 +276,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (!paragraphs) return;
     paragraphs.splice(index, 0, content);
     rebuildContent(type);
-    startEditingParagraph(index, type);
+    setOnlyEditingParagraph(index, type);
   }
 
   function deleteParagraph(index: number, type: 'original' | 'translated') {
@@ -280,6 +295,7 @@ export const useEditorStore = defineStore('editor', () => {
     paragraphs.splice(index, 1);
     rebuildContent(type);
     recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
+    stopEditingParagraph(index, type);
     saveChapter();
   }
 
@@ -395,6 +411,7 @@ export const useEditorStore = defineStore('editor', () => {
     addParagraph,
     deleteParagraph,
     moveParagraph,
+    setOnlyEditingParagraph,
 
     // View preferences
     toggleLayoutMode,

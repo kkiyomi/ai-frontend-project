@@ -69,6 +69,9 @@
       v-focus="isEditing"
       v-model="editableContent"
       @keyup.escape="handleCancel"
+      @keyup.enter="handleEnter"
+      @keydown.tab.exact.prevent="handleForwards"
+      @keydown.shift.tab.prevent="handleBackwards"
       class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:border-secondary-500 reading-text resize-none"
       :class="textareaClass"
       rows="4"
@@ -154,6 +157,21 @@ const toggleEditing = () => {
 const handleCancel = () => {
   editableContent.value = props.content; // Reset to original
   editor.cancelParagraphEdit(props.index, props.type);
+};
+
+const handleEnter = () => {
+  toggleEditing()
+  editor.addParagraph(props.index + 1, props.type);
+};
+
+const handleForwards = () => {
+  toggleEditing()
+  editor.setOnlyEditingParagraph(props.index + 1, props.type);
+};
+
+const handleBackwards = () => {
+  toggleEditing()
+  editor.setOnlyEditingParagraph(props.index - 1, props.type);
 };
 
 // Drag and drop handlers
