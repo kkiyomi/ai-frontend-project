@@ -100,6 +100,10 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   // Actions
+  function getTermsByContext(seriesId: string, chapterId?: string) {
+    return getFilteredTerms(terms.value, seriesId, chapterId);
+  }
+
   async function loadTerms(seriesId?: string, chapterId?: string) {
     if (!seriesId) {
       return;
@@ -374,6 +378,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     termsByCategoryFlat,
     
     // Actions
+    getTermsByContext,
     loadTerms,
     addTerm,
     updateTerm,
