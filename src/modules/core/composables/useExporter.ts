@@ -10,6 +10,7 @@
  * 3. Template Method: prepareData() can be overridden by specific implementations
  * 4. Browser-native APIs: Uses Blob and URL.createObjectURL for downloads
  * 5. Extensible: Easy to add new export formats via formatters
+ * 6. Customizable text export: textFormatter and itemSeparator options for TXT format
  *
  * Usage Example:
  * ```typescript
@@ -19,10 +20,17 @@
  * });
  * 
  * await exporter.exportData(chapters, 'json');
+ * 
+ * // Custom text export
+ * await exporter.exportData(chapters, 'txt', {
+ *   textFormatter: (item) => item.translatedText,
+ *   itemSeparator: '\n---\n'
+ * });
  * ```
  */
 
 import { ref, computed } from 'vue';
+import { createZipFromItems, isZipExport, sanitizeFilename } from '../utils/zip';
 
 // Export format types
 export type ExportFormat = 'json' | 'csv' | 'txt';
@@ -32,6 +40,17 @@ export interface ExportOptions {
   filename?: string;
   timestamp?: boolean;
   pretty?: boolean; // For JSON formatting
+  textFormatter?: (item: any) => string; // Custom formatter for text export
+  itemSeparator?: string; // Separator between items in text export (default: '\n\n')
+  zipOptions?: ZipExportOptions; // Options for zip export with separate files
+}
+
+// Zip export options for separate files export
+export interface ZipExportOptions {
+  folderName?: string; // Folder name inside zip (default: seriesId or timestamp)
+  fileNameFormatter?: (item: any, index: number) => string; // Custom filename per item
+  fileExtension?: string; // Override file extension (default: based on format)
+  includeManifest?: boolean; // Include manifest.json with metadata (default: false)
 }
 
 // Base export configuration
@@ -130,6 +149,7 @@ class CsvFormatter<U> implements DataFormatter<U> {
 
 /**
  * Plain text formatter implementation
+ * Supports custom formatting via options.textFormatter and options.itemSeparator
  */
 class TxtFormatter<U> implements DataFormatter<U> {
   mimeType = 'text/plain';
@@ -140,11 +160,15 @@ class TxtFormatter<U> implements DataFormatter<U> {
       return data;
     }
     
+    // Use custom formatter if provided
+    const formatItem = options?.textFormatter || this.formatItem.bind(this);
+    
     if (Array.isArray(data)) {
-      return data.map(item => this.formatItem(item)).join('\n\n');
+      const separator = options?.itemSeparator || '\n\n';
+      return data.map(item => formatItem(item)).join(separator);
     }
     
-    return this.formatItem(data);
+    return formatItem(data);
   }
 
   private formatItem(item: any): string {
@@ -224,9 +248,9 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
   /**
    * Download file using browser APIs
    */
-  const download = (content: string, filename: string, mimeType: string): void => {
+  const download = (content: string | Blob, filename: string, mimeType: string): void => {
     try {
-      const blob = new Blob([content], { type: mimeType });
+      const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
@@ -285,6 +309,66 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
       // Prepare data for export
       const exportData = prepareData(data);
 
+      // Check if zip export is requested
+      if (isZipExport(mergedOptions)) {
+        // Validate data is array for zip export
+        if (!Array.isArray(exportData)) {
+          throw new Error('Zip export requires array data');
+        }
+        
+        // Validate format for zip export
+        if (format === 'csv') {
+          throw new Error('CSV format not supported for zip export. Use txt or json.');
+        }
+        
+        // Create item formatter
+        const itemFormatter = (item: any): string => {
+          if (format === 'json') {
+            return JSON.stringify(item, null, mergedOptions.pretty ? 2 : 0);
+          } else if (format === 'txt') {
+            // Use custom textFormatter if provided
+            if (mergedOptions.textFormatter) {
+              return mergedOptions.textFormatter(item);
+            }
+            // Default text formatting
+            if (typeof item === 'string') {
+              return item;
+            }
+            if (typeof item === 'object' && item !== null) {
+               // Try to get translated content or content
+              const content = item.translatedText || item.translatedContent || item.originalText || item.content || item.text || '';
+              const title = item.title || item.name || '';
+              return [title, content].filter(Boolean).join('\n\n');
+            }
+            return String(item);
+          }
+          return String(item);
+        };
+        
+        // Create zip blob
+        const zipBlob = await createZipFromItems(exportData, format, mergedOptions, itemFormatter);
+        
+        // Generate filename for zip (override extension to .zip)
+        const base = mergedOptions.filename || config.defaultFilename || 'export';
+        const timestamp = mergedOptions.timestamp !== false ? 
+          new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-') : '';
+        const zipFilename = timestamp ? `${base}_${timestamp}.zip` : `${base}.zip`;
+        
+        // Download zip
+        download(zipBlob, zipFilename, 'application/zip');
+        
+        // Create result
+        const result: ExportResult = {
+          success: true,
+          filename: zipFilename,
+          size: zipBlob.size,
+        };
+        
+        lastExportResult.value = result;
+        return result;
+      }
+
+      // Regular export (single file)
       // Format data
       const formatter = formatters[format];
       const formattedContent = formatter.format(exportData, mergedOptions);

@@ -55,19 +55,52 @@
         </div>
       </div>
 
+      <!-- Series Export -->
+      <div v-if="series" class="px-3 py-2 border-b border-gray-100">
+        <h4 class="text-sm font-medium text-gray-900 mb-2">Series Export</h4>
+        <div class="space-y-1">
+          <button
+            @click="exportSeriesAsZip"
+            :disabled="seriesExporter.isExporting.value"
+            class="w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+          >
+            Export current series as ZIP
+          </button>
+          <button
+            v-if="allSeries && allSeries.length > 0"
+            @click="exportAllSeriesAsZip"
+            :disabled="seriesExporter.isExporting.value"
+            class="w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+          >
+            Export all series as ZIP ({{ allSeries.length }} series)
+          </button>
+        </div>
+      </div>
+
       <!-- Status -->
-      <div v-if="exporter.isExporting.value || exporter.lastExportResult.value || exporter.error.value" class="px-3 py-2 border-t border-gray-100">
+      <div v-if="exporter.isExporting.value || exporter.lastExportResult.value || exporter.error.value || seriesExporter.isExporting.value || seriesExporter.error.value" class="px-3 py-2 border-t border-gray-100">
+        <!-- Chapter exporter status -->
         <div v-if="exporter.isExporting.value" class="flex items-center space-x-2 text-blue-600 text-xs">
           <div class="animate-spin h-3 w-3 border border-blue-600 border-t-transparent rounded-full"></div>
-          <span>Exporting...</span>
+          <span>Exporting chapters...</span>
         </div>
-
+        
         <div v-else-if="exporter.error.value" class="text-xs text-red-600">
-          Export failed: {{ exporter.error.value }}
+          Chapter export failed: {{ exporter.error.value }}
         </div>
 
         <div v-else-if="exporter.lastExportResult.value?.success" class="text-xs text-green-600">
           ✓ Exported {{ exporter.lastExportResult.value.filename }}
+        </div>
+        
+        <!-- Series exporter status -->
+        <div v-if="seriesExporter.isExporting.value" class="flex items-center space-x-2 text-blue-600 text-xs mt-2">
+          <div class="animate-spin h-3 w-3 border border-blue-600 border-t-transparent rounded-full"></div>
+          <span>Exporting series...</span>
+        </div>
+        
+        <div v-else-if="seriesExporter.error.value" class="text-xs text-red-600 mt-2">
+          Series export failed: {{ seriesExporter.error.value }}
         </div>
       </div>
     </div>
@@ -77,17 +110,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useChapterExporter } from "@/modules/chapters";
+import { useSeriesWithChaptersExporter } from "@/composables";
 import type { ExportFormat } from "@/modules/core";
+import type { Chapter, SeriesWithChapters } from '@/types';
 
 const props = defineProps<{
-  chapters: any[];
+  chapters: Chapter[];
   currentChapter: any | null;
+  series?: SeriesWithChapters | null;
+  allSeries?: SeriesWithChapters[];
 }>();
 
 const exporter = useChapterExporter();
+const seriesExporter = useSeriesWithChaptersExporter();
 
 const open = ref(false);
-const exportFormats: ExportFormat[] = ["json", "csv", "txt"];
+const exportFormats: ExportFormat[] = ["txt"];
 
 const hasTranslatedContent = computed(() =>
   props.chapters.some(ch =>
@@ -126,12 +164,42 @@ const handleExport = async ({
 }) => {
   try {
     if (type === "current") {
-      await exporter.exportCurrentChapter(props.currentChapter, format);
+      await exporter.exportChapterAsText(props.currentChapter);
     } else if (type === "all") {
-      await exporter.exportTranslatedChapters(props.chapters, format);
+      await exporter.exportChaptersAsText(props.chapters);
     }
   } catch (err) {
     console.error(err);
+  }
+};
+
+const exportSeriesAsZip = async () => {
+  try {
+    if (!props.series) return;
+    seriesExporter.clearError();
+    await seriesExporter.exportSeriesAsZip([props.series], {
+      filename: `series-${props.series.name.replace(/[^a-zA-Z0-9]/g, '-')}`,
+      timestamp: true,
+    });
+    open.value = false;
+  } catch (err) {
+    console.error(err);
+    open.value = false;
+  }
+};
+
+const exportAllSeriesAsZip = async () => {
+  try {
+    if (!props.allSeries || props.allSeries.length === 0) return;
+    seriesExporter.clearError();
+    await seriesExporter.exportSeriesAsZip(props.allSeries, {
+      filename: 'all-series',
+      timestamp: true,
+    });
+    open.value = false;
+  } catch (err) {
+    console.error(err);
+    open.value = false;
   }
 };
 

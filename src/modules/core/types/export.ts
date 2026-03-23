@@ -4,7 +4,7 @@
  * Shared types for the export functionality
  */
 
-export type { ExportFormat, ExportOptions, ExportResult } from '../composables/useExporter';
+export type { ExportFormat, ExportOptions, ExportResult, ZipExportOptions } from '../composables/useExporter';
 
 // Common export interfaces that modules can extend
 export interface BaseExportItem {
