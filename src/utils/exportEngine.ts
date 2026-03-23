@@ -23,9 +23,10 @@ export interface NormalizedSeries {
 export interface NormalizedChapter {
   id: string;
   title: string;
+  originalContent: string;
   translatedContent: string;
   seriesId: string;
-  order: number;
+  order: string;
 }
 
 export interface SeriesExportContext {
@@ -149,10 +150,9 @@ export const exportEngine = {
     series: SeriesWithChapters, 
     glossaryTerms: GlossaryTerm[],
     options: ExportOptions = {}
-  ): { files: ExportFile[]; failedChapters: Array<{ chapterId: string; title: string; error: string }> } {
+  ): ExportFile[] {
     const normalizedSeries = this.normalizeSeries(series);
     const files: ExportFile[] = [];
-    const failedChapters: Array<{ chapterId: string; title: string; error: string }> = [];
 
     files.push(this.buildMetadataFile(normalizedSeries));
 
@@ -171,19 +171,13 @@ export const exportEngine = {
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        failedChapters.push({
-          chapterId: chapter.id,
-          title: chapter.title,
-          error: errorMessage,
-        });
-        console.warn(`Failed to build files for chapter ${chapter.id}:`, error);
+        console.error(`Failed to build files for chapter ${chapter.id} (${chapter.title}):`, error);
       }
     }
 
     const translatedFiles = this.buildTranslatedOnlyChapterTextFiles(normalizedSeries);
     files.push(...translatedFiles);
 
-    return { files, failedChapters };
+    return files;
   },
 };

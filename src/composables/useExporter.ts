@@ -16,7 +16,6 @@ export interface ExportOptions {
 export interface ExportResult {
   success: boolean;
   error?: string;
-  failedChapters?: Array<{ chapterId: string; title: string; error: string }>;
 }
 
 export function useExporter() {
@@ -51,8 +50,6 @@ export function useExporter() {
     isExporting.value = true;
     error.value = null;
 
-    const failedChapters: Array<{ chapterId: string; title: string; error: string }> = [];
-
     try {
       if (!seriesData || seriesData.length === 0) {
         throw new Error('No series data provided');
@@ -63,15 +60,7 @@ export function useExporter() {
           ? await fetchGlossaryForSeries(series.id)
           : [];
 
-        const { files, failedChapters: chapterFailures } = exportEngine.buildFilesForSeries(series, glossaryTerms, { includeGlossary: options.includeGlossary !== false });
-        
-        if (chapterFailures.length > 0) {
-          failedChapters.push(...chapterFailures.map((f: { chapterId: string; title: string; error: string }) => ({
-            chapterId: f.chapterId,
-            title: f.title,
-            error: f.error,
-          })));
-        }
+        const files = exportEngine.buildFilesForSeries(series, glossaryTerms, { includeGlossary: options.includeGlossary !== false });
         
         return { series, files, glossaryTerms };
       });
@@ -104,7 +93,6 @@ export function useExporter() {
       
       return {
         success: true,
-        failedChapters: failedChapters.length > 0 ? failedChapters : undefined
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during export';
@@ -112,7 +100,6 @@ export function useExporter() {
       return {
         success: false,
         error: errorMessage,
-        failedChapters: failedChapters.length > 0 ? failedChapters : undefined
       };
     } finally {
       isExporting.value = false;
