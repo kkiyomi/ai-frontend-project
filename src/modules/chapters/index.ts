@@ -24,9 +24,6 @@ export { chapterAPI } from './api';
 export { default as BulkChapterUpload } from './components/BulkChapterUpload.vue';
 export { default as ChaptersList } from './components/ChaptersList.vue';
 
-// Export functionality
-export { useChapterExporter } from './composables/useChapterExporter';
-
 export type {
   Chapter,
   ChapterCreateInput,

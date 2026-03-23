@@ -5,7 +5,8 @@
  */
 
 import JSZip from 'jszip';
-import type { ExportFormat, ExportOptions, ZipExportOptions } from '../composables/useExporter';
+import type { ExportOptions, ZipExportOptions } from '../composables/useExporter';
+import type { DataFormatter } from '../types/formatters';
 
 /**
  * Sanitize filename by removing unsafe characters
@@ -37,19 +38,14 @@ export function defaultFileNameFormatter(item: any, index: number): string {
 }
 
 /**
- * Get file extension for a given format
+ * Get file extension for a given formatter
  */
-export function getFileExtension(format: ExportFormat, customExtension?: string): string {
+export function getFileExtension(formatter: DataFormatter<any>, customExtension?: string): string {
   if (customExtension) {
     return customExtension.startsWith('.') ? customExtension.slice(1) : customExtension;
   }
   
-  switch (format) {
-    case 'json': return 'json';
-    case 'csv': return 'csv';
-    case 'txt': return 'txt';
-    default: return 'txt';
-  }
+  return formatter.fileExtension;
 }
 
 /**
@@ -58,7 +54,7 @@ export function getFileExtension(format: ExportFormat, customExtension?: string)
  */
 export async function createZipFromItems<T>(
   items: T[],
-  format: ExportFormat,
+  formatter: DataFormatter<T>,
   options: ExportOptions,
   itemFormatter: (item: T) => string
 ): Promise<Blob> {
@@ -78,7 +74,7 @@ export async function createZipFromItems<T>(
   
   // Determine file name formatter
   const fileNameFormatter = zipOptions.fileNameFormatter || defaultFileNameFormatter;
-  const fileExtension = getFileExtension(format, zipOptions.fileExtension);
+  const fileExtension = getFileExtension(formatter, zipOptions.fileExtension);
   
   // Add each item as a separate file
   items.forEach((item, index) => {
@@ -95,7 +91,7 @@ export async function createZipFromItems<T>(
     const manifest = {
       metadata: {
         exportedAt: new Date().toISOString(),
-        format,
+        format: formatter.id,
         totalItems: items.length,
         folderName,
       },
@@ -143,7 +139,7 @@ export interface NestedZipItem<T> {
  */
 export async function createNestedZip<T>(
   nestedItems: NestedZipItem<T>[],
-  format: ExportFormat,
+  formatter: DataFormatter<T>,
   options: ExportOptions,
   itemFormatter: (item: T) => string,
   fileNameFormatter?: (item: T, index: number) => string
@@ -154,7 +150,7 @@ export async function createNestedZip<T>(
 
   const zip = new JSZip();
   const zipOptions = options.zipOptions || {};
-  const fileExtension = getFileExtension(format, zipOptions.fileExtension);
+  const fileExtension = getFileExtension(formatter, zipOptions.fileExtension);
   const useFileNameFormatter = fileNameFormatter || defaultFileNameFormatter;
   
   // Add manifest data for tracking
@@ -205,7 +201,7 @@ export async function createNestedZip<T>(
     const manifest = {
       metadata: {
         exportedAt: new Date().toISOString(),
-        format,
+        format: formatter.id,
         totalFolders: manifestData.length,
         totalItems: manifestData.reduce((sum, folder) => sum + folder.itemCount, 0),
       },

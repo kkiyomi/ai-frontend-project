@@ -30,10 +30,22 @@
  */
 
 import { ref, computed } from 'vue';
-import { createZipFromItems, isZipExport, sanitizeFilename } from '../utils/zip';
+import { createZipFromItems, createNestedZip, isZipExport, sanitizeFilename } from '../utils/zip';
+import { ExportEngine, ExportEngineConfig, SingleFileExportStrategy, ZipExportStrategy, NestedZipExportStrategy } from '../exportEngine';
+import { downloadArtifact } from '../utils/download';
+import type { DataFormatter, ExportArtifact } from '../types/formatters';
 
-// Export format types
-export type ExportFormat = 'json' | 'csv' | 'txt';
+// Export format types - now open string for formatter IDs
+export type ExportFormat = string;
+
+// Default formatter IDs for backward compatibility
+export const DEFAULT_FORMATTER_IDS = {
+  JSON: 'json',
+  CSV: 'csv',
+  TXT: 'txt',
+} as const;
+
+export type DefaultFormatterId = typeof DEFAULT_FORMATTER_IDS[keyof typeof DEFAULT_FORMATTER_IDS];
 
 // Export options interface
 export interface ExportOptions {
@@ -68,24 +80,23 @@ export interface ExportResult {
   size?: number; // File size in bytes
 }
 
-/**
- * Data formatter interface for different export formats
- */
-interface DataFormatter<U> {
-  format(data: U, options?: ExportOptions): string;
-  mimeType: string;
-  fileExtension: string;
-}
+
 
 /**
  * JSON formatter implementation
  */
 class JsonFormatter<U> implements DataFormatter<U> {
+  id = DEFAULT_FORMATTER_IDS.JSON;
   mimeType = 'application/json';
   fileExtension = 'json';
+  supportsZip = true;
 
   format(data: U, options?: ExportOptions): string {
     return JSON.stringify(data, null, options?.pretty ? 2 : 0);
+  }
+
+  formatItem(item: any, options?: ExportOptions): string {
+    return JSON.stringify(item, null, options?.pretty ? 2 : 0);
   }
 }
 
@@ -94,8 +105,10 @@ class JsonFormatter<U> implements DataFormatter<U> {
  * Handles flat objects and arrays of objects
  */
 class CsvFormatter<U> implements DataFormatter<U> {
+  id = DEFAULT_FORMATTER_IDS.CSV;
   mimeType = 'text/csv';
   fileExtension = 'csv';
+  supportsZip = false; // CSV doesn't make sense for zip export (single file format)
 
   format(data: U, options?: ExportOptions): string {
     if (!Array.isArray(data)) {
@@ -152,8 +165,10 @@ class CsvFormatter<U> implements DataFormatter<U> {
  * Supports custom formatting via options.textFormatter and options.itemSeparator
  */
 class TxtFormatter<U> implements DataFormatter<U> {
+  id = DEFAULT_FORMATTER_IDS.TXT;
   mimeType = 'text/plain';
   fileExtension = 'txt';
+  supportsZip = true;
 
   format(data: U, options?: ExportOptions): string {
     if (typeof data === 'string') {
@@ -171,7 +186,12 @@ class TxtFormatter<U> implements DataFormatter<U> {
     return formatItem(data);
   }
 
-  private formatItem(item: any): string {
+  formatItem(item: any, options?: ExportOptions): string {
+    // Use custom textFormatter from options if provided
+    if (options?.textFormatter) {
+      return options.textFormatter(item);
+    }
+    
     if (typeof item === 'string') {
       return item;
     }
@@ -205,29 +225,32 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
   const lastExportResult = ref<ExportResult | null>(null);
   const error = ref<string | null>(null);
 
-  // Formatters registry
-  const formatters: Record<ExportFormat, DataFormatter<U>> = {
-    json: new JsonFormatter<U>(),
-    csv: new CsvFormatter<U>(),
-    txt: new TxtFormatter<U>(),
-  };
+  // Export engine (new architecture)
+  const zipStrategy = new ZipExportStrategy<U>(createZipFromItems);
+  const nestedZipStrategy = new NestedZipExportStrategy<U>(createNestedZip);
+  
+  const engine = new ExportEngine<T, U>({
+    ...config,
+    formatters: [
+      new JsonFormatter<U>(),
+      new CsvFormatter<U>(),
+      new TxtFormatter<U>(),
+    ],
+    defaultFormatterId: DEFAULT_FORMATTER_IDS.TXT, // Default to txt for backward compatibility
+  }, undefined, zipStrategy, nestedZipStrategy);
+
+
 
   // Computed
-  const supportedFormats = computed(() => Object.keys(formatters) as ExportFormat[]);
+  const supportedFormats = computed(() => engine.getFormatterIds());
 
-  /**
-   * Default data preparation - can be overridden via config
-   */
-  const defaultPrepareData = (data: T): U => {
-    return data as unknown as U;
-  };
+
 
   /**
    * Prepare data for export using configured transformer
    */
   const prepareData = (data: T): U => {
-    const transformer = config.prepareData || defaultPrepareData;
-    return transformer(data);
+    return engine.prepareData(data);
   };
 
   /**
@@ -237,12 +260,12 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
     format: ExportFormat,
     options: ExportOptions = {}
   ): string => {
-    const base = options.filename || config.defaultFilename || 'export';
-    const timestamp = options.timestamp !== false ? 
-      new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-') : '';
-    const extension = formatters[format].fileExtension;
-    
-    return timestamp ? `${base}_${timestamp}.${extension}` : `${base}.${extension}`;
+    return engine.generateFilename(
+      format,
+      options.filename || config.defaultFilename,
+      options.timestamp,
+      options.zipOptions?.fileExtension
+    );
   };
 
   /**
@@ -273,7 +296,9 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
    * Validate export format
    */
   const validateFormat = (format: ExportFormat): void => {
-    if (!formatters[format]) {
+    try {
+      engine.getFormatter(format);
+    } catch {
       throw new Error(`Unsupported export format: ${format}`);
     }
   };
@@ -306,84 +331,17 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
       // Merge options with defaults
       const mergedOptions = { ...config.defaultOptions, ...options };
 
-      // Prepare data for export
-      const exportData = prepareData(data);
-
-      // Check if zip export is requested
-      if (isZipExport(mergedOptions)) {
-        // Validate data is array for zip export
-        if (!Array.isArray(exportData)) {
-          throw new Error('Zip export requires array data');
-        }
-        
-        // Validate format for zip export
-        if (format === 'csv') {
-          throw new Error('CSV format not supported for zip export. Use txt or json.');
-        }
-        
-        // Create item formatter
-        const itemFormatter = (item: any): string => {
-          if (format === 'json') {
-            return JSON.stringify(item, null, mergedOptions.pretty ? 2 : 0);
-          } else if (format === 'txt') {
-            // Use custom textFormatter if provided
-            if (mergedOptions.textFormatter) {
-              return mergedOptions.textFormatter(item);
-            }
-            // Default text formatting
-            if (typeof item === 'string') {
-              return item;
-            }
-            if (typeof item === 'object' && item !== null) {
-               // Try to get translated content or content
-              const content = item.translatedText || item.translatedContent || item.originalText || item.content || item.text || '';
-              const title = item.title || item.name || '';
-              return [title, content].filter(Boolean).join('\n\n');
-            }
-            return String(item);
-          }
-          return String(item);
-        };
-        
-        // Create zip blob
-        const zipBlob = await createZipFromItems(exportData, format, mergedOptions, itemFormatter);
-        
-        // Generate filename for zip (override extension to .zip)
-        const base = mergedOptions.filename || config.defaultFilename || 'export';
-        const timestamp = mergedOptions.timestamp !== false ? 
-          new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-') : '';
-        const zipFilename = timestamp ? `${base}_${timestamp}.zip` : `${base}.zip`;
-        
-        // Download zip
-        download(zipBlob, zipFilename, 'application/zip');
-        
-        // Create result
-        const result: ExportResult = {
-          success: true,
-          filename: zipFilename,
-          size: zipBlob.size,
-        };
-        
-        lastExportResult.value = result;
-        return result;
-      }
-
-      // Regular export (single file)
-      // Format data
-      const formatter = formatters[format];
-      const formattedContent = formatter.format(exportData, mergedOptions);
-
-      // Generate filename
-      const filename = generateFilename(format, mergedOptions);
-
-      // Download file
-      download(formattedContent, filename, formatter.mimeType);
-
+      // Use engine for export (handles zip, single file, nested zip)
+      const artifact = await engine.export(data, format, mergedOptions);
+      
+      // Download the artifact
+      downloadArtifact(artifact);
+      
       // Create result
       const result: ExportResult = {
         success: true,
-        filename,
-        size: new Blob([formattedContent]).size,
+        filename: artifact.filename,
+        size: artifact.size,
       };
 
       lastExportResult.value = result;
@@ -435,13 +393,7 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
     format: ExportFormat,
     options: ExportOptions = {}
   ): string => {
-    validateFormat(format);
-    validateData(data);
-
-    const exportData = prepareData(data);
-    const formatter = formatters[format];
-    
-    return formatter.format(exportData, options);
+    return engine.getPreview(data, format, options);
   };
 
   /**
@@ -491,3 +443,6 @@ export function useExporter<T, U = T>(config: ExporterConfig<T, U> = {}) {
 export function createExporter<T, U = T>(config: ExporterConfig<T, U>) {
   return () => useExporter<T, U>(config);
 }
+
+// Export formatter implementations for use in custom export logic
+export { JsonFormatter, CsvFormatter, TxtFormatter };

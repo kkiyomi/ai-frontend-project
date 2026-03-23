@@ -19,6 +19,7 @@ import { ref, computed } from 'vue';
 import type { SeriesWithChapters, Chapter } from '@/types';
 import type { ExportOptions, ZipExportOptions } from '@/modules/core';
 import { createNestedZip, NestedZipItem, sanitizeFilename } from '@/modules/core/utils/zip';
+import { JsonFormatter, TxtFormatter, DEFAULT_FORMATTER_IDS } from '@/modules/core';
 import { useSeriesWithChapters } from './useSeriesWithChapters';
 
 /**
@@ -156,10 +157,14 @@ export function useSeriesWithChaptersExporter() {
         zipOptions: seriesZipOptions,
       };
       
+      // Get formatter based on format
+      const format = seriesZipOptions.format || 'txt';
+      const formatter = format === 'json' ? new JsonFormatter<Chapter>() : new TxtFormatter<Chapter>();
+      
       // Create zip blob
       const zipBlob = await createNestedZip(
         nestedItems,
-        seriesZipOptions.format || 'txt',
+        formatter,
         mergedOptions,
         itemFormatter,
         seriesZipOptions.chapterFileNameFormatter

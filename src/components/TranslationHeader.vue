@@ -33,10 +33,6 @@
         <!-- Export Dropdown -->
         <ExportButton
           v-if="currentSeries && features.isEnabled('export_button')"
-          :chapters="currentSeries.chapters"
-          :currentChapter="currentChapter"
-          :series="currentSeries"
-          :allSeries="allSeries"
         />
 
         <!-- Layout Toggle -->

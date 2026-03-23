@@ -15,4 +15,4 @@ export interface APIResponse<T> {
 export type { SettingsItem, SettingsSection } from './settings';
 
 // Export system types
-export type { ExportFormat, ExportOptions, ExportResult, BaseExportItem, ExportMetadata, ExportContainer } from './export';
+export type { ExportOptions, ExportResult, BaseExportItem, ExportMetadata, ExportContainer, DataFormatter, ExportArtifact, ExportStrategy } from './export';
