@@ -17,6 +17,7 @@ export interface NormalizedSeries {
   description?: string;
   createdAt: string;
   chapters: NormalizedChapter[];
+  translatedChapters: NormalizedChapter[];
 }
 
 export interface NormalizedChapter {
@@ -33,8 +34,16 @@ export interface SeriesExportContext {
   options: ExportOptions;
 }
 
+const slugify = (text: string) => text
+    .toLowerCase()
+    .normalize('NFD') // Splits accented characters (e.g., "é" -> "e´")
+    .replace(/[\u0300-\u036f]/g, '') // Removes the accents
+    .replace(/[^a-z0-9]/g, '-') // Replaces everything else with a hyphen
+    .replace(/-+/g, '-') // Collapses multiple hyphens
+    .replace(/^-|-$/g, '');
+
 export const exportEngine = {
-  normalizeSeries(series: SeriesWithChapters, showOnlyTranslated: boolean = false): NormalizedSeries {
+  normalizeSeries(series: SeriesWithChapters): NormalizedSeries {
     return {
       id: series.id,
       name: series.name,
@@ -43,14 +52,21 @@ export const exportEngine = {
         ? series.createdAt 
         : series.createdAt.toISOString(),
       chapters: series.chapters
-        .filter(chapter => {
-          return showOnlyTranslated ? !!chapter.translatedContent : true;
-        })
         .map((chapter, index) => ({
           id: chapter.id,
           title: chapter.title,
           originalContent: chapter.content,
           translatedContent: chapter.translatedContent || '[No translation available]',
+          seriesId: chapter.seriesId,
+          order: (index + 1).toString().padStart(3, '0')
+        })),
+      translatedChapters: series.chapters
+        .filter(chapter => !!chapter.translatedContent)
+        .map((chapter, index) => ({
+          id: chapter.id,
+          title: chapter.title,
+          originalContent: chapter.content,
+          translatedContent: chapter.translatedContent!,
           seriesId: chapter.seriesId,
           order: (index + 1).toString().padStart(3, '0')
         })),
@@ -72,6 +88,7 @@ export const exportEngine = {
         description: series.description,
         createdAt: series.createdAt,
         chapterCount: series.chapters.length,
+        translatedChapterCount: series.translatedChapters.length,
       },
       exportInfo: {
         exportedAt: new Date().toISOString(),
@@ -118,6 +135,16 @@ export const exportEngine = {
     };
   },
 
+  buildTranslatedOnlyChapterTextFiles(normalizedSeries: NormalizedSeries): ExportFile[] {
+    return normalizedSeries.translatedChapters.map(chapter => {
+      const file = this.buildChapterTextFile(chapter, false);
+      return {
+        ...file,
+        path: `translated/${slugify(chapter.title)}.txt`,
+      };
+    });
+  },
+
   buildFilesForSeries(
     series: SeriesWithChapters, 
     glossaryTerms: GlossaryTerm[],
@@ -153,6 +180,9 @@ export const exportEngine = {
         console.warn(`Failed to build files for chapter ${chapter.id}:`, error);
       }
     }
+
+    const translatedFiles = this.buildTranslatedOnlyChapterTextFiles(normalizedSeries);
+    files.push(...translatedFiles);
 
     return { files, failedChapters };
   },

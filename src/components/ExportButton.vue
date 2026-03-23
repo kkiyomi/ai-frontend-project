@@ -2,9 +2,9 @@
   <div class="relative">
     <button
       @click="toggleMenu"
-      :disabled="!hasTranslatedContent"
+      :disabled="!hasContent"
       class="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-      :title="hasTranslatedContent ? 'Export translations' : 'No translated content to export'"
+      :title="hasContent ? 'Export' : 'No content to export'"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -75,14 +75,14 @@ const open = ref(false);
 
 const chapters = computed(() => series.value?.chapters || []);
 
-const hasTranslatedContent = computed(() =>
+const hasContent = computed(() =>
   chapters.value.some(ch =>
     ch.translatedParagraphs.some((p: string) => p.trim())
   )
 );
 
 const toggleMenu = () => {
-  if (!hasTranslatedContent.value) return;
+  if (!hasContent.value) return;
   open.value = !open.value;
 };
 
