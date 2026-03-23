@@ -130,7 +130,6 @@ import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
 import { useEditorStore } from "@/modules/editor";
 import { useSeriesWithChapters } from '@/composables';
-import type { ExportFormat } from "@/modules/core";
 
 // Import translation module components and store
 import { 

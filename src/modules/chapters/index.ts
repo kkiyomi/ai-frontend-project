@@ -27,6 +27,5 @@ export { default as ChaptersList } from './components/ChaptersList.vue';
 export type {
   Chapter,
   ChapterCreateInput,
-  ChapterUpdateInput,
-  ExportChapter
+  ChapterUpdateInput
 } from './types';
