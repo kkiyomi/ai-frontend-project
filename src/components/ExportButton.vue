@@ -62,9 +62,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import { useSeriesWithChapters, useSeriesWithChaptersExporter } from "@/composables";
+import { useSeriesWithChapters, useExporter } from "@/composables";
 
-const seriesExporter = useSeriesWithChaptersExporter();
+const seriesExporter = useExporter();
 
 const {
   selectedSeriesWithChapters: series,
