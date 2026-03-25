@@ -126,7 +126,7 @@ function formatLimitName(key: string) {
 
 const nextPlan = computed(() => {
   if (!currentPlan || !plans.length) return null;
-  const index = plans.findIndex(p => p.uuid === currentPlan.value?.uuid);
+  const index = plans.findIndex(p => p.id === currentPlan.value?.id);
   return plans[index + 1] || null;
 });
 

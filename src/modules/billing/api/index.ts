@@ -15,7 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { BillingMockAPI } from './mock';
 import { BillingRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
-import type { Subscription, Topup } from '../types';
+import type { Subscription, Topup, Plan } from '../types';
 
 class BillingAPIService {
   private static instance: BillingAPIService | null = null;

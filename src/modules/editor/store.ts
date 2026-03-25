@@ -99,6 +99,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   function setOnlyEditingParagraph(index: number, type: 'original' | 'translated'): void {
     const paragraphs = getParagraphs(type);
+    if (!paragraphs) return;
     if ( index === -1 || index === paragraphs.length) {
       addParagraph(Math.max(0, index), type);
       return;

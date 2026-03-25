@@ -9,7 +9,7 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { Subscription, Topup } from '../types';
+import type { Subscription, Topup, Plan } from '../types';
 
 export class BillingRealAPI {
   async getSubscription(): Promise<APIResponse<Subscription>> {

@@ -1,5 +1,5 @@
 import type { APIResponse } from '@/modules/core/types';
-import type { Subscription } from '../types';
+import type { Subscription, Plan } from '../types';
 import { mockSubscription, mockPlans } from '@/mock/billing';
 
 const simulateDelay = (min = 200, max = 800): Promise<void> => {

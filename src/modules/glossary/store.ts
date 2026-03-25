@@ -31,7 +31,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { glossaryAPI } from './api';
-import type { GlossaryTerm } from './types';
+import type { GlossaryTerm, GlossaryItem } from './types';
 
 export const useGlossaryStore = defineStore('glossary', () => {
   // State
@@ -55,8 +55,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
     return grouped;
   });
 
-  const termsByCategoryFlat = computed(() => {
-    const items = []
+  const termsByCategoryFlat = computed<GlossaryItem[]>(() => {
+    const items: GlossaryItem[] = []
 
     for (const [category, flatTerms] of Object.entries(termsByCategory.value as Record<string, GlossaryTerm[]>)) {
       items.push({
@@ -64,14 +64,14 @@ export const useGlossaryStore = defineStore('glossary', () => {
         id: `header-${category}`,
         category,
         count: flatTerms.length
-      })
+      } as GlossaryItem)
 
       for (const term of flatTerms) {
         items.push({
           type: "term",
           ...term,
           category
-        })
+        } as GlossaryItem)
       }
     }
 
