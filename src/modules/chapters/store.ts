@@ -1,3 +1,29 @@
+/**
+ * Chapters Module - Pinia Store
+ *
+ * Manages chapter state and operations including file parsing using `parseFileContent` utility,
+ * content management, and chapter organization by series. Supports both file uploads and
+ * direct text input for chapter creation. Features automatic paragraph parsing and
+ * enriched chapter data structure with original/translated paragraph arrays.
+ *
+ * Usage Example:
+ * ```typescript
+ * import { useChaptersStore } from '@/modules/chapters';
+ *
+ * const chapters = useChaptersStore();
+ * await chapters.loadChapters('series-id');
+ *
+ * // Add chapter from file (auto-parses content)
+ * await chapters.addChapter(file, 'series-id');
+ *
+ * // Add chapter from text
+ * await chapters.addChapterFromText('Content', 'Title', 'series-id');
+ *
+ * // Update chapter content
+ * await chapters.updateChapter('chapter-id', { content: 'New content' });
+ * ```
+ */
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { chapterAPI } from './api';
@@ -29,26 +55,26 @@ export const useChaptersStore = defineStore('chapters', () => {
     return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
   }
 
-  async function loadChapters(seriesId?: string): Promise<void> {
+  async function loadChapters(seriesId?: string, chapterIds?: string[]): Promise<void> {
     if (loadingPromise) {
       return loadingPromise;
     }
 
-    if (dataLoaded && chapters.value.length > 0 && !seriesId) {
+    if (dataLoaded && chapters.value.length > 0 && !seriesId && !chapterIds) {
       return;
     }
 
-    loadingPromise = performLoad(seriesId);
+    loadingPromise = performLoad(seriesId, chapterIds);
     await loadingPromise;
     loadingPromise = null;
   }
 
-  async function performLoad(seriesId?: string): Promise<void> {
+  async function performLoad(seriesId?: string, chapterIds?: string[]): Promise<void> {
     try {
       isLoading.value = true;
       error.value = null;
 
-      const response = await chapterAPI.getChapters(seriesId);
+      const response = await chapterAPI.getChapters(seriesId, chapterIds);
 
       if (response.success && response.data) {
         const enrichedChapters = response.data.map((chapter) => ({
@@ -59,10 +85,21 @@ export const useChaptersStore = defineStore('chapters', () => {
         }));
 
         if (seriesId) {
-          chapters.value = [
-            ...chapters.value.filter(ch => ch.seriesId !== seriesId),
-            ...enrichedChapters
-          ];
+          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
+
+          chapters.value = chapters.value.map(ch =>
+            ch.seriesId === seriesId && updates.has(ch.id)
+              ? updates.get(ch.id)!
+              : ch
+          );
+        } else if (chapterIds) {
+          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
+
+          chapters.value = chapters.value.map(ch =>
+            chapterIds.includes(ch.id) && updates.has(ch.id)
+              ? updates.get(ch.id)!
+              : ch
+          );
         } else {
           chapters.value = enrichedChapters;
           dataLoaded = true;
@@ -176,17 +213,21 @@ export const useChaptersStore = defineStore('chapters', () => {
     currentChapterId.value = chapterId;
   }
 
-  async function refresh(seriesId?: string): Promise<void> {
-    if (!seriesId) {
+  async function refresh(seriesId?: string, chapterIds?: string[]): Promise<void> {
+    if (!seriesId && !chapterIds) {
       dataLoaded = false;
     }
-    await loadChapters(seriesId);
+    await loadChapters(seriesId, chapterIds);
   }
 
   async function forceReload(): Promise<void> {
     dataLoaded = false;
     chapters.value = [];
     await loadChapters();
+  }
+
+  function clearError() {
+    error.value = null;
   }
 
   return {
@@ -205,5 +246,6 @@ export const useChaptersStore = defineStore('chapters', () => {
     deleteChapter,
     refresh,
     forceReload,
+    clearError,
   };
 });

@@ -22,10 +22,8 @@
           <SelectedSeriesView
             :key="currentSeries.id"
             :series="currentSeries"
-            @back="deselectSeries"
             @edit="editSeries"
             @delete="() => deleteSeries(currentSeries)"
-            @addChapter="handleCreateChapter('New Chapter!')"
           />
 
           <!-- Chapters List -->
@@ -108,29 +106,6 @@ const {
   open: openConfirmation,
   close: closeConfirmation
 } = useConfirmation();
-
-const deselectSeries = () => {
-  seriesStore.selectSeries(null);
-  chaptersStore.selectChapter(null);
-};
-
-const handleCreateChapter = async (title: string) => {
-  if (!currentSeriesId.value) return;
-
-  try {
-    const emptyContent = `Chapter: ${title}\n\n[Add your content here...]`;
-
-    await chaptersStore.createChapter({
-      title,
-      content: `Chapter: ${title}\n\n[Add your content here...]`,
-      translatedContent: '[Add your translation here...]',
-      seriesId: currentSeriesId.value
-    });
-
-  } catch (error) {
-    console.error('Error creating chapter:', error);
-  }
-};
 
 const deleteSeries = (series: Series | null) => {
   if (!series) return;

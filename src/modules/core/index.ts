@@ -24,10 +24,19 @@
  * ```
  */
 
+// Store
+export { useSettingsStore } from './store';
+
 export { APIClient } from './services/apiClient';
 export { apiClient } from './services/index';
 
-export type { APIResponse } from './types';
+export type { APIResponse, SettingsItem, SettingsSection } from './types';
+
+export { default as SettingsModal } from './components/SettingsModal.vue';
+export { default as ImportButton } from './components/ImportButton.vue';
+
+export { useImporter, createImporter } from './composables/useImporter';
+export type { ImporterConfig, ImportResult, ImportRowResult, ImportProgress } from './composables/useImporter';
 
 export {
   isDevelopment,

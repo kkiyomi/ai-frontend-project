@@ -1,10 +1,33 @@
+/**
+ * Glossary Popup Composable
+ *
+ * Provides reactive state and event handlers for displaying glossary term popups on hover.
+ * Manages popup visibility, position calculation, and event listeners for glossary highlights.
+ * Features include: smart positioning to avoid viewport edges, click-outside detection,
+ * and hover delay handling for smooth user experience.
+ *
+ * Usage Example:
+ * ```typescript
+ * import { useGlossaryPopup } from '@/modules/glossary/composables/useGlossaryPopup';
+ *
+ * const { showPopup, hoveredTerm, popupPosition, closePopup } = useGlossaryPopup();
+ *
+ * // In template, conditionally render a popup using showPopup, hoveredTerm, and popupPosition
+ * ```
+ */
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { storeToRefs } from 'pinia';
 import type { GlossaryTerm } from '../types';
 import { useGlossaryStore } from '../store';
 
-const { terms: glossaryTerms, isHighlightEnabled } = useGlossaryStore();
 
 export function useGlossaryPopup() {
+  const store = useGlossaryStore();
+  const state = storeToRefs(store);
+  const {
+    termsByCurrentChapter: glossaryTerms,
+    isHighlightEnabled
+  } = state;
   const showPopup = ref(false);
   const hoveredTerm = ref<GlossaryTerm | null>(null);
   const popupPosition = ref({ x: 0, y: 0 });
@@ -40,7 +63,7 @@ export function useGlossaryPopup() {
     const termId = target.getAttribute('data-term-id');
     if (!termId) return;
 
-    const term = glossaryTerms.value.find(t => t.id === termId);
+    const term = glossaryTerms.value.find((t: GlossaryTerm) => t.id === termId);
     if (!term) return;
 
     const tooltipEl = document.querySelector('div.glossary-popup') as HTMLElement | undefined;

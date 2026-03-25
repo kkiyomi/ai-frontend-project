@@ -16,9 +16,6 @@
  *
  * const translation = useTranslationStore();
  *
- * // Translate a single paragraph
- * const result = await translation.translateParagraph(text, glossaryContext);
- *
  * // Translate an entire chapter
  * const translations = await translation.translateChapter(paragraphs, glossaryContext);
  *
@@ -32,12 +29,10 @@
  * ```vue
  * <template>
  *   <TranslationToolbar
- *     :isTranslating="translation.isTranslating.value"
- *     @translate="handleTranslate"
  *   />
  *   <TranslationProgress
- *     :progress="translation.translationProgress.value"
- *     :isVisible="translation.isTranslating.value"
+ *     :progress="translation.translationProgress"
+ *     :isVisible="translation.isTranslating"
  *   />
  * </template>
  * ```
@@ -56,8 +51,4 @@ export { default as TranslationToolbar } from './components/TranslationToolbar.v
 
 export type {
   TranslationState,
-  TranslationRequest,
-  ParagraphTranslationRequest,
-  RetranslationRequest,
-  ChapterTranslationRequest
 } from './types';

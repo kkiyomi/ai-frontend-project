@@ -9,46 +9,25 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
+import type { TranslationJobResponse } from '../types';
 
 export class TranslationRealAPI {
 
-  async translateText(
-    text: string,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    return apiClient.post<string>('/translate', {
-      text,
-      glossaryContext
-    });
-  }
-
-  async translateParagraph(
-    text: string,
-    chapterId: string,
-    paragraphIndex: number,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    return apiClient.post<string>('/translate-paragraph', {
-      text,
-      chapterId,
-      paragraphIndex,
-      glossaryContext
-    });
-  }
-
-  async retranslateWithGlossary(
-    originalText: string,
-    currentTranslation: string,
-    glossaryTerms: string[]
-  ): Promise<APIResponse<string>> {
-    return apiClient.post<string>('/retranslate', {
-      originalText,
-      currentTranslation,
-      glossaryTerms
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
+    return apiClient.post<{ jobId: string }>('/translate-chapter', {
+      chapterId
     });
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
     return apiClient.post<string[]>('/suggest-terms', { text });
+  }
+
+  async getTranslationJobStatus(
+    jobId: string
+  ): Promise<APIResponse<TranslationJobResponse>> {
+    return apiClient.get<TranslationJobResponse>(`/translation-job/${jobId}`, { bypassCache: true });
   }
 }

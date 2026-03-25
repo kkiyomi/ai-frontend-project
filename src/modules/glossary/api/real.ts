@@ -9,7 +9,8 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { GlossaryTerm } from '../types';
+import type { GlossaryTerm, GlossaryImportResponse } from '../types';
+
 
 export class GlossaryRealAPI {
 
@@ -32,6 +33,11 @@ export class GlossaryRealAPI {
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
     return apiClient.post<GlossaryTerm>('/glossary-terms', term);
+  }
+
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+    apiClient.invalidate('/glossary-terms')
+    return apiClient.post<GlossaryImportResponse>('/glossary-terms/import', terms);
   }
 
   async updateGlossaryTerm(termId: string, updates: Partial<GlossaryTerm>): Promise<APIResponse<GlossaryTerm>> {

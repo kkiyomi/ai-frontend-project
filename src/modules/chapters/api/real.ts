@@ -8,8 +8,21 @@ export class ChapterRealAPI {
     this.client = new APIClient(baseURL);
   }
 
-  async getChapters(seriesId?: string): Promise<APIResponse<Chapter[]>> {
-    const endpoint = seriesId ? `/chapters?seriesId=${seriesId}` : '/chapters';
+  async getChapters(seriesId?: string, chapterIds?: string[]): Promise<APIResponse<Chapter[]>> {
+    const params = new URLSearchParams();
+    
+    if (seriesId) {
+      params.append('seriesId', seriesId);
+    }
+    
+    if (chapterIds && chapterIds.length > 0) {
+      // Assuming backend accepts comma-separated chapter IDs
+      params.append('chapterIds', chapterIds.join(','));
+    }
+    
+    const queryString = params.toString();
+    const endpoint = queryString ? `/chapters?${queryString}` : '/chapters';
+    
     return this.client.get<Chapter[]>(endpoint);
   }
 

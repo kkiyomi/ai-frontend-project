@@ -35,32 +35,45 @@ export const useEditorStore = defineStore('editor', () => {
   // State
   const currentChapter = ref<Chapter | null>(null);
   const currentChapterId = ref<string | null>(null);
+
   const isEditingOriginal = ref(false);
   const isEditingTranslated = ref(false);
   const editingOriginalParagraphs = ref<Set<number>>(new Set());
   const editingTranslatedParagraphs = ref<Set<number>>(new Set());
-  const hasUnsavedChanges = ref(false);
+
+  const dirtyFields = ref<Set<'content' | 'translatedContent'>>(new Set());
+  const hasUnsavedChanges = computed(() => dirtyFields.value.size > 0);
+  const dirtyFields_ = computed(() => Array.from(dirtyFields.value));
+
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const shouldInitiateChapterSave = ref(false);
-
-  // History management for undo/redo
-  const history = ref<Array<{ 
-    type: 'paragraph' | 'full', 
-    content: string, 
-    translatedContent: string,
-    originalParagraphs: string[], 
-    translatedParagraphs: string[],
-    timestamp: number 
-  }>>([]);
-  const historyIndex = ref(-1);
-  const maxHistorySize = 50;
+  const isSaving = ref(false);
 
   // View preferences (persisted to localStorage)
   const layoutMode = ref<LayoutMode>('split');
   const contentMode = ref<ContentMode>('all');
 
-  // Computed
+  // ─── History ──────────────────────────────────────────────────────────────
+
+  type HistoryEntry = {
+    type: 'paragraph' | 'full';
+    content: string;
+    translatedContent: string;
+    originalParagraphs: string[];
+    translatedParagraphs: string[];
+    timestamp: number;
+  };
+
+  const history = ref<HistoryEntry[]>([]);
+  const historyIndex = ref(-1);
+  const MAX_HISTORY = 50;
+
+  const canUndo = computed(() => historyIndex.value > 0);
+  const canRedo = computed(() => historyIndex.value < history.value.length - 1);
+
+  // ─── Computed ─────────────────────────────────────────────────────────────
+
   const editorState = computed<EditorState>(() => ({
     currentChapterId: currentChapterId.value,
     isEditingOriginal: isEditingOriginal.value,
@@ -69,196 +82,164 @@ export const useEditorStore = defineStore('editor', () => {
     hasUnsavedChanges: hasUnsavedChanges.value,
   }));
 
-  // Actions
+  // ─── Private Helpers ──────────────────────────────────────────────────────
 
-  /**
-   * Load a chapter into the editor
-   */
-  function loadChapter(chapter: Chapter) {
-    clearChapter()
-    if (chapter) {
-      currentChapter.value = chapter;
-      currentChapterId.value = chapter.id;
-      hasUnsavedChanges.value = false;
-      // Initialize history with the loaded chapter
-      addToHistory('full', chapter.content, chapter.translatedContent, chapter.originalParagraphs, chapter.translatedParagraphs);
-    }
+  /** Returns the paragraph array for the given type, or null if no chapter loaded. */
+  function getParagraphs(type: 'original' | 'translated'): string[] | null {
+    if (!currentChapter.value) return null;
+    return type === 'original'
+      ? currentChapter.value.originalParagraphs
+      : currentChapter.value.translatedParagraphs;
   }
 
-  /**
-   * Helper function to rebuild content from paragraphs
-   */
+  function clearEditingParagraphs(type: 'original' | 'translated'): void {
+    const set = type === 'original' ? editingOriginalParagraphs.value : editingTranslatedParagraphs.value;
+    set.clear();
+  }
+
+  function setOnlyEditingParagraph(index: number, type: 'original' | 'translated'): void {
+    const paragraphs = getParagraphs(type);
+    if (!paragraphs) return;
+    if ( index === -1 || index === paragraphs.length) {
+      addParagraph(Math.max(0, index), type);
+      return;
+    }
+    clearEditingParagraphs(type);
+    setEditingParagraph(index, type, true);
+  }
+
+  /** Rebuilds the full-text content string from paragraph array. */
   function rebuildContent(type: 'original' | 'translated'): void {
-    if (!currentChapter.value) return;
+    const ch = currentChapter.value;
+    if (!ch) return;
 
     if (type === 'original') {
-      currentChapter.value.content = currentChapter.value.originalParagraphs.join('\n\n');
+      ch.content = ch.originalParagraphs.join('\n\n');
     } else {
-      currentChapter.value.translatedContent = currentChapter.value.translatedParagraphs.join('\n\n');
+      ch.translatedContent = ch.translatedParagraphs.join('\n\n');
     }
   }
 
-  /**
-   * Helper function to record state change to history and mark as unsaved
-   */
-  function recordChange(changeType: 'paragraph' | 'full'): void {
-    if (!currentChapter.value) return;
-
-    addToHistory(changeType, currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-    hasUnsavedChanges.value = true;
-  }
-
-  /**
-   * Add a state to history for undo/redo functionality
-   */
-  function addToHistory(type: 'paragraph' | 'full', content: string, translatedContent: string, originalParagraphs: string[], translatedParagraphs: string[]) {
-    const historyEntry = {
+  /** Pushes a snapshot onto the undo/redo history stack. */
+  function addToHistory(
+    type: 'paragraph' | 'full',
+    content: string,
+    translatedContent: string,
+    originalParagraphs: string[],
+    translatedParagraphs: string[],
+  ) {
+    history.value = history.value.slice(0, historyIndex.value + 1);
+    history.value.push({
       type,
       content,
       translatedContent,
       originalParagraphs: [...originalParagraphs],
       translatedParagraphs: [...translatedParagraphs],
-      timestamp: Date.now()
-    };
-
-    // Remove any history after current index
-    history.value = history.value.slice(0, historyIndex.value + 1);
-    
-    // Add new entry
-    history.value.push(historyEntry);
+      timestamp: Date.now(),
+    });
     historyIndex.value = history.value.length - 1;
 
-    // Limit history size
-    if (history.value.length > maxHistorySize) {
+    if (history.value.length > MAX_HISTORY) {
       history.value.shift();
       historyIndex.value--;
     }
   }
 
-  /**
-   * Undo the last change
-   */
-  function undo() {
-    if (historyIndex.value > 0 && currentChapter.value) {
-      historyIndex.value--;
-      const historyEntry = history.value[historyIndex.value];
-      
-      // Restore both original and translated content
-      currentChapter.value.content = historyEntry.content;
-      currentChapter.value.translatedContent = historyEntry.translatedContent;
-      currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
-      currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
-      
-      hasUnsavedChanges.value = true;
+  /** Records a change: snapshots history and marks the field dirty. */
+  function recordChange(
+    changeType: 'paragraph' | 'full',
+    field: 'content' | 'translatedContent',
+  ): void {
+    const ch = currentChapter.value;
+    if (!ch) return;
+    addToHistory(changeType, ch.content, ch.translatedContent, ch.originalParagraphs, ch.translatedParagraphs);
+    dirtyFields.value.add(field);
+  }
+
+  /** Shared implementation for undo/redo — step = -1 or +1. */
+  function applyHistory(step: -1 | 1): void {
+    const ch = currentChapter.value;
+    if (!ch) return;
+    const next = historyIndex.value + step;
+    if (next < 0 || next >= history.value.length) return;
+
+    historyIndex.value = next;
+    const entry = history.value[next];
+    ch.content = entry.content;
+    ch.translatedContent = entry.translatedContent;
+    ch.originalParagraphs = [...entry.originalParagraphs];
+    ch.translatedParagraphs = [...entry.translatedParagraphs];
+    dirtyFields.value.add('content');
+    dirtyFields.value.add('translatedContent');
+  }
+
+  /** Add/remove a paragraph index from the active editing set. */
+  function setEditingParagraph(
+    index: number,
+    type: 'original' | 'translated',
+    active: boolean,
+  ): void {
+    const set = type === 'original' ? editingOriginalParagraphs.value : editingTranslatedParagraphs.value;
+    active ? set.add(index) : set.delete(index);
+  }
+
+  // ─── Actions ──────────────────────────────────────────────────────────────
+
+  /** Load a chapter into the editor. */
+  function loadChapter(chapter: Chapter) {
+    clearChapter();
+    if (chapter) {
+      currentChapter.value = chapter;
+      currentChapterId.value = chapter.id;
+      addToHistory('full', chapter.content, chapter.translatedContent, chapter.originalParagraphs, chapter.translatedParagraphs);
     }
   }
 
-  /**
-   * Redo the next change
-   */
-  function redo() {
-    if (historyIndex.value < history.value.length - 1 && currentChapter.value) {
-      historyIndex.value++;
-      const historyEntry = history.value[historyIndex.value];
-      
-      // Restore both original and translated content
-      currentChapter.value.content = historyEntry.content;
-      currentChapter.value.translatedContent = historyEntry.translatedContent;
-      currentChapter.value.originalParagraphs = [...historyEntry.originalParagraphs];
-      currentChapter.value.translatedParagraphs = [...historyEntry.translatedParagraphs];
-      
-      hasUnsavedChanges.value = true;
-    }
-  }
-
-  /**
-   * Check if undo is available
-   */
-  const canUndo = computed(() => {
-    return historyIndex.value > 0;
-  });
-
-  /**
-   * Check if redo is available
-   */
-  const canRedo = computed(() => {
-    return historyIndex.value < history.value.length - 1;
-  });
-
-  /**
-   * Update the current chapter (local state only)
-   */
+  /** Update chapter in local state only (no API call). */
   function updateLocalChapter(updates: Partial<Chapter>) {
-    if (currentChapter.value) {
-      currentChapter.value = { ...currentChapter.value, ...updates };
-      hasUnsavedChanges.value = true;
-    }
+    const ch = currentChapter.value;
+    if (!ch) return;
+    currentChapter.value = { ...ch, ...updates };
+    if (updates.content !== undefined) dirtyFields.value.add('content');
+    if (updates.translatedContent !== undefined) dirtyFields.value.add('translatedContent');
   }
 
-  /**
-   * Save chapter changes to the API
-   */
+  /** Signal that a chapter save should be initiated. */
   function saveChapter() {
-    if (!currentChapter.value) return;
-    shouldInitiateChapterSave.value = true;
-    hasUnsavedChanges.value = false;
+    if (currentChapter.value) shouldInitiateChapterSave.value = true;
   }
 
-  /**
-   * Reset the save flag after a successful save
-   */
+  /** Reset the save-initiation flag after a successful save. */
   function resetSaveFlag() {
     shouldInitiateChapterSave.value = false;
   }
 
-  /**
-   * Toggle editing mode for the entire original text
-   */
   function toggleEditingOriginal() {
     isEditingOriginal.value = !isEditingOriginal.value;
-    if (!isEditingOriginal.value) {
-      saveChapter();
-    }
+    if (!isEditingOriginal.value) saveChapter();
   }
 
-  /**
-   * Toggle editing mode for the entire translated text
-   */
   function toggleEditingTranslated() {
     isEditingTranslated.value = !isEditingTranslated.value;
-    if (!isEditingTranslated.value) {
-      saveChapter();
-    }
+    if (!isEditingTranslated.value) saveChapter();
   }
 
-  /**
-   * Start editing a specific paragraph
-   */
   function startEditingParagraph(index: number, type: 'original' | 'translated') {
-    if (type === 'original') {
-      editingOriginalParagraphs.value.add(index);
-    } else {
-      editingTranslatedParagraphs.value.add(index);
-    }
+    setEditingParagraph(index, type, true);
   }
 
-  /**
-   * Stop editing a specific paragraph
-   */
   function stopEditingParagraph(index: number, type: 'original' | 'translated') {
-    if (type === 'original') {
-      editingOriginalParagraphs.value.delete(index);
-    } else {
-      editingTranslatedParagraphs.value.delete(index);
-    }
+    setEditingParagraph(index, type, false);
   }
 
-  /**
-   * Save a paragraph's content
-   */
+  function cancelParagraphEdit(index: number, type: 'original' | 'translated') {
+    stopEditingParagraph(index, type);
+  }
+
   function saveParagraph(index: number, content: string, type: 'original' | 'translated') {
     if (!currentChapter.value) return;
 
+    // If there are already pending changes, just flush and save
     if (hasUnsavedChanges.value) {
       rebuildContent(type);
       stopEditingParagraph(index, type);
@@ -266,143 +247,82 @@ export const useEditorStore = defineStore('editor', () => {
       return;
     }
 
-    const targetParagraphs =
-      type === 'original'
-        ? currentChapter.value.originalParagraphs
-        : currentChapter.value.translatedParagraphs;
+    const paragraphs = getParagraphs(type)!;
+    const contentParagraphs = content.split('\n\n').map(p => p.trim()).filter(Boolean);
 
-    const previousContent = targetParagraphs[index];
-    if (previousContent.trim() === content.trim()) return stopEditingParagraph(index, type);
-    targetParagraphs[index] = content;
+    if (contentParagraphs.length === 0) {
+      stopEditingParagraph(index, type);
+      return;
+    }
+
+    if (contentParagraphs.length === 1) {
+      if (paragraphs[index].trim() === contentParagraphs[0]) {
+        stopEditingParagraph(index, type);
+        return;
+      }
+      paragraphs[index] = contentParagraphs[0];
+    } else {
+      paragraphs[index] = contentParagraphs[0];
+      paragraphs.splice(index + 1, 0, ...contentParagraphs.slice(1));
+    }
 
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
     stopEditingParagraph(index, type);
     saveChapter();
   }
 
-  /**
-   * Add a new paragraph at the specified index
-   */
-  function addParagraph(index: number, type: 'original' | 'translated', content: string = '') {
-    if (!currentChapter.value) return;
-
-    const paragraphs = type === 'original'
-      ? currentChapter.value.originalParagraphs
-      : currentChapter.value.translatedParagraphs;
-
+  function addParagraph(index: number, type: 'original' | 'translated', content = '') {
+    const paragraphs = getParagraphs(type);
+    if (!paragraphs) return;
     paragraphs.splice(index, 0, content);
     rebuildContent(type);
-    recordChange('paragraph');
+    setOnlyEditingParagraph(index, type);
   }
 
-  /**
-   * Delete a paragraph at the specified index
-   */
   function deleteParagraph(index: number, type: 'original' | 'translated') {
-    if (!currentChapter.value) return;
+    const paragraphs = getParagraphs(type);
+    if (!paragraphs) return;
 
-    const paragraphs = type === 'original'
-      ? currentChapter.value.originalParagraphs
-      : currentChapter.value.translatedParagraphs;
+    const paragraph = paragraphs[index];
+    if (paragraph === undefined) return;
+
+    if (paragraph.trim().length === 0) {
+      paragraphs.splice(index, 1);
+      rebuildContent(type);
+      return;
+    }
 
     paragraphs.splice(index, 1);
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
+    stopEditingParagraph(index, type);
     saveChapter();
   }
 
-  /**
-   * Move a paragraph from one index to another
-   */
   function moveParagraph(fromIndex: number, toIndex: number, type: 'original' | 'translated') {
-    if (!currentChapter.value) return;
-
-    const paragraphs = type === 'original'
-      ? currentChapter.value.originalParagraphs
-      : currentChapter.value.translatedParagraphs;
-
-    const paragraph = paragraphs.splice(fromIndex, 1)[0];
+    const paragraphs = getParagraphs(type);
+    if (!paragraphs) return;
+    const [paragraph] = paragraphs.splice(fromIndex, 1);
     paragraphs.splice(toIndex, 0, paragraph);
     rebuildContent(type);
-    recordChange('paragraph');
+    recordChange('paragraph', type === 'original' ? 'content' : 'translatedContent');
     saveChapter();
   }
 
-  /**
-   * Cancel editing a paragraph
-   */
-  function cancelParagraphEdit(index: number, type: 'original' | 'translated') {
-    stopEditingParagraph(index, type);
-  }
+  function undo() { applyHistory(-1); }
+  function redo() { applyHistory(1); }
 
-  /**
-   * Update full original text (for full-text editing mode)
-   */
-  async function saveFullOriginalText(text: string) {
-    if (!currentChapter.value) return;
-    
-    const normalized = text
-      .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
-
-    const paragraphs = normalized
-      .split('\n\n')
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
-
-    currentChapter.value.content = normalized;
-    currentChapter.value.originalParagraphs = paragraphs;
-
-    // Add to history after making changes
-    addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-
-    hasUnsavedChanges.value = true;
-    saveChapter();
-  }
-
-  /**
-   * Update full translated text (for full-text editing mode)
-   */
-  async function saveFullTranslatedText(text: string) {
-    if (!currentChapter.value) return;
-
-    const normalized = text
-      .replace(/<br\s*\/?>(\s*)/gi, '\n\n');
-
-    const paragraphs = normalized
-      .split('\n\n')
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
-
-    currentChapter.value.translatedContent = normalized;
-    currentChapter.value.translatedParagraphs = paragraphs;
-
-    // Add to history after making changes
-    addToHistory('full', currentChapter.value.content, currentChapter.value.translatedContent, currentChapter.value.originalParagraphs, currentChapter.value.translatedParagraphs);
-
-    hasUnsavedChanges.value = true;
-    saveChapter();
-  }
-
-  /**
-   * Toggle layout mode (split vs full)
-   */
   function toggleLayoutMode() {
     layoutMode.value = layoutMode.value === 'split' ? 'full' : 'split';
     localStorage.setItem('editor:layoutMode', layoutMode.value);
   }
 
-  /**
-   * Toggle content mode (all vs translated only)
-   */
   function toggleContentMode() {
     contentMode.value = contentMode.value === 'all' ? 'translated' : 'all';
     localStorage.setItem('editor:contentMode', contentMode.value);
   }
 
-  /**
-   * Load view preferences from localStorage
-   */
   function loadViewPreferences() {
     const savedLayout = localStorage.getItem('editor:layoutMode') as LayoutMode;
     const savedContent = localStorage.getItem('editor:contentMode') as ContentMode;
@@ -411,13 +331,10 @@ export const useEditorStore = defineStore('editor', () => {
     if (savedContent) contentMode.value = savedContent;
   }
 
-  /**
-   * Clear the current chapter from the editor
-   */
   function clearChapter() {
     currentChapter.value = null;
     currentChapterId.value = null;
-    hasUnsavedChanges.value = false;
+    dirtyFields.value.clear();
     isEditingOriginal.value = false;
     isEditingTranslated.value = false;
     editingOriginalParagraphs.value.clear();
@@ -425,54 +342,81 @@ export const useEditorStore = defineStore('editor', () => {
     error.value = null;
     history.value = [];
     historyIndex.value = -1;
+    isSaving.value = false;
+  }
+
+  function markFieldsSaved(fields: Array<'content' | 'translatedContent'>) {
+    fields.forEach(field => dirtyFields.value.delete(field));
+    shouldInitiateChapterSave.value = false;
+  }
+
+  function markSaveFailed() {
+    shouldInitiateChapterSave.value = false;
+  }
+
+  function cancelPendingSave() {
+    isSaving.value = false;
+  }
+
+  function setSaving(value: boolean) {
+    isSaving.value = value;
   }
 
   // Initialize view preferences
   loadViewPreferences();
 
   return {
-    // State
-    currentChapter: computed(() => currentChapter.value),
-    currentChapterId: computed(() => currentChapterId.value),
-    isEditingOriginal: computed(() => isEditingOriginal.value),
-    isEditingTranslated: computed(() => isEditingTranslated.value),
-    editingOriginalParagraphs: computed(() => editingOriginalParagraphs.value),
-    editingTranslatedParagraphs: computed(() => editingTranslatedParagraphs.value),
-    hasUnsavedChanges: computed(() => hasUnsavedChanges.value),
-    shouldInitiateChapterSave: computed(() => shouldInitiateChapterSave.value),
-    isLoading: computed(() => isLoading.value),
-    error: computed(() => error.value),
-    layoutMode: computed(() => layoutMode.value),
-    contentMode: computed(() => contentMode.value),
+    // State (refs exposed directly — no need to re-wrap in computed)
+    currentChapter,
+    currentChapterId,
+    isEditingOriginal,
+    isEditingTranslated,
+    editingOriginalParagraphs,
+    editingTranslatedParagraphs,
+    hasUnsavedChanges,
+    dirtyFields: dirtyFields_,
+    isSaving,
+    shouldInitiateChapterSave,
+    isLoading,
+    error,
+    layoutMode,
+    contentMode,
     editorState,
 
-    // Actions
+    // History
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+
+    // Chapter lifecycle
     loadChapter,
+    clearChapter,
     updateLocalChapter,
     saveChapter,
     resetSaveFlag,
+    markFieldsSaved,
+    markSaveFailed,
+    setSaving,
+    cancelPendingSave,
+
+    // Editing modes
     toggleEditingOriginal,
     toggleEditingTranslated,
+
+    // Paragraph editing
     startEditingParagraph,
     stopEditingParagraph,
-    saveParagraph,
     cancelParagraphEdit,
-    saveFullOriginalText,
-    saveFullTranslatedText,
-    toggleLayoutMode,
-    toggleContentMode,
-    loadViewPreferences,
-    clearChapter,
-
-    // History management
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-
-    // Paragraph management
+    saveParagraph,
     addParagraph,
     deleteParagraph,
     moveParagraph,
+    setOnlyEditingParagraph,
+
+    // View preferences
+    toggleLayoutMode,
+    toggleContentMode,
+    loadViewPreferences,
   };
 });

@@ -15,6 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { TranslationMockAPI } from './mock';
 import { TranslationRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
+import type { TranslationJobResponse } from '../types';
 
 class TranslationAPIService {
   private static instance: TranslationAPIService | null = null;
@@ -52,36 +53,23 @@ class TranslationAPIService {
     return this.apiInstance!;
   }
 
-  async translateText(
-    text: string,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
+  async translateChapter(
+    chapterId: string
+  ): Promise<APIResponse<{ jobId: string }>> {
     const api = await this.getAPI();
-    return api.translateText(text, glossaryContext);
-  }
-
-  async translateParagraph(
-    text: string,
-    chapterId: string,
-    paragraphIndex: number,
-    glossaryContext?: string[]
-  ): Promise<APIResponse<string>> {
-    const api = await this.getAPI();
-    return api.translateParagraph(text, chapterId, paragraphIndex, glossaryContext);
-  }
-
-  async retranslateWithGlossary(
-    originalText: string,
-    currentTranslation: string,
-    glossaryTerms: string[]
-  ): Promise<APIResponse<string>> {
-    const api = await this.getAPI();
-    return api.retranslateWithGlossary(originalText, currentTranslation, glossaryTerms);
+    return api.translateChapter(chapterId);
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
     const api = await this.getAPI();
     return api.suggestGlossaryTerms(text);
+  }
+
+  async getTranslationJobStatus(
+    jobId: string
+  ): Promise<APIResponse<TranslationJobResponse>> {
+    const api = await this.getAPI();
+    return api.getTranslationJobStatus(jobId);
   }
 }
 

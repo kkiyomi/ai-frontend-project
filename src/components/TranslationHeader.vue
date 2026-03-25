@@ -1,104 +1,177 @@
 <template>
   <div class="border-b border-secondary-200 p-4">
-    <div class="flex items-center justify-between">
-      <div v-if="currentChapter">
-        <h2 class="text-lg font-semibold text-secondary-900">{{ currentChapter.title }}</h2>
-        <p class="text-sm text-secondary-500">
-          {{ currentChapter.originalParagraphs.length }} original paragraphs
-          <span v-if="currentChapter.translatedParagraphs.length > 0">
-            • {{ currentChapter.translatedParagraphs.length }} translated paragraphs
-          </span>
+    <div class="flex items-center justify-between gap-4">
+
+      <!-- Left: Chapter Information -->
+      <div class="flex-1 min-w-0">
+        <template v-if="currentChapter">
+          <h2 class="text-lg font-semibold text-secondary-900 truncate">
+            {{ currentChapter.title }}
+          </h2>
+          <p class="text-sm text-secondary-500">
+            {{ currentChapter.originalParagraphs.length }} originals
+            <span v-if="currentChapter.translatedParagraphs.length">
+              • {{ currentChapter.translatedParagraphs.length }} translated
+            </span>
+          </p>
+        </template>
+
+        <p v-else class="text-secondary-500">
+          Select a chapter to begin.
         </p>
       </div>
-      <div v-else class="text-secondary-500">
-        Select a chapter to begin translation
-      </div>
-      
-      <div v-if="currentChapter" class="flex items-center space-x-2">
-        <!-- Share Button -->
-        <ShareButton
-          :chapters="allChapters"
-          :series="allSeries"
+
+      <!-- Middle: Action Buttons -->
+      <div v-if="currentSeries" class="flex items-center space-x-2">
+
+        <ShareButton 
+          v-if="features.isEnabled('sharing_button')"
+          :chapters="allChapters" 
+          :series="allSeries" 
         />
-        <button
+
+        <!-- Export Dropdown -->
+        <ExportButton
+          v-if="currentSeries && features.isEnabled('export_button')"
+        />
+
+        <!-- Layout Toggle -->
+        <button v-if="currentChapter"
           @click="editor.toggleLayoutMode()"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+          class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
+          title="Toggle layout"
         >
-          {{ editor.layoutMode === 'split' ? 'Full Text View' : 'Split View' }}
+          <!-- Split icon -->
+          <div
+            :class="editor.layoutMode === 'split'
+              ? 'bg-blue-600 text-white rounded-full p-1'
+              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4 8l4-4 4 4M4 16l4 4 4-4M20 8l-4-4-4 4M20 16l-4 4-4-4"/>
+            </svg>
+          </div>
+
+          <!-- Full icon -->
+          <div
+            :class="editor.layoutMode === 'full'
+              ? 'bg-blue-600 text-white rounded-full p-1'
+              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="8" height="8" rx="1"/>
+              <rect x="13" y="3" width="8" height="8" rx="1"/>
+              <rect x="3" y="13" width="8" height="8" rx="1"/>
+              <rect x="13" y="13" width="8" height="8" rx="1"/>
+            </svg>
+          </div>
         </button>
-        <button
+
+        <!-- Content Toggle -->
+        <button v-if="currentChapter"
           @click="editor.toggleContentMode()"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium border border-gray-300"
+          class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
+          title="Toggle content"
         >
-          {{ editor.contentMode === 'all' ? 'Translated Only' : 'Show All' }}
+          <!-- Eye icon -->
+          <div
+            :class="editor.contentMode === 'all'
+              ? 'bg-blue-600 text-white rounded-full p-1'
+              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+
+          <!-- EyeSlash icon -->
+          <div
+            :class="editor.contentMode === 'translated'
+              ? 'bg-blue-600 text-white rounded-full p-1'
+              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M3 3l18 18M10.477 10.485a3 3 0 014.03 4.028M6.564 6.564C4.43 8.223 3 12 3 12s3.75 7.5 9.75 7.5c2.017 0 3.81-.572 5.33-1.5"/>
+            </svg>
+          </div>
         </button>
-        <button
-          @click="translateAllParagraphs"
-          :disabled="isTranslating"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-blue-700"
-        >
-          {{ isTranslating ? 'Translating...' : 'Translate All' }}
-        </button>
+
+        <!-- Translate All Button using TranslationToolbar component -->
+        <TranslationToolbar
+          v-if="currentChapter"
+          :chapterId="currentChapterId"
+          :disabled="!currentChapter"
+        />
+
       </div>
+
+      <!-- Right: Avatar -->
+      <AvatarMenu @logout="handleLogout" />
     </div>
+
+    <!-- Translation Progress using TranslationProgress component -->
+    <TranslationProgress />
     
-    <!-- Progress Bar -->
-    <div v-if="isTranslating" class="mt-3">
-      <div class="bg-gray-200 rounded-full h-3">
-        <div 
-          class="bg-blue-600 h-3 rounded-full transition-all duration-300 shadow-sm"
-          :style="{ width: `${translationProgress}%` }"
-        ></div>
-      </div>
-      <p class="text-sm text-gray-600 mt-2 font-medium">{{ Math.round(translationProgress) }}% complete</p>
-    </div>
+    <!-- Translation Status using TranslationStatus component -->
+    <TranslationStatus />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { ShareButton } from '@/modules/sharing';
-import { useChaptersStore } from '@/modules/chapters';
-import { useSeriesStore } from '@/modules/series';
-import { type Chapter, useEditorStore } from '@/modules/editor';
-import { useTranslationStore } from '@/modules/translation';
-import type { Series } from '@/types';
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+
+import ExportButton from './ExportButton.vue';
+import { ShareButton } from "@/modules/sharing";
+import { AvatarMenu, useProfileStore } from "@/modules/profile";
+import { useFeatures } from "@/modules/features";
+import { useChaptersStore } from "@/modules/chapters";
+import { useSeriesStore } from "@/modules/series";
+import { useEditorStore } from "@/modules/editor";
+import { useSeriesWithChapters } from '@/composables';
+
+// Import translation module components and store
+import { 
+  useTranslationStore,
+  TranslationProgress,
+  TranslationStatus,
+  TranslationToolbar
+} from "@/modules/translation";
+
+import { useBillingStore } from "@/modules/billing";
 
 const chaptersStore = useChaptersStore();
 const seriesStore = useSeriesStore();
 const editor = useEditorStore();
+const profile = useProfileStore();
 
 const {
-  isTranslating,
-  translationProgress,
-  translateParagraph,
-} = useTranslationStore();
+  selectedSeriesWithChapters: currentSeries,
+} = useSeriesWithChapters();
+
+// Use translation store
+const translationStore = useTranslationStore();
+const billingStore = useBillingStore();
+const features = useFeatures();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
+const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const allChapters = computed(() => chaptersStore.chapters);
-const allSeries = computed(() => {
-  return seriesStore.series.map(s => ({
+
+const allSeries = computed(() =>
+  seriesStore.series.map((s) => ({
     ...s,
-    chapters: chaptersStore.getChaptersBySeriesId(s.id)
-  }));
-});
+    chapters: chaptersStore.getChaptersBySeriesId(s.id),
+  }))
+);
 
-const translateAllParagraphs = async () => {
-  if (!currentChapter.value) return;
-
-  const fullText = currentChapter.value.content;
-
+const handleLogout = async () => {
   try {
-    const translatedText = await translateParagraph(fullText);
-
-    const updatedChapter = {
-      translatedContent: translatedText,
-      translatedParagraphs: translatedText.split('\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
-    };
-    await chaptersStore.updateChapter(currentChapter.value.id, updatedChapter);
+    await profile.logout();
+    console.log('User logged out successfully');
   } catch (error) {
-    console.error('Error translating all paragraphs:', error);
+    console.error('Logout failed:', error);
   }
 };
-
 </script>

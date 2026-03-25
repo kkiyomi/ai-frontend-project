@@ -2,7 +2,7 @@
 
 export const isDevelopment = import.meta.env.DEV;
 export const isProduction = import.meta.env.PROD;
-export const useMockAPI = 2 == (1 + 1);
+export const useMockAPI = import.meta.env.VITE_USE_MOCK_API === 'true' || isDevelopment;
 export const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export const isMockMode = (): boolean => {

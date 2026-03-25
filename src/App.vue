@@ -23,6 +23,14 @@
         </div>
       </div>
     </div>
+
+    <!-- Settings Modal -->
+    <SettingsModal />
+    
+    <!-- Upgrade Modal -->
+    <UpgradeModal v-if="billingStore.isUpgradeModalVisible" />
+
+    <DevFeaturePanel />
   </div>
 </template>
 
@@ -30,39 +38,40 @@
 import { onMounted, computed, watch } from 'vue';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
+import { DevFeaturePanel } from '@/modules/features';
+import { SettingsModal } from '@/modules/core';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
+import { UpgradeModal, useBillingStore } from '@/modules/billing';
 import { useSeriesWithChapters } from '@/composables';
-
-const glossary = useGlossaryStore();
-const {
-  isGlossaryVisible,
-  toggleVisibility: toggleGlossaryVisibility,
-  loadTerms: loadGlossaryTerms,
-} = glossary;
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
+const glossaryStore = useGlossaryStore();
+const billingStore = useBillingStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
+const isGlossaryVisible = computed(() => glossaryStore.isGlossaryVisible);
 const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 
 onMounted(async () => {
   await seriesStore.fetchSeries();
   await chaptersStore.loadChapters();
+  await billingStore.fetchSubscription();
+  await billingStore.loadPlans();
 });
 
 const closeGlossaryIfClickedOutside = (event: Event) => {
   if (event.target === event.currentTarget) {
-    toggleGlossaryVisibility();
+    glossaryStore.toggleVisibility();
   }
 };
 
 // Watch for chapter changes and reload glossary
 watch(() => currentChapter.value?.id, () => {
   if (currentChapter.value) {
-    loadGlossaryTerms(currentSeries.value?.id, currentChapter.value?.id);
+    glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
 </script>

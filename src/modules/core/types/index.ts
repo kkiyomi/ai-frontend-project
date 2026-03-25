@@ -10,3 +10,6 @@ export interface APIResponse<T> {
   data?: T;
   error?: string;
 }
+
+// Settings system types
+export type { SettingsItem, SettingsSection } from './settings';

@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useEditorStore } from '../store';
 import { type Chapter } from '../types';
 import TextColumn from './TextColumn.vue';
@@ -94,15 +95,18 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const editor = useEditorStore();
+const state = storeToRefs(editor);
 
-const currentChapter = computed(() => editor.currentChapter);
-const currentChapterId = computed(() => editor.currentChapterId);
-const isEditingOriginal = computed(() => editor.isEditingOriginal);
-const isEditingTranslated = computed(() => editor.isEditingTranslated);
-const editingOriginalParagraphs = computed(() => editor.editingOriginalParagraphs);
-const editingTranslatedParagraphs = computed(() => editor.editingTranslatedParagraphs);
-const layoutMode = computed(() => editor.layoutMode);
-const contentMode = computed(() => editor.contentMode);
+const {
+  currentChapter,
+  currentChapterId,
+  isEditingOriginal,
+  isEditingTranslated,
+  editingOriginalParagraphs,
+  editingTranslatedParagraphs,
+  layoutMode,
+  contentMode,
+} = state;
 
 const highlightFn = computed(() => props.highlightTermsInText);
 
