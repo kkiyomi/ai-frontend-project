@@ -11,7 +11,7 @@
       :disabled="store.isTranslating || disabled"
       class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md text-sm font-semibold transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {{ store.isTranslating ? 'Translating…' : 'Translate All' }}
+      {{ store.isTranslating ? 'Translating…' : 'Translate' }}
     </button>
 
     <button

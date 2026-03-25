@@ -32,7 +32,7 @@
         <div class="px-6 pb-4">
           <UpgradeCard v-if="currentPlan && nextPlan" :currentPlan="currentPlan" :nextPlan="nextPlan" />
           <div v-else class="text-center py-8 text-gray-500">
-            Loading upgrade options...
+            No upgrade option available...
           </div>
         </div>
 
