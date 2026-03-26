@@ -29,8 +29,6 @@
           <!-- Chapters List -->
           <ChaptersList
             :chapters="currentSeries.chapters"
-            :seriesId="currentSeries.id"
-            :currentChapterId="currentChapterId"
             @delete="deleteChapter"
           />
         </div>
@@ -125,15 +123,8 @@ const deleteSeries = (series: Series | null) => {
   });
 };
 
-const deleteChapter = (chapterId: string) => {
-  if (!currentSeries.value) return;
-  const chapter = currentSeries.value.chapters.find(c => c.id === chapterId);
-
-  if (!chapter) {
-    console.warn(`Chapter with ID '${chapterId}' not found`);
-    return;
-  }
-
+const deleteChapter = (chapter: Chapter | null) => {
+  if (!chapter) return;
   openConfirmation({
     title: 'Delete Chapter',
     message: `Are you sure you want to delete '${chapter.title}'?`,
@@ -142,9 +133,7 @@ const deleteChapter = (chapterId: string) => {
     confirmText: 'Delete Chapter',
     action: async () => {
       await chaptersStore.deleteChapter(chapter.id);
-      if (currentSeries.value) {
-        router.push(`/series/${currentSeries.value.id}`);
-      }
+      router.push(`/series/${chapter.seriesId}`);
     },
   });
 };

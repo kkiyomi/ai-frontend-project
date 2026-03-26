@@ -1,9 +1,9 @@
 <template>
   <div 
-    @click="$emit('select')"
+    @click="selectChapter(chapter)"
     class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" 
     :class="{
-      'bg-blue-50 border-l-4 border-blue-500': isSelected,
+      'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
     }"
   >
     <div class="flex items-start justify-between">
@@ -18,9 +18,9 @@
           <div v-else class="flex-1">
             <input
               v-model="editableTitle"
-              @blur="$emit('saveEdit', { ...chapter, title: editableTitle })"
-              @keyup.enter="$emit('saveEdit', { ...chapter, title: editableTitle })"
-              @keyup.escape="$emit('cancelEdit', chapter)"
+              @blur="saveChapterEdit({ ...chapter, title: editableTitle })"
+              @keyup.enter="saveChapterEdit({ ...chapter, title: editableTitle })"
+              @keyup.escape="cancelChapterEdit"
               class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
               @click.stop
             />
@@ -40,7 +40,7 @@
         class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <button 
-          @click.stop="$emit('startEdit', chapter)"
+          @click.stop="startEditingChapter"
           class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
           title="Edit chapter title"
         >
@@ -76,29 +76,54 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { getChapterTranslationProgress, formatFileSize, getFileIcon } from '@/utils/chapterUtils';
+import { useChaptersStore } from '../store';
 import type { Chapter } from '../types';
 
 interface Props {
   chapter: Chapter;
-  isSelected: boolean;
-  isEditing: boolean;
 }
 
 const props = defineProps<Props>();
 
 defineEmits<{
-  select: [];
-  startEdit: [chapter: Chapter];
-  saveEdit: [chapter: Chapter];
-  cancelEdit: [chapter: Chapter];
   delete: [];
 }>();
 
+const router = useRouter();
+const chaptersStore = useChaptersStore();
+
+const currentChapterId = computed(() => chaptersStore.currentChapterId);
+
+const isEditing = ref(false);
 const editableTitle = ref(props.chapter.title);
 
+const selectChapter = (chapter: Chapter) => {
+  router.push(`/series/${chapter.seriesId}/chapters/${chapter.id}`);
+};
+
+const startEditingChapter = () => {
+  isEditing.value = true;
+};
+
+const saveChapterEdit =  async (chapter: Chapter) => {
+  if (!chapter.title.trim()) {
+    cancelChapterEdit();
+    return;
+  }
+
+  await chaptersStore.updateChapter(chapter.id, { title: chapter.title.trim() });
+  cancelChapterEdit();
+};
+
+const cancelChapterEdit = () => {
+  isEditing.value = false;
+  editableTitle.value = props.chapter.title;
+};
+
 // Reset editable title when editing starts
-watch(() => props.isEditing, (isEditing) => {
+watch(() => isEditing, (isEditing) => {
   if (isEditing) {
     editableTitle.value = props.chapter.title;
   }
