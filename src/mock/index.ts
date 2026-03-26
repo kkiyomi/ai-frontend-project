@@ -7,8 +7,10 @@
 import baseSeries from './series';
 import baseChapters from './chapters';
 import baseGlossaryTerms from './glossaryTerms';
+import baseAnnouncements from './announcements';
 import { loadDynamicMockData } from './utils';
 import type { Series, Chapter, GlossaryTerm } from '../types';
+import type { Announcement } from '@/modules/announcements/types';
 
 // =====================================================
 // Load dynamic mock data (browser-safe, no Node APIs)
@@ -35,6 +37,7 @@ const mockGlossaryTerms: GlossaryTerm[] = [
   ...dynamicData.glossaryTerms,
   ...baseGlossaryTerms,
 ];
+const mockAnnouncements: Announcement[] = [...baseAnnouncements];
 
 // =====================================================
 // Export
@@ -43,6 +46,7 @@ export default {
   mockSeries,
   mockChapters,
   mockGlossaryTerms,
+  mockAnnouncements,
 };
 
-export type { Series, Chapter, GlossaryTerm };
+export type { Series, Chapter, GlossaryTerm, Announcement };

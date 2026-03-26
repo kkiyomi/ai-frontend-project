@@ -1,25 +1,31 @@
 <template>
   <router-view v-if="$route.name === 'Share'" />
-  <div v-else class="h-screen flex bg-gray-50">
-    <!-- Sidebar -->
-    <SidebarMain />
+  <div v-else class="h-screen flex flex-col bg-gray-50">
+    <!-- Announcement Banner at the very top -->
+    <AnnouncementBannerManager />
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Translation View (always full width) -->
-      <TranslationView />
+    <!-- Main content area -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Sidebar -->
+      <SidebarMain />
 
-      <!-- Glossary Panel Overlay -->
-      <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"
-        @click="closeGlossaryIfClickedOutside">
-        <!-- Glossary Panel -->
-        <div
-          class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
-          @click.stop>
-          <GlossaryPanel
-            :currentChapter="currentChapter"
-            :currentSeries="currentSeries"
-          />
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Translation View (always full width) -->
+        <TranslationView />
+
+        <!-- Glossary Panel Overlay -->
+        <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"
+          @click="closeGlossaryIfClickedOutside">
+          <!-- Glossary Panel -->
+          <div
+            class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
+            @click.stop>
+            <GlossaryPanel
+              :currentChapter="currentChapter"
+              :currentSeries="currentSeries"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -45,6 +51,7 @@ import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
+import { AnnouncementBannerManager } from '@/modules/announcements';
 import { useSeriesWithChapters } from '@/composables';
 
 interface Props {
