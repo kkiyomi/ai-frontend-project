@@ -1,23 +1,32 @@
 <template>
-  <div v-if="currentAnnouncement" class="announcement-banner-manager">
+  <div v-if="currentAnnouncement" class="relative">
     <AnnouncementBanner
       :announcement="currentAnnouncement!"
       @close="dismissCurrent"
     />
-    <div v-if="hasMultipleAnnouncements" class="flex items-center justify-center mt-2 space-x-2">
+
+    <!-- Overlay controls inside the banner -->
+    <div
+      v-if="hasMultipleAnnouncements"
+      class="absolute inset-y-0 right-10 flex items-center space-x-2"
+    >
       <button
         @click="prevAnnouncement"
-        class="p-1 rounded-md hover:bg-gray-200 transition-colors"
+        class="p-1 rounded hover:bg-black/10 transition"
         aria-label="Previous announcement"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      <span class="text-xs text-gray-500">{{ currentIndex + 1 }} / {{ activeAnnouncements.length }}</span>
+
+      <span class="text-xs opacity-70 whitespace-nowrap">
+        {{ currentIndex + 1 }} / {{ activeAnnouncements.length }}
+      </span>
+
       <button
         @click="nextAnnouncement"
-        class="p-1 rounded-md hover:bg-gray-200 transition-colors"
+        class="p-1 rounded hover:bg-black/10 transition"
         aria-label="Next announcement"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
