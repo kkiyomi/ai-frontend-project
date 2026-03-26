@@ -6,7 +6,7 @@ export class AnnouncementsMockAPI {
     await this.simulateDelay();
     
     // Add mock disclaimer when in mock mode
-    const announcements = [{
+    const announcements: Announcement[] = [{
       id: 'mock-disclaimer',
       title: 'Mock Database',
       content: 'This is just a mock database and no data are saved. Create an account to persist changes.',
