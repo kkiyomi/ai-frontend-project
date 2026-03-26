@@ -29,6 +29,7 @@
           <!-- Chapters List -->
           <ChaptersList
             :chapters="currentSeries.chapters"
+            :seriesId="currentSeries.id"
             :currentChapterId="currentChapterId"
             @delete="deleteChapter"
           />
@@ -53,6 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   SeriesCard,
   SeriesEditModal,
@@ -65,6 +67,7 @@ import SelectedSeriesView from './SelectedSeriesView.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import type { Series, Chapter } from '../types';
 
+const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
@@ -117,6 +120,7 @@ const deleteSeries = (series: Series | null) => {
     confirmText: 'Delete Series',
     action: async () => {
       await seriesStore.deleteSeries(series.id);
+      router.push('/');
     },
   });
 };
@@ -138,6 +142,9 @@ const deleteChapter = (chapterId: string) => {
     confirmText: 'Delete Chapter',
     action: async () => {
       await chaptersStore.deleteChapter(chapter.id);
+      if (currentSeries.value) {
+        router.push(`/series/${currentSeries.value.id}`);
+      }
     },
   });
 };

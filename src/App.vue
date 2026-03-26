@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
 import { DevFeaturePanel } from '@/modules/features';
@@ -45,6 +46,14 @@ import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
 import { useSeriesWithChapters } from '@/composables';
+
+interface Props {
+  seriesId?: string;
+  chapterId?: string;
+}
+
+const props = defineProps<Props>();
+const router = useRouter();
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
@@ -74,4 +83,22 @@ watch(() => currentChapter.value?.id, () => {
     glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
+
+// Watch for route prop changes and sync store (as backup to route guard)
+watch(() => props.seriesId, (newSeriesId) => {
+  if (newSeriesId) {
+    seriesStore.selectSeries(newSeriesId);
+  } else {
+    seriesStore.selectSeries(null);
+  }
+}, { immediate: true });
+
+watch(() => props.chapterId, (newChapterId) => {
+  if (newChapterId) {
+    chaptersStore.selectChapter(newChapterId);
+  } else {
+    chaptersStore.selectChapter(null);
+  }
+}, { immediate: true });
+
 </script>

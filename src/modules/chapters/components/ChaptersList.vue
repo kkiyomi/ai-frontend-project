@@ -34,25 +34,29 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useChaptersStore } from '../store';
 import ChapterItem from './ChapterItem.vue';
 import type { Chapter } from '../types';
 
 interface Props {
   chapters: Chapter[];
+  seriesId: string;
   currentChapterId: string | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   delete: [chapterId: string];
 }>();
 
-const {
-  selectChapter,
-  updateChapter,
-} = useChaptersStore();
+const router = useRouter();
+const { updateChapter } = useChaptersStore();
+
+const selectChapter = (chapterId: string) => {
+  router.push(`/series/${props.seriesId}/chapters/${chapterId}`);
+};
 
 const editingChapters = ref<Set<string>>(new Set());
 

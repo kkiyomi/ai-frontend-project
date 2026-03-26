@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSeriesStore } from '../store';
+import { useRouter } from 'vue-router';
 import type { Series } from '../types';
 
 interface Props {
@@ -57,11 +57,11 @@ defineEmits<{
   delete: [seriesId: string];
 }>();
 
-const seriesStore = useSeriesStore();
+  const router = useRouter();
 
-const toggleSeriesSelection = (seriesId: string) => {
-  seriesStore.selectSeries(seriesId);
-};
+  const toggleSeriesSelection = (seriesId: string) => {
+    router.push(`/series/${seriesId}`);
+  };
 
 function formatDate(date: Date): string {
   const now = new Date();

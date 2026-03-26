@@ -55,6 +55,61 @@ export const useChaptersStore = defineStore('chapters', () => {
     return translatedContent.split('\n').map(p => p.trim()).filter(p => p.length > 0);
   }
 
+  function mergeChapters(
+    current: Chapter[],
+    incoming: Chapter[]
+  ): Chapter[] {
+    const list = [...current];
+    const indexById = new Map(list.map((ch, i) => [ch.id, i]));
+
+    for (let i = 0; i < incoming.length; i++) {
+      const ch = incoming[i];
+
+      // Update if exists
+      if (indexById.has(ch.id)) {
+        const idx = indexById.get(ch.id)!;
+        list[idx] = ch;
+        continue;
+      }
+
+      // Find insertion point using nearest known neighbor
+      let insertAt = -1;
+
+      // look backward
+      for (let j = i - 1; j >= 0; j--) {
+        const prev = incoming[j];
+        if (indexById.has(prev.id)) {
+          insertAt = indexById.get(prev.id)! + 1;
+          break;
+        }
+      }
+
+      // look forward
+      if (insertAt === -1) {
+        for (let j = i + 1; j < incoming.length; j++) {
+          const next = incoming[j];
+          if (indexById.has(next.id)) {
+            insertAt = indexById.get(next.id)!;
+            break;
+          }
+        }
+      }
+
+      // fallback
+      if (insertAt === -1) {
+        insertAt = list.length;
+      }
+
+      list.splice(insertAt, 0, ch);
+
+      // refresh index map
+      indexById.clear();
+      list.forEach((c, idx) => indexById.set(c.id, idx));
+    }
+
+    return list;
+  }
+
   async function loadChapters(seriesId?: string, chapterIds?: string[]): Promise<void> {
     if (loadingPromise) {
       return loadingPromise;
@@ -75,36 +130,21 @@ export const useChaptersStore = defineStore('chapters', () => {
       error.value = null;
 
       const response = await chapterAPI.getChapters(seriesId, chapterIds);
+      if (!response.success || !response.data) return;
 
-      if (response.success && response.data) {
-        const enrichedChapters = response.data.map((chapter) => ({
-          ...chapter,
-          translatedContent: chapter.translatedContent || '',
-          originalParagraphs: buildOriginalParagraphs(chapter.content),
-          translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
-        }));
+      const enriched = response.data.map((chapter) => ({
+        ...chapter,
+        translatedContent: chapter.translatedContent || '',
+        originalParagraphs: buildOriginalParagraphs(chapter.content),
+        translatedParagraphs: buildTranslatedParagraphs(chapter.translatedContent || ''),
+      }));
 
-        if (seriesId) {
-          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
+      chapters.value = mergeChapters(chapters.value, enriched);
 
-          chapters.value = chapters.value.map(ch =>
-            ch.seriesId === seriesId && updates.has(ch.id)
-              ? updates.get(ch.id)!
-              : ch
-          );
-        } else if (chapterIds) {
-          const updates = new Map(enrichedChapters.map(ch => [ch.id, ch]));
-
-          chapters.value = chapters.value.map(ch =>
-            chapterIds.includes(ch.id) && updates.has(ch.id)
-              ? updates.get(ch.id)!
-              : ch
-          );
-        } else {
-          chapters.value = enrichedChapters;
-          dataLoaded = true;
-        }
+      if (!seriesId && !chapterIds) {
+        dataLoaded = true;
       }
+
     } catch (err) {
       console.error('Error loading chapters:', err);
       error.value = 'Failed to load chapters';
@@ -231,7 +271,7 @@ export const useChaptersStore = defineStore('chapters', () => {
   }
 
   return {
-    chapters: computed(() => chapters.value),
+    chapters,
     currentChapter,
     currentChapterId,
     isLoading: computed(() => isLoading.value),
