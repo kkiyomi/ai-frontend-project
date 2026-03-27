@@ -7,9 +7,7 @@
         </div>
 
         <!-- Scrollable Content Area -->
-        <div class="flex-1 overflow-y-auto min-h-0 pb-4">
             <ChaptersSection />
-        </div>
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
