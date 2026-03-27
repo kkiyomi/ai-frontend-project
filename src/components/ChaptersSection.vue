@@ -54,7 +54,7 @@
                 <template #item="{ item }">
                   <ChapterItem
                     :chapter="item"
-                    @delete="deleteChapter"
+                    @delete="deleteChapter(item)"
                   />
                 </template>
               </VirtualScrollingList>
