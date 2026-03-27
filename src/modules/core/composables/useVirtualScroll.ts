@@ -232,16 +232,6 @@ export function useVirtualScroll<T>(
     if (!containerEl) {
       return;
     }
-    
-    // Debug: log container dimensions
-    console.log('[VirtualScroll] setupObservers - container dimensions', {
-      hasExternalContainer,
-      offsetHeight: containerEl.offsetHeight,
-      clientHeight: containerEl.clientHeight,
-      scrollHeight: containerEl.scrollHeight,
-      tagName: containerEl.tagName,
-      className: containerEl.className,
-    });
 
     // Create IntersectionObserver with container as root
     observer = new IntersectionObserver(handleIntersect, {
