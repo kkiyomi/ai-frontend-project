@@ -22,7 +22,7 @@ export { useChaptersStore } from './store';
 export { chapterAPI } from './api';
 
 export { default as BulkChapterUpload } from './components/BulkChapterUpload.vue';
-export { default as ChaptersList } from './components/ChaptersList.vue';
+export { default as ChapterItem } from './components/ChapterItem.vue';
 
 export type {
   Chapter,

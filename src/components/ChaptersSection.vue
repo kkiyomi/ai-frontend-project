@@ -1,4 +1,5 @@
 <template>
+  <div ref="chaptersScrollContainer" class="flex-1 overflow-y-auto min-h-0 pb-4">
   <div class="flex-1 overflow-y-auto">
     <SeriesCreate v-if="!currentSeriesId" @edit="editSeries" />
     <div class="p-4">
@@ -27,14 +28,42 @@
           />
 
           <!-- Chapters List -->
-          <ChaptersList
-            :chapters="currentSeries.chapters"
-            :currentChapterId="currentChapterId"
-            @delete="deleteChapter"
-          />
+          <div>
+            <div v-if="currentSeries.chapters.length === 0" class="p-4 text-center">
+              <p class="text-xs text-gray-500">No chapters in this series</p>
+              <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+            </div>
+
+            <div v-else class="h-full">
+              <!-- Chapter count indicator for large lists -->
+              <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
+                <p class="text-xs text-yellow-700 text-center">
+                  📚 {{ currentSeries.chapters.length }} chapters in this series
+                </p>
+              </div>
+
+              <!-- Chapters list -->
+              <VirtualScrollingList
+                :items="currentSeries.chapters"
+                :visible-count="30"
+                :buffer="5"
+                :scroll-container="scrollContainerProp"
+                item-key="id"
+                class="divide-y divide-gray-100 flex-1"
+              >
+                <template #item="{ item }">
+                  <ChapterItem
+                    :chapter="item"
+                    @delete="deleteChapter(item)"
+                  />
+                </template>
+              </VirtualScrollingList>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <SeriesEditModal
@@ -53,18 +82,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { VirtualScrollingList } from '@/modules/core';
 import {
   SeriesCard,
   SeriesEditModal,
   useSeriesStore
 } from '@/modules/series';
-import { ChaptersList, useChaptersStore } from '@/modules/chapters';
+import { ChapterItem, useChaptersStore } from '@/modules/chapters';
 import { useSeriesWithChapters, useConfirmation } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
 import ConfirmationModal from './ConfirmationModal.vue';
 import type { Series, Chapter } from '../types';
 
+const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
@@ -117,19 +149,13 @@ const deleteSeries = (series: Series | null) => {
     confirmText: 'Delete Series',
     action: async () => {
       await seriesStore.deleteSeries(series.id);
+      router.push('/');
     },
   });
 };
 
-const deleteChapter = (chapterId: string) => {
-  if (!currentSeries.value) return;
-  const chapter = currentSeries.value.chapters.find(c => c.id === chapterId);
-
-  if (!chapter) {
-    console.warn(`Chapter with ID '${chapterId}' not found`);
-    return;
-  }
-
+const deleteChapter = (chapter: Chapter | null) => {
+  if (!chapter) return;
   openConfirmation({
     title: 'Delete Chapter',
     message: `Are you sure you want to delete '${chapter.title}'?`,
@@ -138,7 +164,12 @@ const deleteChapter = (chapterId: string) => {
     confirmText: 'Delete Chapter',
     action: async () => {
       await chaptersStore.deleteChapter(chapter.id);
+      router.push(`/series/${chapter.seriesId}`);
     },
   });
 };
+
+const chaptersScrollContainer = ref<HTMLElement | null>(null);
+const scrollContainerProp = computed(() => chaptersScrollContainer);
+
 </script>

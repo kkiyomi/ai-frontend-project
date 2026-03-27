@@ -85,11 +85,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore, BulkChapterUpload } from '@/modules/chapters';
 import { getSeriesTranslationProgress } from '../utils/chapterUtils';
 import type { SeriesWithChapters as Series, Chapter } from '../types';
 
+const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 
@@ -116,7 +118,7 @@ const handleCreateChapter = async (title: string) => {
     });
 
     if (newChapter) {
-      chaptersStore.selectChapter(newChapter.id)
+      router.push(`/series/${props.series.id}/chapters/${newChapter.id}`);
     }
 
   } catch (error) {
@@ -125,8 +127,7 @@ const handleCreateChapter = async (title: string) => {
 };
 
 const deselectSeries = () => {
-  seriesStore.selectSeries(null);
-  chaptersStore.selectChapter(null);
+  router.push('/');
 };
 
 const translationProgress = computed(() => getSeriesTranslationProgress(props.series));

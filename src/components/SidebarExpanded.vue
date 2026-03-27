@@ -7,13 +7,11 @@
         </div>
 
         <!-- Scrollable Content Area -->
-        <div class="flex-1 overflow-y-auto min-h-0 pb-4">
-            <ChaptersSection />
-        </div>
+        <ChaptersSection />
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
-            <button v-if="currentSeriesId" @click="glossary.toggleVisibility"
+            <button v-if="currentSeries" @click="glossary.toggleVisibility"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -32,21 +30,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ChaptersSection from './ChaptersSection.vue';
-import { useSeriesStore } from '@/modules/series';
-import { useChaptersStore } from '@/modules/chapters';
 import { useGlossaryStore } from '@/modules/glossary';
+import { useSeriesWithChapters } from '@/composables';
 
-const seriesStore = useSeriesStore();
-const chaptersStore = useChaptersStore();
 const glossary = useGlossaryStore();
 
-const series = computed(() => seriesStore.series);
-const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 const isGlossaryVisible = computed(() => glossary.isGlossaryVisible);
 
-const getTotalStats = (): string => {
-    const allChapters = chaptersStore.chapters;
-    if (series.value.length ===  0 && allChapters.length === 0) return "No content yet";
-    return `${series.value.length} series • ${allChapters.length} chapters`;
-};
+const {
+  selectedSeriesWithChapters: currentSeries,
+  allSeriesWithChapters: series,
+  getTotalStats
+} = useSeriesWithChapters();
 </script>

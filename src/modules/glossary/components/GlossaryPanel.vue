@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full bg-white flex flex-col overflow-y-auto" ref="scrollContainer" @scroll="onScroll">
+  <div class="h-full bg-white flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
     <!-- Header -->
     <div class="p-4 border-b border-gray-200">
       <div class="flex items-center justify-between">
@@ -102,29 +102,31 @@
       </div>
 
       <div v-else class="p-4 space-y-4">
-        <div
-          class="space-y-2"
-        >
-          <div :style="{ height: topSpacer + 'px' }" />
-          <template v-for="(item, i) in visibleItems" :key="item.id">
-            <div :ref="el => setItemRef(el, i)">
-            <!-- Header -->
-            <div
-              v-if="item.type === 'header'"
-              class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-            >
-              {{ item.category }} ({{ item.count }})
-            </div>
+        <!-- Terms List -->
+          <VirtualScrollingList
+            :items="termsByCategoryFlat"
+            :visible-count="60"
+            :buffer="10"
+            :scroll-container="scrollContainerProp"
+            item-key="id"
+            class="space-y-2"
+          >
+            <template #item="{ item }">
+              <!-- Header -->
+              <div
+                v-if="item.type === 'header'"
+                class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
+              >
+                {{ item.category }} ({{ item.count }})
+              </div>
 
-            <!-- Term -->
-            <GlossaryTermItem
-              v-else
-              :term="item"
-            />
-            </div>
-          </template>
-          <div :style="{ height: bottomSpacer + 'px' }" />
-        </div>
+              <!-- Term -->
+              <GlossaryTermItem
+                v-else
+                :term="item"
+              />
+            </template>
+          </VirtualScrollingList>
       </div>
     </div>
 
@@ -140,10 +142,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, watchEffect, nextTick, type ComponentPublicInstance } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, watchEffect, nextTick, toRef, type ComponentPublicInstance } from "vue";
 import { storeToRefs } from 'pinia';
 import { useGlossaryStore } from '../store';
 import { GlossaryImportButton } from '@/modules/glossary';
+import { VirtualScrollingList } from '@/modules/core';
 
 import GlossaryAddTermForm from './GlossaryAddTermForm.vue';
 import GlossaryTermItem from './GlossaryTermItem.vue';
@@ -219,123 +222,8 @@ watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
   }
 });
 
-const scrollContainer = ref<HTMLElement | null>(null);
+const glossaryScrollContainer = ref<HTMLElement | null>(null);
+const scrollContainerProp = computed(() => glossaryScrollContainer);
 
-const VISIBLE_COUNT = 60;
-const BUFFER = 10;
 
-const startIndex = ref(0);
-const itemRefs = ref<HTMLElement[]>([]);
-
-// Visible slice
-const visibleItems = computed<GlossaryItem[]>(() =>
-  termsByCategoryFlat.value.slice(
-    startIndex.value,
-    startIndex.value + VISIBLE_COUNT
-  )
-);
-
-// --- Dynamic height tracking ---
-const heights = ref<Record<number, number>>({}); // index -> height
-
-function setItemRef(el: Element | ComponentPublicInstance | null, i: number) {
-  if (!el) return;
-  
-  // Extract HTMLElement from Vue ref (could be ComponentPublicInstance)
-  const element = (el as ComponentPublicInstance).$el || el as Element;
-  
-  if (!(element instanceof HTMLElement)) return;
-  
-  itemRefs.value[i] = element;
-
-  nextTick(() => {
-    const h = element.offsetHeight;
-    heights.value[startIndex.value + i] = h;
-  });
-}
-
-// --- Spacer calculations ---
-const avgHeight = computed<number>(() => {
-  const vals = Object.values(heights.value);
-  if (!vals.length) return 40;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
-});
-
-const topSpacer = computed<number>(() => {
-  return startIndex.value * avgHeight.value;
-});
-
-const bottomSpacer = computed<number>(() => {
-  const remaining =
-    termsByCategoryFlat.value.length -
-    (startIndex.value + VISIBLE_COUNT);
-
-  return Math.max(0, remaining * avgHeight.value);
-});
-
-// --- IntersectionObserver ---
-let observer: IntersectionObserver | undefined;
-
-function handleIntersect(entries: IntersectionObserverEntry[]) {
-  const visible = entries
-    .filter(e => e.isIntersecting)
-    .map(e => itemRefs.value.indexOf(e.target as HTMLElement))
-    .sort((a, b) => a - b);
-
-  if (!visible.length) return;
-
-  const first = visible[0];
-  const last = visible[visible.length - 1];
-
-  // Scroll down
-  if (last >= VISIBLE_COUNT - BUFFER) {
-    shiftWindow(startIndex.value + BUFFER);
-  }
-
-  // Scroll up
-  if (first <= BUFFER) {
-    shiftWindow(startIndex.value - BUFFER);
-  }
-}
-
-function shiftWindow(newStart: number) {
-  const maxStart =
-    termsByCategoryFlat.value.length - VISIBLE_COUNT;
-
-  startIndex.value = Math.max(0, Math.min(newStart, maxStart));
-}
-
-function onScroll() {
-  const el = scrollContainer.value;
-  if (!el) return;
-
-  const scrollTop = el.scrollTop;
-  const viewport = el.clientHeight;
-
-  // Approximate current index
-  const estimatedIndex = Math.floor(scrollTop / avgHeight.value);
-
-  // If user jumps far, force sync
-  if (Math.abs(estimatedIndex - startIndex.value) > VISIBLE_COUNT) {
-    shiftWindow(estimatedIndex - BUFFER);
-  }
-}
-
-// --- Setup observer ---
-onMounted(() => {
-  observer = new IntersectionObserver(handleIntersect, {
-    root: scrollContainer.value,
-    threshold: 0.1
-  });
-
-  watchEffect(() => {
-    if (!observer) return;
-    observer.disconnect();
-    itemRefs.value.forEach(el => el && observer!.observe(el));
-  });
-});
-
-onUnmounted(() => {
-  observer?.disconnect();
-});
 </script>

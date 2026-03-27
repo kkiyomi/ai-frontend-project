@@ -33,6 +33,7 @@
  */
 
 import { useImporter, type ImporterConfig, type ImportRowResult } from '@/modules/core';
+import { parseCSVFile } from '@/utils/csvParser';
 import { useGlossaryStore } from '../store';
 import { glossaryAPI } from '../api';
 import type { GlossaryTerm } from '../types';
@@ -267,7 +268,6 @@ export function useGlossaryImporter(config: GlossaryImporterConfig) {
       throw new Error('Cannot import glossary terms without a series selected');
     }
     
-    const { parseCSVFile } = await import('@/utils/csvParser');
     const startTime = Date.now();
     
     try {
@@ -417,7 +417,6 @@ export function useGlossaryImporter(config: GlossaryImporterConfig) {
   const suggestColumnMapping = async (
     file: File
   ): Promise<Record<string, string>> => {
-    const { parseCSVFile } = await import('@/utils/csvParser');
     const parseResult = await parseCSVFile(file, {
       header: true,
       preview: 1,

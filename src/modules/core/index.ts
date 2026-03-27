@@ -41,6 +41,10 @@ export { default as ImportButton } from './components/ImportButton.vue';
 export { useImporter, createImporter } from './composables/useImporter';
 export type { ImporterConfig, ImportResult, ImportRowResult, ImportProgress } from './composables/useImporter';
 
+// Virtual scrolling
+export { useVirtualScroll } from './composables/useVirtualScroll';
+export { default as VirtualScrollingList } from './components/VirtualScrollingList.vue';
+
 // Session management
 export { useSession, getSharedSession } from './composables/useSession';
 

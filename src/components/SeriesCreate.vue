@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSeriesStore, type Series } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 
@@ -32,6 +33,7 @@ const emit = defineEmits<{
   edit: [series: Series];
 }>();
 
+const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const isCreating = ref(false);
@@ -46,12 +48,11 @@ const createSeries = async () => {
             name: defaultName,
             description: '',
         });
-        if (response) {
-            console.log(`✅ Created series: ${defaultName}`);
-            seriesStore.selectSeries(response.id)
-            chaptersStore.selectChapter('')
-            if (seriesStore.selectedSeries) { emit('edit', seriesStore.selectedSeries)};
-        }
+         if (response) {
+             console.log(`✅ Created series: ${defaultName}`);
+             router.push(`/series/${response.id}`);
+             emit('edit', response);
+         }
     } catch (error) {
         console.error('❌ Error creating series:', error);
         // optional: toast notification
