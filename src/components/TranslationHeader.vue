@@ -24,15 +24,9 @@
       <!-- Middle: Action Buttons -->
       <div v-if="currentSeries" class="flex items-center space-x-2">
 
-        <ShareButton 
-          v-if="features.isEnabled('sharing_button')"
-          :chapters="allChapters" 
-          :series="allSeries" 
-        />
-
         <!-- Export Dropdown -->
         <ExportButton
-          v-if="currentSeries && features.isEnabled('export_button')"
+          v-if="currentSeries"
         />
 
         <!-- Layout Toggle -->
@@ -125,7 +119,6 @@ import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import ExportButton from './ExportButton.vue';
 import { ShareButton } from "@/modules/sharing";
 import { AvatarMenu, useProfileStore } from "@/modules/profile";
-import { useFeatures } from "@/modules/features";
 import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
 import { useEditorStore } from "@/modules/editor";
@@ -153,7 +146,6 @@ const {
 // Use translation store
 const translationStore = useTranslationStore();
 const billingStore = useBillingStore();
-const features = useFeatures();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
