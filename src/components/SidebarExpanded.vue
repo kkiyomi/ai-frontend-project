@@ -11,7 +11,7 @@
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
-            <button v-if="currentSeriesId" @click="glossary.toggleVisibility"
+            <button v-if="currentSeries" @click="glossary.toggleVisibility"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,8 +39,6 @@ const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const glossary = useGlossaryStore();
 
-const series = computed(() => seriesStore.series);
-const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 const isGlossaryVisible = computed(() => glossary.isGlossaryVisible);
 
 const {
