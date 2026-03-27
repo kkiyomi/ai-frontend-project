@@ -35,8 +35,6 @@
     
     <!-- Upgrade Modal -->
     <UpgradeModal v-if="billingStore.isUpgradeModalVisible" />
-
-    <DevFeaturePanel />
   </div>
 </template>
 
@@ -45,7 +43,6 @@ import { onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import SidebarMain from './components/SidebarMain.vue';
 import TranslationView from './components/TranslationView.vue';
-import { DevFeaturePanel } from '@/modules/features';
 import { SettingsModal } from '@/modules/core';
 import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';

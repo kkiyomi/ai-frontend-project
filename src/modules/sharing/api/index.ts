@@ -81,11 +81,6 @@ class SharingAPIService {
     return api.deleteShare(shareId);
   }
 
-  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
-    const api = await this.getAPI();
-    return api.getChaptersByIds(chapterIds);
-  }
-
   async listShares(): Promise<APIResponse<SharedContent[]>> {
     const api = await this.getAPI();
     return api.listShares();
