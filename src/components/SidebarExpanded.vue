@@ -7,7 +7,7 @@
         </div>
 
         <!-- Scrollable Content Area -->
-            <ChaptersSection />
+        <ChaptersSection />
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
