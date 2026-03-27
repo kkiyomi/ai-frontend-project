@@ -19,7 +19,7 @@
       </div>
 
       <!-- Paragraph Mode -->
-      <div v-else class="space-y-6 max-w-2xl">
+      <div v-else class="space-y-6">
         <ParagraphEditor
           v-for="(paragraph, index) in paragraphs"
           :key="`${type}-${index}`"

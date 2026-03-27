@@ -24,6 +24,8 @@
       <!-- Middle: Action Buttons -->
       <div v-if="currentSeries" class="flex items-center space-x-2">
 
+        <ShareButton v-if="!currentSeries" :chapters="allChapters" :series="allSeries" />
+
         <!-- Export Dropdown -->
         <ExportButton
           v-if="currentSeries"

@@ -29,14 +29,14 @@ export class RealSharingAPI {
    * Creates a new share link
    */
   async createShare(request: ShareRequest): Promise<APIResponse<ShareResponse>> {
-    return apiClient.post<ShareResponse>('/api/shares', request);
+    return apiClient.post<ShareResponse>('/shares', request);
   }
 
   /**
    * Retrieves shared content by ID
    */
   async getSharedContent(shareId: string): Promise<APIResponse<SharedContent>> {
-    return apiClient.get<SharedContent>(`/api/shares/${shareId}`);
+    return apiClient.get<SharedContent>(`/shares/${shareId}`);
   }
 
   /**
@@ -46,35 +46,28 @@ export class RealSharingAPI {
     shareId: string,
     password: string
   ): Promise<APIResponse<boolean>> {
-    return apiClient.post<boolean>(`/api/shares/${shareId}/verify`, { password });
+    return apiClient.post<boolean>(`/shares/${shareId}/verify`, { password });
   }
 
   /**
    * Deletes a share
    */
   async deleteShare(shareId: string): Promise<APIResponse<void>> {
-    return apiClient.delete<void>(`/api/shares/${shareId}`);
+    return apiClient.delete<void>(`/shares/${shareId}`);
   }
 
   /**
    * Gets share statistics
    */
   async getShareStats(shareId: string): Promise<APIResponse<any>> {
-    return apiClient.get(`/api/shares/${shareId}/stats`);
-  }
-
-  /**
-   * Gets chapters by IDs
-   */
-  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
-    return apiClient.post<any[]>('/api/chapters/batch', { chapterIds });
+    return apiClient.get(`/shares/${shareId}/stats`);
   }
 
   /**
    * Lists all shares (if authenticated)
    */
   async listShares(): Promise<APIResponse<SharedContent[]>> {
-    return apiClient.get<SharedContent[]>('/api/shares');
+    return apiClient.get<SharedContent[]>('/shares');
   }
 }
 

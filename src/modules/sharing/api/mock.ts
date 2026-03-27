@@ -165,22 +165,6 @@ export class MockSharingAPI {
   }
 
   /**
-   * Gets chapters by IDs (mock)
-   */
-  async getChaptersByIds(chapterIds: string[]): Promise<APIResponse<any[]>> {
-    await simulateDelay(300, 800);
-
-    // In a real app, this would fetch from the database
-    // For mock, we'll return empty array or fetch from localStorage
-    const chapters: any[] = [];
-
-    return {
-      success: true,
-      data: chapters,
-    };
-  }
-
-  /**
    * Lists all shares (mock)
    */
   async listShares(): Promise<APIResponse<SharedContent[]>> {
