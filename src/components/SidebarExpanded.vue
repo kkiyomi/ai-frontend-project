@@ -30,13 +30,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ChaptersSection from './ChaptersSection.vue';
-import { useSeriesStore } from '@/modules/series';
-import { useChaptersStore } from '@/modules/chapters';
 import { useGlossaryStore } from '@/modules/glossary';
 import { useSeriesWithChapters } from '@/composables';
 
-const seriesStore = useSeriesStore();
-const chaptersStore = useChaptersStore();
 const glossary = useGlossaryStore();
 
 const isGlossaryVisible = computed(() => glossary.isGlossaryVisible);
