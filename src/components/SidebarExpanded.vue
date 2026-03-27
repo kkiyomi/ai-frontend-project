@@ -33,6 +33,7 @@ import ChaptersSection from './ChaptersSection.vue';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 import { useGlossaryStore } from '@/modules/glossary';
+import { useSeriesWithChapters } from '@/composables';
 
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
@@ -42,9 +43,9 @@ const series = computed(() => seriesStore.series);
 const currentSeriesId = computed(() => seriesStore.selectedSeriesId);
 const isGlossaryVisible = computed(() => glossary.isGlossaryVisible);
 
-const getTotalStats = (): string => {
-    const allChapters = chaptersStore.chapters;
-    if (series.value.length ===  0 && allChapters.length === 0) return "No content yet";
-    return `${series.value.length} series • ${allChapters.length} chapters`;
-};
+const {
+  selectedSeriesWithChapters: currentSeries,
+  allSeriesWithChapters: series,
+  getTotalStats
+} = useSeriesWithChapters();
 </script>

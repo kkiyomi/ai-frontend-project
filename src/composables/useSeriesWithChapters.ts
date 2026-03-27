@@ -59,6 +59,13 @@ export function useSeriesWithChapters() {
     return series.value.map(mapSeriesWithChapters);
   });
 
+  const getTotalStats = (): string => {
+    if (series.value.length === 0 && chapters.value.length === 0) {
+      return 'No content yet';
+    }
+    return `${series.value.length} series • ${chapters.value.length} chapters`;
+  };
+
   return {
     // computed values
     selectedSeriesWithChapters,
@@ -66,5 +73,6 @@ export function useSeriesWithChapters() {
 
     // methods
     getSeriesWithChapters,
+    getTotalStats,
   };
 }

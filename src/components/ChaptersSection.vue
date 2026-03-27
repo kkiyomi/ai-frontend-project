@@ -34,7 +34,6 @@
               <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
             </div>
 
-            <!-- Virtual scrolling container for large chapter lists -->
             <div v-else class="h-full">
               <!-- Chapter count indicator for large lists -->
               <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
@@ -43,7 +42,7 @@
                 </p>
               </div>
 
-              <!-- Virtual scrolling for large lists -->
+              <!-- Chapters list -->
               <VirtualScrollingList
                 :items="currentSeries.chapters"
                 :visible-count="30"
