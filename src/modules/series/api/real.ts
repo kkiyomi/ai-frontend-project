@@ -21,7 +21,7 @@ export class SeriesRealAPI {
   }
 
   async createSeries(request: CreateSeriesRequest): Promise<APIResponse<Series>> {
-    return apiClient.post<Series>('/series', request);
+    return apiClient.post<Series>('/series', request, {showModal: true});
   }
 
   async updateSeries(seriesId: string, request: UpdateSeriesRequest): Promise<APIResponse<Series>> {
