@@ -1,4 +1,12 @@
 import type { APIResponse } from '../types';
+import { useErrorStore } from '../errorStore';
+
+interface APIClientConfig {
+  /** Enable automatic error modal display for non-200 responses */
+  errorModalEnabled?: boolean;
+  /** Custom error handler, receives error message and optional details */
+  onError?: (message: string, details?: string) => void;
+}
 
 interface CacheEntry<T> {
   data: APIResponse<T>;
@@ -12,21 +20,86 @@ interface CacheOptions {
   tags?: string[]; // For cache invalidation by tag
 }
 
-/**
- * Core API Client - handles HTTP requests with caching and proper error handling
- * Used by all modules for consistent API communication
- */
+interface ErrorOptions {
+  /** Show error modal for this specific request on non-200 response */
+  showModal?: boolean;
+  /** Custom error message to display in modal */
+  customMessage?: string;
+  /** Custom error details to display in modal */
+  customDetails?: string;
+}
+
+
+
+  /**
+   * Core API Client - handles HTTP requests with caching and proper error handling
+   * Used by all modules for consistent API communication
+   *
+   * Features:
+   * - GET caching with TTL and tag-based invalidation
+   * - Consistent APIResponse<T> format
+   * - Optional error modal display for non-200 responses
+   *   - Global: enableErrorModal() for all requests
+   *   - Per-request: pass errorOptions to individual methods
+   *
+   * Example with global error modal:
+   * ```typescript
+   * import { apiClient } from '@/modules/core';
+   * apiClient.enableErrorModal();
+   * ```
+   *
+   * Example with per-request error modal:
+   * ```typescript
+   * // Show error modal only for this specific request
+   * await apiClient.post('/series', data, { showModal: true });
+   *
+   * // With custom error message
+   * await apiClient.post('/series', data, {
+   *   showModal: true,
+   *   customMessage: 'Failed to create series',
+   *   customDetails: 'Please check your input and try again.'
+   * });
+   * ```
+   */
 export class APIClient {
   private baseURL: string;
   private cache: Map<string, CacheEntry<any>>;
   private tagMap: Map<string, Set<string>>; // Maps tags to cache keys
   private defaultTTL: number;
+  private errorModalEnabled: boolean;
+  private onError?: (message: string, details?: string) => void;
 
-  constructor(baseURL: string, defaultTTL: number = 5 * 60 * 1000) {
+  constructor(baseURL: string, defaultTTL: number = 5 * 60 * 1000, config?: APIClientConfig) {
     this.baseURL = baseURL.replace(/\/$/, '');
     this.cache = new Map();
     this.tagMap = new Map();
     this.defaultTTL = defaultTTL; // Default 5 minutes
+    this.errorModalEnabled = config?.errorModalEnabled ?? false;
+    this.onError = config?.onError;
+  }
+
+  /**
+   * Enable error modal display for non-200 responses
+   */
+  public enableErrorModal(handler?: (message: string, details?: string) => void): void {
+    this.errorModalEnabled = true;
+    if (handler) {
+      this.onError = handler;
+    }
+  }
+
+  private handleError(message: string, details?: string): void {
+    if (this.onError) {
+      this.onError(message, details);
+    } else {
+      // Use default error store
+      try {
+        const errorStore = useErrorStore();
+        errorStore.openErrorModal(message, details);
+      } catch (err) {
+        console.error('Failed to show error modal:', err);
+      }
+    }
   }
 
   /**
@@ -131,7 +204,8 @@ export class APIClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
-    cacheOptions?: CacheOptions
+    cacheOptions?: CacheOptions,
+    errorOptions?: ErrorOptions
   ): Promise<APIResponse<T>> {
     const cacheKey = this.getCacheKey(endpoint, options);
     const method = options.method || 'GET';
@@ -157,7 +231,19 @@ export class APIClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const data = await response.json();
+        const errorDetail = data.detail || `Endpoint: ${endpoint}`;
+
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+        const shouldShowModal = errorOptions?.showModal ?? this.errorModalEnabled;
+        if (shouldShowModal) {
+          const modalMessage = errorOptions?.customMessage || errorMessage;
+          const modalDetails = errorOptions?.customDetails || errorDetail;
+          this.handleError(modalMessage, modalDetails);
+        }
+        throw error;
       }
 
       const data = await response.json();
@@ -175,41 +261,42 @@ export class APIClient {
       return result;
     } catch (error) {
       console.error('API request failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: errorMessage,
       };
     }
   }
 
-  async get<T>(endpoint: string, cacheOptions?: CacheOptions): Promise<APIResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' }, cacheOptions);
+  async get<T>(endpoint: string, cacheOptions?: CacheOptions, errorOptions?: ErrorOptions): Promise<APIResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET' }, cacheOptions, errorOptions);
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
+  async post<T>(endpoint: string, data?: any, errorOptions?: ErrorOptions): Promise<APIResponse<T>> {
     const result = await this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, undefined, errorOptions);
 
     // Invalidate related GET caches on mutation
     this.invalidate(endpoint);
     return result;
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<APIResponse<T>> {
+  async patch<T>(endpoint: string, data?: any, errorOptions?: ErrorOptions): Promise<APIResponse<T>> {
     const result = await this.request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
-    });
+    }, undefined, errorOptions);
 
     // Invalidate related GET caches on mutation
     this.invalidate(endpoint);
     return result;
   }
 
-  async delete<T>(endpoint: string): Promise<APIResponse<T>> {
-    const result = await this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, errorOptions?: ErrorOptions): Promise<APIResponse<T>> {
+    const result = await this.request<T>(endpoint, { method: 'DELETE' }, undefined, errorOptions);
 
     // Invalidate related GET caches on mutation
     this.invalidate(endpoint);

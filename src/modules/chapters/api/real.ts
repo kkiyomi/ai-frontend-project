@@ -27,7 +27,7 @@ export class ChapterRealAPI {
   }
 
   async createChapter(input: ChapterCreateInput): Promise<APIResponse<Chapter>> {
-    return this.client.post<Chapter>('/chapters', input);
+    return this.client.post<Chapter>('/chapters', input, {showModal: true});
   }
 
   async updateChapter(chapterId: string, updates: ChapterUpdateInput): Promise<APIResponse<Chapter>> {
