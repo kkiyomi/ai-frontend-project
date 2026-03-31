@@ -232,8 +232,17 @@ export class APIClient {
 
       if (!response.ok) {
         const data = await response.json();
+        const errorDetail = data.detail || `Endpoint: ${endpoint}`;
+
         const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-        error.detail = data.detail;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+        const shouldShowModal = errorOptions?.showModal ?? this.errorModalEnabled;
+        if (shouldShowModal) {
+          const modalMessage = errorOptions?.customMessage || errorMessage;
+          const modalDetails = errorOptions?.customDetails || errorDetail;
+          this.handleError(modalMessage, modalDetails);
+        }
         throw error;
       }
 
@@ -253,14 +262,6 @@ export class APIClient {
     } catch (error) {
       console.error('API request failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      const errorDetail = error instanceof Error ? error.detail : `Endpoint: ${endpoint}`;
-      // Show error modal if enabled globally or for this specific request
-      const shouldShowModal = errorOptions?.showModal ?? this.errorModalEnabled;
-      if (shouldShowModal) {
-        const modalMessage = errorOptions?.customMessage || errorMessage;
-        const modalDetails = errorOptions?.customDetails || errorDetail;
-        this.handleError(modalMessage, modalDetails);
-      }
       return {
         success: false,
         error: errorMessage,
