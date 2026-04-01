@@ -53,6 +53,7 @@ import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
 import { AnnouncementBannerManager } from '@/modules/announcements';
 import { useSeriesWithChapters } from '@/composables';
+import { useSettingsRouteSync } from '@/composables/useSettingsRouteSync';
 
 interface Props {
   seriesId?: string;
@@ -71,6 +72,7 @@ const errorStore = useErrorStore();
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const isGlossaryVisible = computed(() => glossaryStore.isGlossaryVisible);
 const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
+useSettingsRouteSync();
 
 onMounted(async () => {
   await seriesStore.fetchSeries();

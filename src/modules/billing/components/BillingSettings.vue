@@ -2,21 +2,21 @@
   <div class="space-y-6">
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-10 text-gray-500">
+    <div v-if="billingStore.loading" class="text-center py-10 text-gray-500">
       Loading billing information...
     </div>
 
     <!-- Error -->
     <div
-      v-if="error"
+      v-if="billingStore.error"
       class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg"
     >
-      <p>{{ error }}</p>
+      <p>{{ billingStore.error }}</p>
       <button @click="retry" class="underline text-sm mt-2">Retry</button>
     </div>
 
     <!-- Subscription -->
-    <div v-if="subscription && currentPlan" class="space-y-6">
+    <div v-if="billingStore.subscription && currentPlan" class="space-y-6">
       <h2 class="text-lg font-medium text-gray-900">Current Subscription</h2>
 
       <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
@@ -86,24 +86,15 @@ import { computed, onMounted, ref } from 'vue';
 import { useBillingStore } from '../store';
 import UpgradeCard from './UpgradeCard.vue';
 
-const {
-  subscription,
-  plans,
-  loading,
-  error,
-  fetchSubscription,
-  getAllLimitsWithUsage,
-  loadPlans,
-} = useBillingStore();
+const billingStore = useBillingStore();
 
+const currentPlan = computed(() => billingStore.subscription?.plan || null);
+const currentUsage = computed(() => billingStore.subscription?.usage || null);
 
-const currentPlan = computed(() => subscription?.plan || null);
-const currentUsage = computed(() => subscription?.usage || null);
-
-const limits = computed(() => getAllLimitsWithUsage());
+const limits = computed(() => billingStore.getAllLimitsWithUsage());
 
 const enhancedLimits = computed(() => {
-  const defs = subscription?.plan.limits ?? {};
+  const defs = billingStore.subscription?.plan.limits ?? {};
   return limits.value.map(limit => ({
     ...limit,
     type: defs[limit.key]?.type,
@@ -112,8 +103,8 @@ const enhancedLimits = computed(() => {
 });
 
 function retry() {
-  fetchSubscription();
-  loadPlans();
+  billingStore.fetchSubscription();
+  billingStore.loadPlans();
 }
 
 function formatFeatureName(key: string) {
@@ -125,9 +116,9 @@ function formatLimitName(key: string) {
 }
 
 const nextPlan = computed(() => {
-  if (!currentPlan || !plans.length) return null;
-  const index = plans.findIndex(p => p.id === currentPlan.value?.id);
-  return plans[index + 1] || null;
+  if (!currentPlan.value || !billingStore.plans.length) return null;
+  const index = billingStore.plans.findIndex(p => p.id === currentPlan.value?.id);
+  return billingStore.plans[index + 1] || null;
 });
 
 // Helper functions

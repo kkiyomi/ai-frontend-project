@@ -127,7 +127,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useBillingStore } from '../store';
 import type { Plan, LimitDefinition } from '../types';
 
 interface Props {

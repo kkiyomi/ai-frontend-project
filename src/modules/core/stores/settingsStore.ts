@@ -16,6 +16,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const allSections = computed(() => sections.value);
   const getSection = (id: string) =>
     sections.value.find((s: SettingsSection) => s.id === id);
+  const isSectionRegistered = (id: string) => sections.value.some(s => s.id === id);
   const isSettingsVisible = computed(() => showSettings.value);
 
   // --- Actions ---
@@ -78,6 +79,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // getters
     allSections,
     getSection,
+    isSectionRegistered,
     isSettingsVisible,
 
     // actions
