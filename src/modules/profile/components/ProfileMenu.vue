@@ -106,7 +106,7 @@ const emit = defineEmits<{
   'logout': []
 }>()
 
-const user = profile.user;
+const user = computed(() => profile.user);
 const isMenuOpen = ref(false)
 
 const userInitials = computed(() => {

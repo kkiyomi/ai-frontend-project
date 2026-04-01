@@ -134,9 +134,9 @@ export const useProfileStore = defineStore('profile', () => {
 
   return {
     // State
-    user: computed(() => user.value),
-    isLoading: computed(() => isLoading.value),
-    error: computed(() => error.value),
+    user,
+    isLoading,
+    error,
     profileState,
 
     // Computed
