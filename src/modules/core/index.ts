@@ -25,8 +25,7 @@
  */
 
 // Store
-export { useSettingsStore } from './store';
-export { useErrorStore } from './errorStore';
+export { useSettingsStore, useErrorStore } from './store';
 
 export { APIClient } from './services/apiClient';
 export { apiClient } from './services/index';
