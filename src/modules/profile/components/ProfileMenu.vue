@@ -106,12 +106,12 @@ const emit = defineEmits<{
   'logout': []
 }>()
 
-const user = profile.user;
+const user = computed(() => profile.user);
 const isMenuOpen = ref(false)
 
 const userInitials = computed(() => {
-  if (!user?.name) return 'U'
-  return user.name
+  if (!user.value?.name) return 'U'
+  return user.value?.name
     .split(' ')
     .map(p => p[0]?.toUpperCase())
     .slice(0, 2)

@@ -13,12 +13,12 @@
 
         <!-- Price -->
         <div class="text-4xl font-semibold text-gray-900">
-          ${{ nextPlan.price }}
+          ${{ formatNextPlan().price }}
           <span class="text-base font-normal text-gray-500">
-            per {{ formatPeriod(nextPlan.period) }}
+            per month
           </span>
         </div>
-        <div class="text-sm text-gray-500 -mt-2">billed {{ formatPeriodAdjective(nextPlan.period) }}</div>
+        <div class="text-sm text-gray-500 -mt-2">billed {{ formatNextPlan().period }}</div>
 
         <!-- Current Plan -->
         <div class="text-sm text-gray-600">
@@ -114,10 +114,6 @@
                 <div v-if="limit.description" class="text-sm text-gray-500">{{ limit.description }}</div>
               </div>
             </div>
-
-            <div class="text-gray-800 font-medium whitespace-nowrap ml-4">
-              {{ formatLimit(limit) }}
-            </div>
           </li>
         </ul>
       </div>
@@ -126,9 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useBillingStore } from '../store';
-import type { Plan, LimitDefinition } from '../types';
+import type { Plan } from '../types';
 
 interface Props {
   currentPlan: Plan,
@@ -137,28 +131,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-function pretty(str: string) {
-  return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatLimit(limit: LimitDefinition): string {
-  if (!limit) return '';
-  if (limit.unit) {
-    return `${limit.value} ${limit.unit}`;
-  }
-  return String(limit.value);
-}
-
-function formatPeriod(period: string): string {
-  switch (period) {
-    case 'monthly': return 'month';
-    case 'yearly': return 'year';
-    case 'quarterly': return 'quarter';
-    case 'lifetime': return 'lifetime';
-    default: return period.replace(/ly$/, '');
-  }
-}
-
 function formatPeriodAdjective(period: string): string {
   switch (period) {
     case 'monthly': return 'monthly';
@@ -166,6 +138,15 @@ function formatPeriodAdjective(period: string): string {
     case 'quarterly': return 'quarterly';
     case 'lifetime': return 'once for lifetime';
     default: return period;
+  }
+}
+
+function formatNextPlan(): { price: number; period: string } {
+  const nextPlan = props.nextPlan
+  const period = formatPeriodAdjective(nextPlan.period)
+  return {
+    price: period == 'monthly' ? nextPlan.price : (nextPlan.price / 12),
+    period
   }
 }
 

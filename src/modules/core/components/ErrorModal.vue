@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useErrorStore } from '../errorStore';
+import { useErrorStore } from '../store';
 
 const errorStore = useErrorStore();
 

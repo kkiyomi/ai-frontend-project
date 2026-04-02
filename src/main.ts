@@ -13,6 +13,9 @@ logEnvironmentConfig().then(() => {
 const app = createApp(App);
 const pinia = createPinia();
 
-app.use(pinia).use(router).mount('#app')
+app.use(pinia).use(router);
 
+// Load settings BEFORE mount to ensure sections are registered for route sync
 loadSettings();
+
+app.mount('#app');

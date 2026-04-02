@@ -1,5 +1,5 @@
 import type { APIResponse } from '../types';
-import { useErrorStore } from '../errorStore';
+import { useErrorStore } from '../store';
 
 interface APIClientConfig {
   /** Enable automatic error modal display for non-200 responses */
