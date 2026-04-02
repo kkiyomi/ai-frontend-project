@@ -114,10 +114,6 @@
                 <div v-if="limit.description" class="text-sm text-gray-500">{{ limit.description }}</div>
               </div>
             </div>
-
-            <div class="text-gray-800 font-medium whitespace-nowrap ml-4">
-              {{ formatLimit(limit) }}
-            </div>
           </li>
         </ul>
       </div>
@@ -138,14 +134,6 @@ const props = defineProps<Props>();
 
 function pretty(str: string) {
   return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatLimit(limit: LimitDefinition): string {
-  if (!limit) return '';
-  if (limit.unit) {
-    return `${limit.value} ${limit.unit}`;
-  }
-  return String(limit.value);
 }
 
 function formatPeriod(period: string): string {
