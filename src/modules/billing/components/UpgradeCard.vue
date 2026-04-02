@@ -13,12 +13,12 @@
 
         <!-- Price -->
         <div class="text-4xl font-semibold text-gray-900">
-          ${{ nextPlan.price }}
+          ${{ formatNextPlan().price }}
           <span class="text-base font-normal text-gray-500">
-            per {{ formatPeriod(nextPlan.period) }}
+            per month
           </span>
         </div>
-        <div class="text-sm text-gray-500 -mt-2">billed {{ formatPeriodAdjective(nextPlan.period) }}</div>
+        <div class="text-sm text-gray-500 -mt-2">billed {{ formatNextPlan().period }}</div>
 
         <!-- Current Plan -->
         <div class="text-sm text-gray-600">
@@ -122,8 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { Plan, LimitDefinition } from '../types';
+import type { Plan } from '../types';
 
 interface Props {
   currentPlan: Plan,
@@ -132,20 +131,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-function pretty(str: string) {
-  return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatPeriod(period: string): string {
-  switch (period) {
-    case 'monthly': return 'month';
-    case 'yearly': return 'year';
-    case 'quarterly': return 'quarter';
-    case 'lifetime': return 'lifetime';
-    default: return period.replace(/ly$/, '');
-  }
-}
-
 function formatPeriodAdjective(period: string): string {
   switch (period) {
     case 'monthly': return 'monthly';
@@ -153,6 +138,15 @@ function formatPeriodAdjective(period: string): string {
     case 'quarterly': return 'quarterly';
     case 'lifetime': return 'once for lifetime';
     default: return period;
+  }
+}
+
+function formatNextPlan(): { price: number; period: string } {
+  const nextPlan = props.nextPlan
+  const period = formatPeriodAdjective(nextPlan.period)
+  return {
+    price: period == 'monthly' ? nextPlan.price : (nextPlan.price / 12),
+    period
   }
 }
 
