@@ -89,6 +89,15 @@
 
         <!-- Footer Actions -->
         <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
+            <a v-if="!profileStore.isLoggedIn" href="https://absolutemystery.com/web/login?redirect=/r/app" target="_self" aria-label="Login"
+                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium mb-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Login</span>
+            </a>
+
             <button v-if="currentSeries" @click="glossaryStore.toggleVisibility"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,6 +125,7 @@ import {
 } from '@/modules/series';
 import { ChapterItem, useChaptersStore } from '@/modules/chapters';
 import { useGlossaryStore } from '@/modules/glossary';
+import { useProfileStore } from '@/modules/profile';
 import { useSeriesWithChapters, useConfirmation } from '@/composables';
 import SeriesCreate from './SeriesCreate.vue';
 import SelectedSeriesView from './SelectedSeriesView.vue';
@@ -127,6 +137,7 @@ const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const glossaryStore = useGlossaryStore();
+const profileStore = useProfileStore();
 
 const {
   selectedSeriesWithChapters: currentSeries,

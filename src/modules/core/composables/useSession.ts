@@ -91,13 +91,6 @@ export function useSession() {
    * @returns Promise resolving to true if logged in, false otherwise
    */
   async function checkSession(force = false): Promise<boolean> {
-//     // Only check session in production environment
-//     if (!isProduction) {
-//       if (isDevelopment) {
-//         console.log('[Session] Skipping session check in non-production environment');
-//       }
-//       return false;
-//     }
 
     // If there's already an active request, wait for it (unless forcing refresh)
     if (activeCheckPromise && !force) {
