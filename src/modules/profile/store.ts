@@ -26,9 +26,13 @@
  */
 
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { profileAPI } from './api';
+import { getSharedSession } from '@/modules/core';
 import type { User, ProfileState } from './types';
+
+// External logout URL (Odoo backend)
+const LOGOUT_URL = 'https://absolutemystery.com/web/session/logout';
 
 export const useProfileStore = defineStore('profile', () => {
   // State
@@ -37,6 +41,22 @@ export const useProfileStore = defineStore('profile', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
+  // Session synchronization
+  const session = getSharedSession();
+
+  // Watch session state changes to keep profile in sync
+  watch(() => session.isLoggedIn.value, (isLoggedIn) => {
+    if (!isLoggedIn) {
+      // Session became invalid - clear profile data
+      clearProfile();
+    } else {
+      // Session became valid - load profile if not already loaded
+      if (!user.value) {
+        loadProfile();
+      }
+    }
+  }, { immediate: true });
+
   // Computed
   const profileState = computed<ProfileState>(() => ({
     user: user.value,
@@ -44,7 +64,7 @@ export const useProfileStore = defineStore('profile', () => {
     error: error.value,
   }));
 
-  const isLoggedIn = computed(() => !!user.value);
+  const isLoggedIn = computed(() => session.isLoggedIn.value);
 
   const userInitials = computed(() => {
     if (!user.value?.name) return '';
@@ -119,9 +139,17 @@ export const useProfileStore = defineStore('profile', () => {
     setLoading(true);
     
     try {
-      // TODO: Add logout API call when needed
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Clear local state first
       clearProfile();
+      
+      // Invalidate session cache to ensure fresh check on return
+      session.invalidateCache();
+      
+      // Redirect to external logout URL (Odoo backend)
+      // This will log the user out on the backend and redirect to login page
+      window.location.href = LOGOUT_URL;
+      
+      // Note: Code after redirect may not execute due to page navigation
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to logout');
     } finally {

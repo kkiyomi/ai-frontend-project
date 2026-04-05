@@ -30,8 +30,8 @@
 
         <!-- Chapter Count Badge -->
         <div v-if="chaptersCount > 0"
-            class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
-            {{ chaptersCount }}
+            class="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
+            {{ chaptersCount > 99 ? '+99' : chaptersCount }}
         </div>
 
         <!-- Glossary Toggle Icon -->
@@ -46,9 +46,13 @@
 </template>
 
 <script setup lang="ts">
+import { useProfileStore } from '@/modules/profile';
+
 interface Props {
     chaptersCount: number;
 }
 
 defineProps<Props>();
+
+const profileStore = useProfileStore();
 </script>
