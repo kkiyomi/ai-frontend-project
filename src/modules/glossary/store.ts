@@ -356,7 +356,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
 
   function toggleHighlight() {
     isHighlightEnabled.value = !isHighlightEnabled.value;
-    localStorage.setItem('glossary:isHighlightEnabled', isHighlightEnabled.value);
+    localStorage.setItem('glossary:isHighlightEnabled', String(isHighlightEnabled.value));
   }
 
   function clearError() {
@@ -364,7 +364,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   function loadPreferences() {
-    const savedIisHighlight = localStorage.getItem('glossary:isHighlightEnabled') as isHighlightEnabled;
+    const savedIisHighlight = localStorage.getItem('glossary:isHighlightEnabled');
 
     if (savedIisHighlight !== null) {
       isHighlightEnabled.value = savedIisHighlight === 'true';
