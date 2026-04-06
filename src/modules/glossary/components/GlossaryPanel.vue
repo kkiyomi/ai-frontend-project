@@ -15,7 +15,7 @@
         </button>
       </div>
       <p class="text-sm text-base-content/60 mt-1">{{ glossaryTerms.length }} terms defined</p>
-      <p v-if="currentSeries && currentChapter" class="text-xs text-blue-600 mt-1">
+      <p v-if="currentSeries && currentChapter" class="text-xs text-primary/70 mt-1">
         {{ currentSeries.name }}
         <br/>
         Chapter: {{ currentChapter.title }}
@@ -88,7 +88,7 @@
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
           Showing {{ glossaryTerms.length }} terms across all chapters
         </p>
-        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-blue-600 mt-1">
+        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-primary/70 mt-1">
           Select a chapter to focus on chapter-specific context
         </p>
       </div>

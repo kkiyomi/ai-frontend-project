@@ -48,6 +48,7 @@
           emptyMessage="No original text yet"
           placeholder="Enter original text..."
           :highlightTermsInText="highlightFn"
+          :highlightTermsInTexts="highlightFnBatch"
           :isHighlightEnabled="isHighlightEnabled"
         />
 
@@ -63,6 +64,7 @@
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
+          :highlightTermsInTexts="highlightFnBatch"
           :isHighlightEnabled="isHighlightEnabled"
         />
       </div>
@@ -81,6 +83,7 @@ interface Props {
   chapter: Chapter | null;
   chapterId?: string | null;
   highlightTermsInText?: (text: string) => string;
+  highlightTermsInTexts?: (texts: string[]) => string[];
   isHighlightEnabled?: boolean;
   isTranslating?: boolean;
   translationProgress?: number;
@@ -109,6 +112,7 @@ const {
 } = state;
 
 const highlightFn = computed(() => props.highlightTermsInText);
+const highlightFnBatch = computed(() => props.highlightTermsInTexts);
 
 watch(() => props.chapterId, (newChapterId: string | null) => {
   if (props.chapter) {

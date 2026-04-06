@@ -16,6 +16,7 @@
       :chapter="currentChapter"
       :chapterId="currentChapterId"
       :highlightTermsInText="glossary.highlightTermsInText"
+      :highlightTermsInTexts="glossary.highlightTermsInTexts"
       :isHighlightEnabled="glossary.isHighlightEnabled"
       :isTranslating="translation.isTranslating"
       :translationProgress="translation.translationProgress"

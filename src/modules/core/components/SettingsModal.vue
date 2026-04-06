@@ -17,7 +17,7 @@
             :key="section.id"
             @click="settings.setActiveSection(section.id)"
             class="w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-left"
-             :class="settings.activeSectionId === section.id ? 'bg-primary/20 text-primary' : 'text-base-content hover:bg-base-300'"
+             :class="settings.activeSectionId === section.id ? 'bg-primary/10 text-primary' : 'text-base-content hover:bg-base-300'"
           >
             <span v-if="section.icon" class="mr-3" v-html="section.icon"></span>
             <svg v-else class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

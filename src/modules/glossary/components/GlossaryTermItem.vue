@@ -1,5 +1,5 @@
 <template>
-  <div class="group p-3 bg-base-100 border border-base-300 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all">
+  <div class="group p-3 bg-base-100 border border-base-300 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all">
     <div v-if="!isEditing" class="space-y-2">
       <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
@@ -16,7 +16,7 @@
         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
            <button
             @click="startEditing"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-blue-600 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-primary/70 transition-colors"
             title="Edit term"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -243,9 +243,9 @@ export const useGlossaryStore = defineStore('glossary', () => {
       .map(([word, _]) => word);
   }
 
-  function highlightTermsInText(text: string): string {
+  function buildHighlightPatterns() {
     const terms = termsByCurrentChapter.value;
-    if (!terms.length || !text) return text;
+    if (!terms.length) return null;
 
     const escapeRegex = (s: string) =>
       s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -268,6 +268,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
       }
     }
 
+    if (!patterns.length) return null;
+
     patterns.sort((a, b) => b.length - a.length);
 
     // chunk to avoid huge regex
@@ -277,6 +279,14 @@ export const useGlossaryStore = defineStore('glossary', () => {
     for (let i = 0; i < patterns.length; i += chunkSize) {
       chunks.push(new RegExp(`(${patterns.slice(i, i + chunkSize).join("|")})`, "gi"));
     }
+
+    return { termMap, patterns, chunks };
+  }
+
+  function highlightTermsInTextWithPatterns(text: string, patterns: ReturnType<typeof buildHighlightPatterns>): string {
+    if (!patterns || !text) return text;
+
+    const { termMap, chunks } = patterns;
 
     // Parse HTML safely
     const container = document.createElement("div");
@@ -304,6 +314,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
       let replaced = false;
 
       for (const regex of chunks) {
+        // Reset lastIndex for global regex
+        regex.lastIndex = 0;
         if (!regex.test(content)) continue;
 
         replaced = true;
@@ -311,6 +323,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
 
+        // Reset lastIndex before replace
+        regex.lastIndex = 0;
         content.replace(regex, (match, _, offset) => {
           const id = termMap.get(match.toLowerCase());
           if (!id) return match;
@@ -348,6 +362,28 @@ export const useGlossaryStore = defineStore('glossary', () => {
     }
 
     return container.innerHTML;
+  }
+
+  function highlightTermsInText(text: string): string {
+    const terms = termsByCurrentChapter.value;
+    if (!terms.length || !text) return text;
+    
+    const patterns = buildHighlightPatterns();
+    if (!patterns) return text;
+    
+    return highlightTermsInTextWithPatterns(text, patterns);
+  }
+
+  function highlightTermsInTexts(texts: string[]): string[] {
+    const terms = termsByCurrentChapter.value;
+    if (!terms.length || !texts.length) return texts;
+    
+    const patterns = buildHighlightPatterns();
+    if (!patterns) return texts;
+    
+    return texts.map(text => 
+      text ? highlightTermsInTextWithPatterns(text, patterns) : text
+    );
   }
 
   function toggleVisibility() {
@@ -399,6 +435,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     termExistsInSeries,
     suggestTermsFromText,
     highlightTermsInText,
+    highlightTermsInTexts,
     toggleVisibility,
     toggleHighlight,
     clearError,

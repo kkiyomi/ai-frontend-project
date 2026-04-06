@@ -6,7 +6,7 @@
       <!-- Left: Back -->
       <button
         @click="deselectSeries"
-        class="p-1 text-blue-600 hover:text-blue-700 transition-colors"
+        class="p-1 text-primary/70 hover:text-primary/80 transition-colors"
         title="Back to all series"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
         <!-- Edit -->
         <button
           @click="$emit('edit', series)"
-          class="p-1 text-base-content/40 hover:text-blue-600 transition-colors"
+          class="p-1 text-base-content/40 hover:text-primary/70 transition-colors"
           title="Edit series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

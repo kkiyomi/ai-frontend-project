@@ -1,9 +1,9 @@
 <template>
   <div 
     @click="selectChapter(chapter)"
-    class="group relative p-3 cursor-pointer transition-all hover:bg-primary/10"
+    class="group relative p-3 cursor-pointer transition-all hover:bg-primary/5"
     :class="{
-      'bg-primary/10 border-l-4 border-blue-500': currentChapterId === chapter.id,
+      'bg-primary/10 border-l-4 border-primary/50': currentChapterId === chapter.id,
     }"
   >
     <div class="flex items-start justify-between">
@@ -41,7 +41,7 @@
       >
           <button 
             @click.stop="startEditingChapter"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-blue-600 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-primary/70 transition-colors"
             title="Edit chapter title"
           >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

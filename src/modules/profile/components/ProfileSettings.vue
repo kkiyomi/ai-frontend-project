@@ -1,14 +1,16 @@
 <template>
   <div class="space-y-6">
     <div class="flex items-center space-x-4">
-      <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-medium">
-        <img
-          v-if="user?.avatar"
-          :src="user.avatar"
-          :alt="user.name"
-          class="w-16 h-16 rounded-full object-cover"
-        />
-        <span v-else>{{ initials }}</span>
+      <div class="avatar avatar-placeholder flex items-center justify-center">
+        <div class="w-16 h-16 rounded-full bg-neutral text-neutral-content">
+          <img
+            v-if="user?.avatar"
+            :src="user.avatar"
+            :alt="user.name"
+            class="w-16 h-16 rounded-full object-cover"
+          />
+          <span class="text-xl" v-else>{{ initials }}</span>
+        </div>
       </div>
       <div>
         <h4 class="text-lg font-medium text-base-content">{{ user?.name || 'User' }}</h4>

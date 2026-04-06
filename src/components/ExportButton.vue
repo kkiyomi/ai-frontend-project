@@ -3,7 +3,7 @@
     <button
       @click="toggleMenu"
       :disabled="!hasContent"
-      class="btn btn-success btn-sm space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="btn btn-neutral btn-sm space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
       :title="hasContent ? 'Export' : 'No content to export'"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -75,9 +75,9 @@ const titleText = computed(() => {
     return `${humanize(limitKey.value)} Reached`;
   }
   if (featureName.value) {
-    return `${humanize(featureName.value)} Feature Locked`;
+    return `${humanize(featureName.value)} Feature Not Available`;
   }
-  return 'Feature Locked';
+  return 'Feature Not Available';
 });
 
 const descriptionText = computed(() => {

@@ -185,7 +185,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  buttonClass: 'p-1 text-base-content/40 hover:text-blue-500 transition-colors',
+  buttonClass: 'p-1 text-base-content/40 hover:text-primary/60 transition-colors',
   buttonTitle: 'Import data from file',
   accept: '.csv',
   multiple: false,

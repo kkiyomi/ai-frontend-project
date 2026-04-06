@@ -16,7 +16,7 @@
           v-model="newTerm.term"
           type="text"
           placeholder="Term (e.g., character name)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
           required
         />
         <p v-if="termExistsError" class="text-xs text-red-600 mt-1">{{ termExistsError }}</p>
@@ -26,7 +26,7 @@
           v-model="newTerm.translation"
           type="text"
           placeholder="Translation"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
           required
         />
       </div>
@@ -35,13 +35,13 @@
           v-model="newTerm.definition"
           placeholder="Definition or context"
           rows="2"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm resize-none"
         ></textarea>
       </div>
       <div>
         <select
           v-model="newTerm.category"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
         >
           <option value="">Select category...</option>
           <option value="Character">Character</option>
@@ -54,7 +54,7 @@
           v-model="newTerm.category"
           type="text"
           placeholder="Enter custom category"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm mt-2"
         />
       </div>
       

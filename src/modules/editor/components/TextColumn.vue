@@ -32,6 +32,7 @@
           :type="type"
           :highlightTermsInText="highlightTermsInText"
           :isHighlightEnabled="isHighlightEnabled"
+          :highlightedContent="highlightedParagraphs[index]"
         />
         
         <!-- Add Paragraph Button -->
@@ -67,6 +68,7 @@ interface Props {
   emptyMessage?: string;
   placeholder?: string;
   highlightTermsInText?: (text: string) => string;
+  highlightTermsInTexts?: (texts: string[]) => string[];
   isHighlightEnabled?: boolean;
 }
 
@@ -84,12 +86,43 @@ const paragraphLabel = computed(() => {
   return props.type === 'translated' ? 'Translation' : 'Paragraph';
 });
 
+const highlightedParagraphs = computed(() => {
+  if (!props.isHighlightEnabled) return props.paragraphs;
+  
+  // Use batch API if available
+  if (props.highlightTermsInTexts) {
+    const result = props.highlightTermsInTexts(props.paragraphs);
+    // Safety check: ensure result length matches input
+    if (result.length === props.paragraphs.length) {
+      return result;
+    }
+    console.warn('highlightTermsInTexts returned array of different length');
+  }
+  
+  // Fallback to single text API
+  if (props.highlightTermsInText) {
+    return props.paragraphs.map(p => props.highlightTermsInText!(p));
+  }
+  
+  return props.paragraphs;
+});
+
 const displayFullText = computed(() => {
   if (!props.fullText) return '';
   
-  if (props.isHighlightEnabled && props.highlightTermsInText) {
-    return props.highlightTermsInText(props.fullText);
+  if (props.isHighlightEnabled) {
+    // Use batch API if available (single element array)
+    if (props.highlightTermsInTexts) {
+      const result = props.highlightTermsInTexts([props.fullText]);
+      return result[0] || props.fullText;
+    }
+    
+    // Fallback to single text API
+    if (props.highlightTermsInText) {
+      return props.highlightTermsInText(props.fullText);
+    }
   }
+  
   return props.fullText;
 });
 

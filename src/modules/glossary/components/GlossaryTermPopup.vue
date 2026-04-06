@@ -13,7 +13,7 @@
         <div class="flex-1">
           <div class="flex items-center space-x-2">
             <span class="font-semibold text-base-content">{{ term.term }}</span>
-            <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full"> -->
+            <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-primary/80 rounded-full"> -->
             <!--   {{ getCategoryIcon(term.category) }} -->
             <!-- </span> -->
           </div>

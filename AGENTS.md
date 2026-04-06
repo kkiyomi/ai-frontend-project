@@ -70,7 +70,8 @@ src/
 │   ├── core/         # Core functionality (settings, utils)
 │   ├── billing/      # Billing functionality
 │   ├── series/       # Series/chapter management
-│   └── profile/      # User profile
+│   ├── profile/      # User profile
+│   └── theme/        # Appearance and theme management
 ├── components/       # Global/reusable components
 ├── composables/      # Global composables
 ├── router/          # Vue Router configuration

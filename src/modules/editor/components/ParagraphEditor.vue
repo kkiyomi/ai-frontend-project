@@ -101,6 +101,7 @@ interface Props {
   type?: 'original' | 'translated';
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
+  highlightedContent?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -123,6 +124,9 @@ watch(() => props.content, (newContent: string) => {
 });
 
 const displayContent = computed(() => {
+  if (props.highlightedContent !== undefined) {
+    return props.highlightedContent;
+  }
   if (props.isHighlightEnabled && props.highlightTermsInText) {
     return props.highlightTermsInText(props.content);
   }
@@ -132,7 +136,7 @@ const displayContent = computed(() => {
 const textareaClass = computed(() => {
   return props.type === 'translated'
     ? 'focus:ring-primary/60 focus:border-primary/60'
-    : 'focus:ring-blue-500 focus:border-blue-500';
+    : 'focus:ring-blue-500 focus:border-primary/50';
 });
 
 const toggleEditing = () => {
