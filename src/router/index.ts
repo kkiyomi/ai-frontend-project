@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router';
 import App from '../App.vue';
-import ShareViewPage from '../components/ShareViewPage.vue';
 import { setupRouteGuards } from './guards';
 
 const routes = [
@@ -26,12 +25,6 @@ const routes = [
       seriesId: route.params.seriesId,
       chapterId: route.params.chapterId 
     })
-  },
-  {
-    path: '/share/:shareId',
-    name: 'Share',
-    component: ShareViewPage,
-    props: true
   }
 ];
 

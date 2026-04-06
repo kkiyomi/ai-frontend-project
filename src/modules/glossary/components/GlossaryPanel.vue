@@ -28,8 +28,8 @@
       <div class="mt-3">
         <button
           @click="toggleHighlight"
-          class="btn w-full flex items-center justify-center space-x-2 text-sm font-medium"
-          :class="isHighlightEnabled ? 'btn-primary' : 'btn-ghost'"
+          class="w-full btn btn-md space-x-2"
+          :class="isHighlightEnabled ? 'btn-neutral' : 'btn-ghost'"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
@@ -39,29 +39,27 @@
       </div>
       
       <!-- Add Term Button -->
-      <div class="mt-3 flex justify-center items-center space-x-2">
+      <div class="mt-3 flex items-center gap-2">
         <button
           v-if="!showAddForm"
           @click="showAddForm = true"
           :disabled="!currentSeries"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 btn btn-primary transition-colors text-sm font-medium"
-          :class="{ 'opacity-50 cursor-not-allowed': !currentSeries }"
+          class="flex-1 btn btn-md btn-primary flex items-center justify-center gap-2"
+          :class="{ 'btn-disabled': !currentSeries }"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
           <span>{{ currentSeries ? 'Add New Term' : 'Select Series First' }}</span>
         </button>
 
-        <div class="p-2">
-          <GlossaryImportButton
-            :series-id="currentSeries?.id"
-            :chapter-id="currentChapter?.id"
-            :disabled="!currentSeries"
-            button-class="p-1 text-base-content/40 hover:text-blue-500 transition-colors"
-            button-title="Import glossary terms from CSV"
-          />
-        </div>
+        <GlossaryImportButton
+          :series-id="currentSeries?.id"
+          :chapter-id="currentChapter?.id"
+          :disabled="!currentSeries"
+          button-class="btn btn-md btn-ghost text-base-content/40 px-3"
+          button-title="Import glossary terms from CSV"
+        />
       </div>
     </div>
 

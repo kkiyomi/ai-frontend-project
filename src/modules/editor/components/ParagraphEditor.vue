@@ -32,7 +32,7 @@
             @click="editor.undo"
             :disabled="!editor.canUndo"
             class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="editor.canUndo ? 'text-blue-600 hover:text-blue-700' : 'text-base-content/40'"
+            :class="editor.canUndo ? 'text-info hover:text-info/80' : 'text-base-content/40'"
             title="Undo"
           >
             ↶ Undo
@@ -41,7 +41,7 @@
             @click="editor.redo"
             :disabled="!editor.canRedo"
             class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="editor.canRedo ? 'text-blue-600 hover:text-blue-700' : 'text-base-content/40'"
+            :class="editor.canRedo ? 'text-info hover:text-info/80' : 'text-base-content/40'"
             title="Redo"
           >
             ↷ Redo
