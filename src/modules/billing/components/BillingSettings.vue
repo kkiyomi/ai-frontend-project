@@ -2,14 +2,14 @@
   <div class="space-y-6">
 
     <!-- Loading -->
-    <div v-if="billingStore.loading" class="text-center py-10 text-gray-500">
+    <div v-if="billingStore.loading" class="text-center py-10 text-base-content/60">
       Loading billing information...
     </div>
 
     <!-- Error -->
     <div
       v-if="billingStore.error"
-      class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg"
+      class="px-4 py-3 alert alert-error rounded-lg"
     >
       <p>{{ billingStore.error }}</p>
       <button @click="retry" class="underline text-sm mt-2">Retry</button>
@@ -17,16 +17,16 @@
 
     <!-- Subscription -->
     <div v-if="billingStore.subscription && currentPlan" class="space-y-6">
-      <h2 class="text-lg font-medium text-gray-900">Current Subscription</h2>
+      <h2 class="text-lg font-medium text-base-content">Current Subscription</h2>
 
-      <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
-        <h3 class="text-lg font-semibold text-gray-900">
+      <div class="border border-base-300 rounded-lg p-6 bg-base-100 shadow-sm">
+        <h3 class="text-lg font-semibold text-base-content">
           {{ currentPlan.name }}
         </h3>
 
         <!-- Usage -->
         <div class="mt-6">
-          <h4 class="text-sm font-medium text-gray-700 mb-3">Usage</h4>
+          <h4 class="text-sm font-medium text-base-content/80 mb-3">Usage</h4>
 
           <div
             v-for="limit in enhancedLimits"
@@ -35,16 +35,16 @@
           >
             <div class="flex justify-between items-start text-sm mb-1">
               <div>
-                <div class="text-gray-900 font-medium">{{ limit.name }}</div>
-                <div v-if="limit.description" class="text-gray-500 text-xs mt-0.5">
+                <div class="text-base-content font-medium">{{ limit.name }}</div>
+                <div v-if="limit.description" class="text-base-content/60 text-xs mt-0.5">
                   {{ limit.description }}
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-gray-900 font-medium">
+                <div class="text-base-content font-medium">
                   {{ formatUsageValue(limit.usage) }} / {{ formatLimitValue(limit.limit) }} {{ limit.unit || '' }}
                 </div>
-                <div class="text-gray-500 text-xs mt-0.5">
+                <div class="text-base-content/60 text-xs mt-0.5">
                   {{ limit.percentage }}% used
                 </div>
               </div>
@@ -57,7 +57,7 @@
               max="100"
             ></progress>
 
-            <div class="flex justify-between items-center text-xs text-gray-500 mt-1">
+            <div class="flex justify-between items-center text-xs text-base-content/60 mt-1">
               <span>
                 {{ formatLimitType(limit) }}
               </span>

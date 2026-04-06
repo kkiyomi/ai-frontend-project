@@ -1,6 +1,6 @@
 <template>
   <!-- Series Header -->
-  <div class="bg-blue-50 p-3 border-b border-gray-200">
+  <div class="bg-primary/10 p-3 border-b border-base-300">
     <!-- Top Row: Icons -->
     <div class="flex items-center justify-between">
       <!-- Left: Back -->
@@ -19,7 +19,7 @@
         <!-- Add Chapter -->
         <button
           @click="handleCreateChapter('New Chapter!')"
-          class="p-1 text-gray-400 hover:text-green-600 transition-colors"
+          class="p-1 text-base-content/40 hover:text-green-600 transition-colors"
           title="Add chapter"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
         <!-- Edit -->
         <button
           @click="$emit('edit', series)"
-          class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+          class="p-1 text-base-content/40 hover:text-blue-600 transition-colors"
           title="Edit series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
         <!-- Delete -->
         <button
           @click="$emit('delete', series.id)"
-          class="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          class="p-1 text-base-content/40 hover:text-red-500 transition-colors"
           title="Remove series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,13 +58,13 @@
 
     <!-- Bottom: Series Info -->
     <div class="p-3">
-      <h4 class="text-sm font-semibold text-gray-900">{{ series.name }}</h4>
+      <h4 class="text-sm font-semibold text-base-content">{{ series.name }}</h4>
 
-      <p v-if="series.description" class="text-xs text-gray-500 mt-1">
+      <p v-if="series.description" class="text-xs text-base-content/60 mt-1">
         {{ series.description }}
       </p>
 
-      <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
+      <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/40">
         <span>{{ series.chapters.length }} chapters</span>
         <span>{{ translationProgress }}% translated</span>
       </div>

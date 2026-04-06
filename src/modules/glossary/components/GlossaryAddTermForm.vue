@@ -1,10 +1,10 @@
 <template>
-  <div class="p-4 border-b border-gray-200 bg-gray-50">
+  <div class="p-4 border-b border-base-300 bg-base-200">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-900">Add New Term</h3>
+      <h3 class="text-sm font-semibold text-base-content">Add New Term</h3>
       <button
         @click="cancel"
-        class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        class="text-sm text-base-content/60 hover:text-base-content/80 transition-colors"
       >
         Cancel
       </button>

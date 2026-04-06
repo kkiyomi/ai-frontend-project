@@ -9,7 +9,7 @@
   - Auto-save functionality triggered by editor store state changes
 -->
 <template>
-  <div class="flex-1 flex flex-col bg-white overflow-hidden">
+  <div class="flex-1 flex flex-col bg-base-100 overflow-hidden">
     <TranslationHeader />
 
     <ChapterEditor

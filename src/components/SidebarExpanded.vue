@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col h-full">
         <!-- Header -->
-        <div class="p-4 border-b border-gray-200 flex-shrink-0">
-            <h1 class="text-xl font-bold text-gray-900 mb-2">Absolute Mystery</h1>
+        <div class="p-4 border-b border-base-300 flex-shrink-0">
+            <h1 class="text-xl font-bold text-base-content mb-2">Absolute Mystery</h1>
             <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
         </div>
 
@@ -13,8 +13,8 @@
             <div class="p-4">
               <div v-if="series.length === 0" class="text-center py-8">
                 <div class="text-4xl mb-3">📚</div>
-                <p class="text-sm text-gray-500">No series created yet</p>
-                <p class="text-xs text-gray-400 mt-1">Create a series to organize your chapters</p>
+                <p class="text-sm text-base-content/60">No series created yet</p>
+                <p class="text-xs text-base-content/40 mt-1">Create a series to organize your chapters</p>
               </div>
 
               <div v-else class="space-y-4">
@@ -27,7 +27,7 @@
                     @delete="() => deleteSeries(seriesItem)"
                   />
                 </div>
-                <div v-else-if="currentSeries" class="border border-gray-200 rounded-lg overflow-hidden">
+                <div v-else-if="currentSeries" class="border border-base-300 rounded-lg overflow-hidden">
                   <SelectedSeriesView
                     :key="currentSeries.id"
                     :series="currentSeries"
@@ -38,13 +38,13 @@
                   <!-- Chapters List -->
                   <div>
                     <div v-if="currentSeries.chapters.length === 0" class="p-4 text-center">
-                      <p class="text-xs text-gray-500">No chapters in this series</p>
-                      <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+                      <p class="text-xs text-base-content/60">No chapters in this series</p>
+                      <p class="text-xs text-base-content/40 mt-1">Upload files to add chapters</p>
                     </div>
 
                     <div v-else class="h-full">
                       <!-- Chapter count indicator for large lists -->
-                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
+                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-warning/10 border-b border-yellow-200">
                         <p class="text-xs text-yellow-700 text-center">
                           📚 {{ currentSeries.chapters.length }} chapters in this series
                         </p>
@@ -88,7 +88,7 @@
         />
 
         <!-- Footer Actions -->
-        <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
+        <div class="p-4 border-t border-base-300 flex-shrink-0 bg-base-100">
             <a v-if="!profileStore.isLoggedIn" href="https://absolutemystery.com/web/login?redirect=/r/app" target="_self" aria-label="Login"
                 class="w-full flex items-center justify-center space-x-2 px-4 py-2 btn btn-primary transition-colors text-sm font-medium mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@
             </button>
 
             <div class="mt-3 text-center">
-                <p class="text-xs text-gray-500">{{ getTotalStats() }}</p>
+                <p class="text-xs text-base-content/60">{{ getTotalStats() }}</p>
             </div>
         </div>
     </div>

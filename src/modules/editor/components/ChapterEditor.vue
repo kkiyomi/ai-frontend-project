@@ -22,13 +22,13 @@
   - Core API for data persistence
 -->
 <template>
-  <div class="flex-1 flex flex-col bg-white overflow-hidden">
+  <div class="flex-1 flex flex-col bg-base-100 overflow-hidden">
 
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">
         <div class="text-6xl mb-4">📖</div>
-        <h3 class="text-xl font-medium text-secondary-900 mb-2">Ready to Edit</h3>
-        <p class="text-secondary-500">Select a chapter from the sidebar to get started</p>
+        <h3 class="text-xl font-medium text-base-content mb-2">Ready to Edit</h3>
+        <p class="text-base-content/70">Select a chapter from the sidebar to get started</p>
       </div>
     </div>
 

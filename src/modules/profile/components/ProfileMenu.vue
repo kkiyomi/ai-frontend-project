@@ -5,8 +5,8 @@
       <!-- Avatar Button -->
       <button
         @click="toggleMenu"
-        class="btn btn-ghost flex items-center justify-start space-x-3 p-2 w-full rounded-lg hover:bg-gray-100 transition-colors"
-        :class="{ 'bg-gray-100': isMenuOpen }"
+        class="btn btn-ghost flex items-center justify-start space-x-3 p-2 w-full rounded-lg hover:bg-base-300 transition-colors"
+        :class="{ 'bg-base-300': isMenuOpen }"
       >
         <!-- Avatar -->
           <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
@@ -20,7 +20,7 @@
         </div>
 
         <!-- Name -->
-        <span class="text-sm font-medium text-gray-900 truncate">
+        <span class="text-sm font-medium text-base-content truncate">
           {{ user?.name || 'User' }}
         </span>
       </button>
@@ -49,10 +49,10 @@
               <span v-else>{{ userInitials }}</span>
             </div>
             <div>
-              <div class="text-sm font-medium text-gray-900">
+              <div class="text-sm font-medium text-base-content">
                 {{ user?.name || 'User' }}
               </div>
-              <div class="text-xs text-gray-500">{{ user?.email || '' }}</div>
+              <div class="text-xs text-base-content/60">{{ user?.email || '' }}</div>
             </div>
           </div>
         </div>
@@ -62,9 +62,9 @@
 
            <button
             @click="handleOpenSettings"
-            class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-base-content/80 hover:bg-base-300 transition-colors"
           >
-            <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 mr-3 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

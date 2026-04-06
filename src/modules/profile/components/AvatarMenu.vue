@@ -3,8 +3,8 @@
     <!-- Avatar Button -->
     <button
       @click="toggleMenu"
-      class="btn btn-ghost flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-      :class="{ 'bg-gray-100': isMenuOpen }"
+      class="btn btn-ghost flex items-center space-x-2 p-2 rounded-lg hover:bg-base-300 transition-colors"
+      :class="{ 'bg-base-300': isMenuOpen }"
     >
       <!-- Avatar -->
        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
@@ -19,8 +19,8 @@
       
       <!-- User Info (optional, shown when expanded) -->
       <div v-if="showUserInfo" class="hidden sm:block text-left">
-        <div class="text-sm font-medium text-gray-900">{{ user?.name || 'User' }}</div>
-        <div class="text-xs text-gray-500">{{ user?.email || '' }}</div>
+        <div class="text-sm font-medium text-base-content">{{ user?.name || 'User' }}</div>
+        <div class="text-xs text-base-content/60">{{ user?.email || '' }}</div>
       </div>
     </button>
 
@@ -34,8 +34,8 @@
        <div class="px-4 py-3 border-b border-base-300">
         <div class="flex items-center space-x-3">
           <div>
-            <div class="text-sm font-medium text-gray-900">{{ user?.name || 'User' }}</div>
-            <div class="text-xs text-gray-500">{{ user?.email || '' }}</div>
+            <div class="text-sm font-medium text-base-content">{{ user?.name || 'User' }}</div>
+            <div class="text-xs text-base-content/60">{{ user?.email || '' }}</div>
           </div>
         </div>
       </div>
@@ -44,9 +44,9 @@
       <div class="py-1">
         <button
           @click="handleOpenSettings"
-           class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+           class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-base-content/80 transition-colors"
         >
-          <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 mr-3 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -58,7 +58,7 @@
 
         <button
           @click="handleLogout"
-           class="btn btn-error btn-ghost w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+           class="btn btn-error btn-ghost w-full flex items-center px-4 py-2 text-sm text-error-content/70 hover:bg-error/10 transition-colors"
         >
           <svg class="w-4 h-4 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 

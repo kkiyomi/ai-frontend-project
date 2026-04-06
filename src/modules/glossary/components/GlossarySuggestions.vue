@@ -1,7 +1,7 @@
 <template>
-  <div v-if="currentChapter" class="border-t border-gray-200 p-4 bg-gray-50">
+  <div v-if="currentChapter" class="border-t border-base-300 p-4 bg-base-200">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-900">Suggested Terms</h3>
+      <h3 class="text-sm font-semibold text-base-content">Suggested Terms</h3>
       <button
         @click="$emit('refresh')"
         :disabled="isGenerating"
@@ -11,7 +11,7 @@
       </button>
     </div>
     
-    <div v-if="suggestions.length === 0" class="text-xs text-gray-500">
+    <div v-if="suggestions.length === 0" class="text-xs text-base-content/60">
       No suggestions available
     </div>
     

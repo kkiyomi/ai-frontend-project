@@ -44,7 +44,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  buttonClass: 'p-1 text-gray-400 hover:text-blue-500 transition-colors',
+  buttonClass: 'p-1 text-base-content/40 hover:text-blue-500 transition-colors',
   buttonTitle: 'Import glossary terms from CSV',
   accept: '.csv',
   multiple: false,

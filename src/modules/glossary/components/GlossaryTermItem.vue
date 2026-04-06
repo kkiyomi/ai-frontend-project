@@ -1,22 +1,22 @@
 <template>
-  <div class="group p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all">
+  <div class="group p-3 bg-base-100 border border-base-300 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all">
     <div v-if="!isEditing" class="space-y-2">
       <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
           <div class="flex items-center space-x-2">
-            <span class="font-medium text-gray-900 text-sm">{{ term.term }}</span>
+            <span class="font-medium text-base-content text-sm">{{ term.term }}</span>
             <span v-if="!term.chapterId" class="badge badge-outline badge-sm">
               Series
             </span>
           </div>
           <p class="text-sm text-green-600 font-medium mt-1">{{ term.translation }}</p>
-          <p v-if="term.definition" class="text-xs text-gray-500 mt-1">{{ term.definition }}</p>
+          <p v-if="term.definition" class="text-xs text-base-content/60 mt-1">{{ term.definition }}</p>
         </div>
         
         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
            <button
             @click="startEditing"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-blue-600 transition-colors"
             title="Edit term"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,7 +25,7 @@
           </button>
            <button
             @click="removeTerm"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-red-500 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-red-500 transition-colors"
             title="Remove term"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@
         </div>
       </div>
       
-      <div class="flex items-center justify-between text-xs text-gray-400">
+      <div class="flex items-center justify-between text-xs text-base-content/40">
         <span>Used {{ term.frequency }} times</span>
         <span v-if="term.isUserDefined" class="badge badge-outline badge-sm">Custom</span>
       </div>

@@ -1,9 +1,9 @@
 <template>
-  <div class="h-full bg-white flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
+  <div class="h-full bg-base-100 flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-4 border-b border-base-300">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-gray-900">Glossary</h2>
+        <h2 class="text-lg font-semibold text-base-content">Glossary</h2>
         <button
           @click="toggleGlossaryVisibility"
           class="btn btn-ghost btn-square btn-sm"
@@ -14,7 +14,7 @@
           </svg>
         </button>
       </div>
-      <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
+      <p class="text-sm text-base-content/60 mt-1">{{ glossaryTerms.length }} terms defined</p>
       <p v-if="currentSeries && currentChapter" class="text-xs text-blue-600 mt-1">
         {{ currentSeries.name }}
         <br/>
@@ -58,7 +58,7 @@
             :series-id="currentSeries?.id"
             :chapter-id="currentChapter?.id"
             :disabled="!currentSeries"
-            button-class="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+            button-class="p-1 text-base-content/40 hover:text-blue-500 transition-colors"
             button-title="Import glossary terms from CSV"
           />
         </div>
@@ -79,15 +79,15 @@
     <div class="flex-1 ">
       <div v-if="isLoading" class="p-8 text-center">
         <div class="text-4xl mb-3">⏳</div>
-        <p class="text-sm text-gray-500">Loading glossary terms...</p>
+        <p class="text-sm text-base-content/60">Loading glossary terms...</p>
       </div>
 
       <div v-else-if="!currentChapter" class="p-8 text-center">
         <div class="text-4xl mb-3">📖</div>
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-base-content/60">
           {{ currentSeries ? 'Viewing all glossary terms for this series' : 'Select a series to view its glossary' }}
         </p>
-        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-gray-400 mt-2">
+        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
           Showing {{ glossaryTerms.length }} terms across all chapters
         </p>
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-blue-600 mt-1">
@@ -97,8 +97,8 @@
 
       <div v-if="!glossaryTerms || glossaryTerms.length === 0" class="p-8 text-center">
         <div class="text-4xl mb-3">📚</div>
-        <p class="text-sm text-gray-500">No glossary terms yet</p>
-        <p v-if="currentChapter" class="text-xs text-gray-400 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
+        <p class="text-sm text-base-content/60">No glossary terms yet</p>
+        <p v-if="currentChapter" class="text-xs text-base-content/40 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
       </div>
 
       <div v-else class="p-4 space-y-4">

@@ -1,8 +1,8 @@
 <template>
-  <div class="flex-1 flex flex-col" :class="{ 'border-r border-secondary-200': showBorder }">
-    <div class="p-4 border-b border-secondary-200" :class="headerClass">
+  <div class="flex-1 flex flex-col" :class="{ 'border-r border-base/30': showBorder }">
+    <div class="p-4 border-b border-base/30 bg-base/10">
       <div class="flex items-center justify-between">
-        <h3 class="font-medium text-secondary-900">{{ title }}</h3>
+        <h3 class="font-medium text-base-content">{{ title }}</h3>
       </div>
     </div>
     
@@ -10,10 +10,10 @@
       <!-- Full Text Mode -->
       <div v-if="mode === 'full'" class="flex flex-col max-w-4xl">
         <div v-if="fullText" 
-             class="reading-text text-secondary-900 leading-relaxed space-y-4 flex-1 overflow-y-auto"
+             class="reading-text text-base-content leading-relaxed space-y-4 flex-1 overflow-y-auto"
              v-html="displayFullText">
         </div>
-        <div v-else class="text-secondary-400 italic flex-1 flex items-center justify-center">
+        <div v-else class="text-base-content/40 italic flex-1 flex items-center justify-center">
           {{ emptyMessage }}
         </div>
       </div>
@@ -79,10 +79,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const editor = useEditorStore();
-
-const headerClass = computed(() => {
-  return props.type === 'translated' ? 'bg-accent-50' : 'bg-secondary-50';
-});
 
 const paragraphLabel = computed(() => {
   return props.type === 'translated' ? 'Translation' : 'Paragraph';

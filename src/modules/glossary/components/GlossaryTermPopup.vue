@@ -4,7 +4,7 @@
 <template>
   <div 
     v-if="term"
-    class="glossary-popup absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm transition-opacity duration-150"
+    class="glossary-popup absolute z-50 bg-base-100 border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm transition-opacity duration-150"
     :style="{ left: position.x + 'px', top: position.y + 'px' }"
     @click.stop
   >
@@ -12,13 +12,13 @@
       <div class="flex items-start justify-between">
         <div class="flex-1">
           <div class="flex items-center space-x-2">
-            <span class="font-semibold text-gray-900">{{ term.term }}</span>
+            <span class="font-semibold text-base-content">{{ term.term }}</span>
             <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full"> -->
             <!--   {{ getCategoryIcon(term.category) }} -->
             <!-- </span> -->
           </div>
           <p class="text-sm text-green-600 font-medium mt-1">{{ term.translation }}</p>
-          <p v-if="term.definition" class="text-xs text-gray-500 mt-1">{{ term.definition }}</p>
+          <p v-if="term.definition" class="text-xs text-base-content/60 mt-1">{{ term.definition }}</p>
         </div>
         <button
           @click="startEditing"
@@ -32,7 +32,7 @@
         </button>
       </div>
       
-      <div class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-200">
+      <div class="flex items-center justify-between text-xs text-base-content/40 pt-2 border-t border-base-300">
         <span>Used {{ term.frequency }} times</span>
         <span v-if="term.isUserDefined" class="badge badge-outline badge-sm">Custom</span>
       </div>
@@ -41,7 +41,7 @@
     <!-- Edit Form -->
     <div v-else class="space-y-3">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-gray-700">Edit Term</span>
+        <span class="text-sm font-medium text-base-content/80">Edit Term</span>
         <button
           @click="cancelEdit"
           class="btn btn-link btn-xs"

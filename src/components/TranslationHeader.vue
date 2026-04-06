@@ -1,14 +1,14 @@
 <template>
-  <div class="border-b border-secondary-200 p-4">
+  <div class="border-b border-base/30 p-4">
     <div class="flex items-center justify-between gap-4">
 
       <!-- Left: Chapter Information -->
       <div class="flex-1 min-w-0">
         <template v-if="currentChapter">
-          <h2 class="text-lg font-semibold text-secondary-900 truncate">
+          <h2 class="text-lg font-semibold text-base-content truncate">
             {{ currentChapter.title }}
           </h2>
-          <p class="text-sm text-secondary-500">
+          <p class="text-sm text-base-content/60">
             {{ currentChapter.originalParagraphs.length }} originals
             <span v-if="currentChapter.translatedParagraphs.length">
               • {{ currentChapter.translatedParagraphs.length }} translated
@@ -16,15 +16,13 @@
           </p>
         </template>
 
-        <p v-else class="text-secondary-500">
+        <p v-else class="text-base-content/60">
           Select a chapter to begin.
         </p>
       </div>
 
       <!-- Middle: Action Buttons -->
       <div v-if="currentSeries" class="flex items-center space-x-2">
-
-        <ShareButton v-if="!currentSeries" :chapters="allChapters" :series="allSeries" />
 
         <!-- Export Dropdown -->
         <ExportButton
@@ -101,7 +99,6 @@
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 import ExportButton from './ExportButton.vue';
-import { ShareButton } from "@/modules/sharing";
 import { AvatarMenu, useProfileStore } from "@/modules/profile";
 import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";

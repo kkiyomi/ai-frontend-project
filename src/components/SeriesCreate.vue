@@ -4,7 +4,7 @@
             @click="createSeries"
             :disabled="isCreating"
             class="w-full flex items-center gap-2 px-4 py-2 rounded-md
-                   text-sm font-medium text-gray-800 bg-white/50 hover:bg-gray-100 hover:border-gray-400
+                   text-sm font-medium text-gray-800 bg-base-100/50 hover:bg-base-300 hover:border-gray-400
                    transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -16,7 +16,7 @@
         <!-- Creation Progress -->
         <div v-if="isCreating" class="mt-3">
             <progress class="progress progress-primary h-2 rounded-full"></progress>
-            <p class="text-xs text-gray-500 mt-1">Processing...</p>
+            <p class="text-xs text-base-content/60 mt-1">Processing...</p>
         </div>
     </div>
 </template>

@@ -11,14 +11,14 @@
         <span v-else>{{ initials }}</span>
       </div>
       <div>
-        <h4 class="text-lg font-medium text-gray-900">{{ user?.name || 'User' }}</h4>
-        <p class="text-sm text-gray-500">{{ user?.email || '' }}</p>
+        <h4 class="text-lg font-medium text-base-content">{{ user?.name || 'User' }}</h4>
+        <p class="text-sm text-base-content/60">{{ user?.email || '' }}</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+        <label class="block text-sm font-medium text-base-content/80 mb-2">Name</label>
         <input
           v-model="form.name"
           type="text"
@@ -28,7 +28,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+        <label class="block text-sm font-medium text-base-content/80 mb-2">Email</label>
         <input
           v-model="form.email"
           type="email"

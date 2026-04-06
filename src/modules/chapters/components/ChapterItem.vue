@@ -1,9 +1,9 @@
 <template>
   <div 
     @click="selectChapter(chapter)"
-    class="group relative p-3 cursor-pointer transition-all hover:bg-blue-50" 
+    class="group relative p-3 cursor-pointer transition-all hover:bg-primary/10"
     :class="{
-      'bg-blue-50 border-l-4 border-blue-500': currentChapterId === chapter.id,
+      'bg-primary/10 border-l-4 border-blue-500': currentChapterId === chapter.id,
     }"
   >
     <div class="flex items-start justify-between">
@@ -11,7 +11,7 @@
         <div class="flex items-center space-x-2 mb-1">
           <span class="text-sm">{{ fileIcon }}</span>
           <div v-if="!isEditing" class="flex-1">
-            <h5 class="text-sm font-medium text-gray-900 truncate">
+            <h5 class="text-sm font-medium text-base-content truncate">
               {{ chapter.title }}
             </h5>
           </div>
@@ -26,10 +26,10 @@
             />
           </div>
         </div>
-        <p class="text-xs text-gray-500">
+        <p class="text-xs text-base-content/60">
           {{ chapter.originalParagraphs.length }} paragraphs
         </p>
-        <div class="mt-1 flex items-center space-x-3 text-xs text-gray-400">
+        <div class="mt-1 flex items-center space-x-3 text-xs text-base-content/40">
           <span>{{ translationProgress }}% translated</span>
           <span>{{ fileSize }}</span>
         </div>
@@ -41,7 +41,7 @@
       >
           <button 
             @click.stop="startEditingChapter"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-blue-600 transition-colors"
             title="Edit chapter title"
           >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@
         </button>
          <button 
             @click.stop="$emit('delete')"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-red-500 transition-colors"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-red-500 transition-colors"
             title="Remove chapter"
           >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
