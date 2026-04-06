@@ -5,7 +5,7 @@
       <button
         @click="$emit('refresh')"
         :disabled="isGenerating"
-        class="text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50"
+        class="btn btn-link btn-xs"
       >
         {{ isGenerating ? 'Analyzing...' : 'Refresh' }}
       </button>
@@ -20,7 +20,7 @@
         v-for="suggestion in suggestions.slice(0, 5)"
         :key="suggestion"
         @click="$emit('add-suggestion', suggestion)"
-        class="block w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-blue-100 hover:text-blue-700 rounded transition-colors"
+        class="btn btn-ghost btn-xs w-full justify-start"
       >
         + {{ suggestion }}
       </button>

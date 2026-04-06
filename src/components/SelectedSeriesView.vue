@@ -73,12 +73,11 @@
 
     <!-- Series Progress Bar -->
     <div class="mt-2">
-      <div class="bg-gray-200 rounded-full h-1">
-        <div
-          class="bg-blue-500 h-1 rounded-full transition-all duration-300"
-          :style="{ width: `${translationProgress}%` }"
-        />
-      </div>
+      <progress
+        class="progress progress-primary h-1 rounded-full"
+        :value="translationProgress"
+        max="100"
+      ></progress>
     </div>
   </div>
 </template>

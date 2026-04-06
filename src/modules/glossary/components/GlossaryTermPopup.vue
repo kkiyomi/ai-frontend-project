@@ -22,7 +22,7 @@
         </div>
         <button
           @click="startEditing"
-          class="ml-2 p-1 text-gray-400 hover:text-blue-600 transition-colors"
+          class="btn btn-ghost btn-square btn-sm ml-2"
           title="Edit term"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,7 @@
       
       <div class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-200">
         <span>Used {{ term.frequency }} times</span>
-        <span v-if="term.isUserDefined" class="px-2 py-1 bg-gray-100 rounded-full">Custom</span>
+        <span v-if="term.isUserDefined" class="badge badge-outline badge-sm">Custom</span>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
         <span class="text-sm font-medium text-gray-700">Edit Term</span>
         <button
           @click="cancelEdit"
-          class="text-xs text-gray-500 hover:text-gray-700"
+          class="btn btn-link btn-xs"
         >
           Cancel
         </button>
@@ -54,38 +54,38 @@
         v-model="editForm.term"
         type="text"
         placeholder="Term"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       <input
         v-model="editForm.translation"
         type="text"
         placeholder="Translation"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       <textarea
         v-model="editForm.definition"
         placeholder="Definition"
         rows="2"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
+        class="textarea textarea-bordered textarea-sm w-full resize-none"
       ></textarea>
       <input
         v-model="editForm.category"
         type="text"
         placeholder="Category"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       
       <div class="flex items-center space-x-2">
         <button
           @click="saveEdit"
           :disabled="!editForm.term.trim() || !editForm.translation.trim()"
-          class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          class="btn btn-primary btn-xs"
         >
           Save
         </button>
         <button
           @click="cancelEdit"
-          class="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400 transition-colors"
+          class="btn btn-ghost btn-xs"
         >
           Cancel
         </button>

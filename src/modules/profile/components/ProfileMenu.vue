@@ -1,15 +1,15 @@
 <template>
   <div class="w-full px-2 pb-2">
-    <div class="w-full relative">
+    <div class="w-full relative dropdown dropdown-top">
 
       <!-- Avatar Button -->
       <button
         @click="toggleMenu"
-        class="flex items-center justify-start space-x-3 p-2 w-full rounded-lg hover:bg-gray-100 transition-colors"
+        class="btn btn-ghost flex items-center justify-start space-x-3 p-2 w-full rounded-lg hover:bg-gray-100 transition-colors"
         :class="{ 'bg-gray-100': isMenuOpen }"
       >
         <!-- Avatar -->
-        <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+          <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
           <img
             v-if="user?.avatar"
             :src="user.avatar"
@@ -28,7 +28,7 @@
       <!-- Dropdown Menu (opens upward) -->
       <div
         v-if="isMenuOpen"
-        class="absolute bottom-full mb-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50
+        class="absolute bottom-full mb-2 w-56 dropdown-content menu bg-base-100 shadow-lg border border-base-300 py-1 z-50
          transition-all duration-150 ease-out"
         :class="{
           'opacity-100 translate-y-0': isMenuOpen,
@@ -37,9 +37,9 @@
         @click.stop
       >
         <!-- User Header -->
-        <div class="px-4 py-3 border-b border-gray-100">
+         <div class="px-4 py-3 border-b border-base-300">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+             <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium">
               <img
                 v-if="user?.avatar"
                 :src="user.avatar"
@@ -60,9 +60,9 @@
         <!-- Menu Items -->
         <div class="py-1">
 
-          <button
+           <button
             @click="handleOpenSettings"
-            class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
           >
             <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -73,11 +73,11 @@
             Settings
           </button>
 
-          <div class="border-t border-gray-100 my-1"></div>
+           <div class="border-t border-base-300 my-1"></div>
 
-          <button
+           <button
             @click="handleLogout"
-            class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            class="btn btn-error btn-ghost w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
           >
             <svg class="w-4 h-4 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

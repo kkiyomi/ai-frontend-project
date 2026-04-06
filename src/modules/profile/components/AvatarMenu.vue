@@ -1,13 +1,13 @@
 <template>
-  <div class="relative">
+  <div class="relative dropdown dropdown-end">
     <!-- Avatar Button -->
     <button
       @click="toggleMenu"
-      class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+      class="btn btn-ghost flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
       :class="{ 'bg-gray-100': isMenuOpen }"
     >
       <!-- Avatar -->
-      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+       <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
         <img
           v-if="user?.avatar"
           :src="user.avatar"
@@ -27,11 +27,11 @@
     <!-- Dropdown Menu -->
     <div
       v-if="isMenuOpen"
-      class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+      class="absolute right-0 mt-2 w-56 dropdown-content menu bg-base-100 shadow-lg border border-base-300 py-1 z-50"
       @click.stop
     >
       <!-- User Info Header -->
-      <div class="px-4 py-3 border-b border-gray-100">
+       <div class="px-4 py-3 border-b border-base-300">
         <div class="flex items-center space-x-3">
           <div>
             <div class="text-sm font-medium text-gray-900">{{ user?.name || 'User' }}</div>
@@ -44,7 +44,7 @@
       <div class="py-1">
         <button
           @click="handleOpenSettings"
-          class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+           class="btn btn-ghost w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
         >
           <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -54,11 +54,11 @@
           Settings
         </button>
 
-        <div class="border-t border-gray-100 my-1"></div>
+         <div class="border-t border-base-300 my-1"></div>
 
         <button
           @click="handleLogout"
-          class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+           class="btn btn-error btn-ghost w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
         >
           <svg class="w-4 h-4 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 

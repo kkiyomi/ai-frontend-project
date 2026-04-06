@@ -15,9 +15,7 @@
 
         <!-- Creation Progress -->
         <div v-if="isCreating" class="mt-3">
-            <div class="bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300 w-2/3"></div>
-            </div>
+            <progress class="progress progress-primary h-2 rounded-full"></progress>
             <p class="text-xs text-gray-500 mt-1">Processing...</p>
         </div>
     </div>

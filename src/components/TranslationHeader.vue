@@ -32,27 +32,20 @@
         />
 
         <!-- Layout Toggle -->
-        <button v-if="currentChapter"
-          @click="editor.toggleLayoutMode()"
-          class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
-          title="Toggle layout"
-        >
-          <!-- Split icon -->
-          <div
-            :class="editor.layoutMode === 'split'
-              ? 'bg-blue-600 text-white rounded-full p-1'
-              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+        <div v-if="currentChapter" class="btn-group" title="Toggle layout">
+          <button
+            @click="editor.toggleLayoutMode()"
+            class="btn btn-sm"
+            :class="editor.layoutMode === 'split' ? 'btn-active' : 'btn-ghost'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M4 8l4-4 4 4M4 16l4 4 4-4M20 8l-4-4-4 4M20 16l-4 4-4-4"/>
             </svg>
-          </div>
-
-          <!-- Full icon -->
-          <div
-            :class="editor.layoutMode === 'full'
-              ? 'bg-blue-600 text-white rounded-full p-1'
-              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          </button>
+          <button
+            @click="editor.toggleLayoutMode()"
+            class="btn btn-sm"
+            :class="editor.layoutMode === 'full' ? 'btn-active' : 'btn-ghost'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <rect x="3" y="3" width="8" height="8" rx="1"/>
@@ -60,38 +53,31 @@
               <rect x="3" y="13" width="8" height="8" rx="1"/>
               <rect x="13" y="13" width="8" height="8" rx="1"/>
             </svg>
-          </div>
-        </button>
+          </button>
+        </div>
 
         <!-- Content Toggle -->
-        <button v-if="currentChapter"
-          @click="editor.toggleContentMode()"
-          class="flex items-center bg-gray-200 rounded-full p-1 space-x-1"
-          title="Toggle content"
-        >
-          <!-- Eye icon -->
-          <div
-            :class="editor.contentMode === 'all'
-              ? 'bg-blue-600 text-white rounded-full p-1'
-              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+        <div v-if="currentChapter" class="btn-group" title="Toggle content">
+          <button
+            @click="editor.toggleContentMode()"
+            class="btn btn-sm"
+            :class="editor.contentMode === 'all' ? 'btn-active' : 'btn-ghost'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
-          </div>
-
-          <!-- EyeSlash icon -->
-          <div
-            :class="editor.contentMode === 'translated'
-              ? 'bg-blue-600 text-white rounded-full p-1'
-              : 'text-gray-400 p-1 hover:bg-gray-100 rounded-full'"
+          </button>
+          <button
+            @click="editor.toggleContentMode()"
+            class="btn btn-sm"
+            :class="editor.contentMode === 'translated' ? 'btn-active' : 'btn-ghost'"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M3 3l18 18M10.477 10.485a3 3 0 014.03 4.028M6.564 6.564C4.43 8.223 3 12 3 12s3.75 7.5 9.75 7.5c2.017 0 3.81-.572 5.33-1.5"/>
             </svg>
-          </div>
-        </button>
+          </button>
+        </div>
 
         <!-- Translate All Button using TranslationToolbar component -->
         <TranslationToolbar

@@ -6,7 +6,7 @@
         <h2 class="text-lg font-semibold text-gray-900">Glossary</h2>
         <button
           @click="toggleGlossaryVisibility"
-          class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          class="btn btn-ghost btn-square btn-sm"
           title="Close glossary"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,8 +28,8 @@
       <div class="mt-3">
         <button
           @click="toggleHighlight"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-          :class="isHighlightEnabled ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+          class="btn w-full flex items-center justify-center space-x-2 text-sm font-medium"
+          :class="isHighlightEnabled ? 'btn-primary' : 'btn-ghost'"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>

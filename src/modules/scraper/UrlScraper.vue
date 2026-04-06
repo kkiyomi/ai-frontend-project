@@ -5,7 +5,7 @@
       <h3 class="text-sm font-semibold text-gray-900">Web Scraper</h3>
       <button
         @click="toggleScraper"
-        class="text-xs text-blue-600 hover:text-blue-700 transition-colors"
+        class="btn btn-link btn-xs"
       >
         {{ showScraper ? 'Hide' : 'Show' }}
       </button>
@@ -17,7 +17,7 @@
           v-model="url"
           type="url"
           placeholder="https://example.com/novel-chapter"
-          class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="input input-bordered input-sm w-full"
           :disabled="isLoading"
         />
         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -32,7 +32,7 @@
         <label class="text-xs font-medium text-gray-700">Content Selector (optional)</label>
         <select
           v-model="selectedSelector"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="select select-bordered select-sm w-full"
           :disabled="isLoading"
         >
           <option value="">Auto-detect content</option>
@@ -49,7 +49,7 @@
           v-model="customSelector"
           type="text"
           placeholder="Enter CSS selector (e.g., .chapter-content p)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="input input-bordered input-sm w-full"
           :disabled="isLoading"
         />
       </div>
@@ -70,7 +70,7 @@
       </button>
       
       <!-- Status Messages -->
-      <div v-if="statusMessage" class="text-xs p-2 rounded" :class="statusType === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'">
+      <div v-if="statusMessage" class="alert text-xs" :class="statusType === 'error' ? 'alert-error' : 'alert-success'">
         {{ statusMessage }}
       </div>
       
@@ -82,7 +82,7 @@
         </div>
         <button
           @click="createChapterFromScraped"
-          class="mt-2 w-full px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+          class="btn btn-success btn-sm w-full mt-2"
         >
           Create Chapter
         </button>

@@ -10,16 +10,16 @@
       <div class="flex items-center space-x-2">
         <span class="text-xs text-secondary-500 font-medium">{{ label }} {{ index + 1 }}</span>
         <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
+           <button
             @click="editor.addParagraph(index, type)"
-            class="text-xs text-green-600 hover:text-green-700 transition-colors"
+            class="btn btn-success btn-ghost btn-xs"
             title="Add paragraph above"
           >
             + Add
           </button>
-          <button
+           <button
             @click="editor.deleteParagraph(index, type)"
-            class="text-xs text-red-600 hover:text-red-700 transition-colors"
+            class="btn btn-error btn-ghost btn-xs"
             title="Delete paragraph"
           >
             × Delete
@@ -28,29 +28,29 @@
       </div>
       <div class="flex space-x-2">
         <div v-if="isEditing" class="flex space-x-1">
-          <button
+           <button
             @click="editor.undo"
             :disabled="!editor.canUndo"
-            class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :class="editor.canUndo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
             title="Undo"
           >
             ↶ Undo
           </button>
-          <button
+           <button
             @click="editor.redo"
             :disabled="!editor.canRedo"
-            class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :class="editor.canRedo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
             title="Redo"
           >
             ↷ Redo
           </button>
         </div>
-        <button
+         <button
           v-if="showEditButton"
           @click="toggleEditing"
-          class="text-xs transition-colors"
+          class="btn btn-primary btn-ghost btn-xs text-xs transition-colors"
           :class="editButtonClass"
         >
           {{ isEditing ? 'Save' : 'Edit' }}

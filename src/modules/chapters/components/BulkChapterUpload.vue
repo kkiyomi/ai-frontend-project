@@ -36,10 +36,11 @@
 
                 <!-- Upload Progress -->
                 <div v-if="isUploading" class="space-y-4">
-                    <div class="bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                            :style="{ width: `${uploadProgress}%` }" />
-                    </div>
+                    <progress
+                        class="progress progress-primary h-2 rounded-full"
+                        :value="uploadProgress"
+                        max="100"
+                    ></progress>
                     <p class="text-sm text-gray-600 text-center">
                         Uploading {{ currentFileIndex }} of {{ totalFiles }} files...
                     </p>

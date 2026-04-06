@@ -50,13 +50,12 @@
               </div>
             </div>
 
-            <div class="w-full h-2 bg-gray-200 rounded-lg mt-2">
-              <div
-                class="h-full rounded-lg"
-                :class="limit.percentage >= 90 ? 'bg-red-500' : limit.percentage >= 70 ? 'bg-yellow-500' : 'bg-blue-600'"
-                :style="{ width: Math.min(limit.percentage, 100) + '%' }"
-              />
-            </div>
+            <progress
+              class="progress w-full h-2 rounded-lg mt-2"
+              :class="limit.percentage >= 90 ? 'progress-error' : limit.percentage >= 70 ? 'progress-warning' : 'progress-primary'"
+              :value="Math.min(limit.percentage, 100)"
+              max="100"
+            ></progress>
 
             <div class="flex justify-between items-center text-xs text-gray-500 mt-1">
               <span>

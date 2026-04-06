@@ -21,7 +21,7 @@
               @blur="saveChapterEdit({ ...chapter, title: editableTitle })"
               @keyup.enter="saveChapterEdit({ ...chapter, title: editableTitle })"
               @keyup.escape="cancelChapterEdit"
-              class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+              class="input input-bordered input-sm w-full"
               @click.stop
             />
           </div>
@@ -39,21 +39,21 @@
         v-if="!isEditing"
         class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <button 
-          @click.stop="startEditingChapter"
-          class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-          title="Edit chapter title"
-        >
+          <button 
+            @click.stop="startEditingChapter"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            title="Edit chapter title"
+          >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
-        <button 
-          @click.stop="$emit('delete')"
-          class="p-1 text-gray-400 hover:text-red-500 transition-colors"
-          title="Remove chapter"
-        >
+         <button 
+            @click.stop="$emit('delete')"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-gray-400 hover:text-red-500 transition-colors"
+            title="Remove chapter"
+          >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M6 18L18 6M6 6l12 12" />
@@ -64,12 +64,11 @@
 
     <!-- Chapter Progress Bar -->
     <div class="mt-2">
-      <div class="bg-gray-200 rounded-full h-1">
-        <div 
-          class="bg-green-500 h-1 rounded-full transition-all duration-300"
-          :style="{ width: `${translationProgress}%` }" 
-        />
-      </div>
+      <progress 
+        class="progress progress-primary h-1 rounded-full" 
+        :value="translationProgress" 
+        max="100"
+      ></progress>
     </div>
   </div>
 </template>
