@@ -1,19 +1,22 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default;
+}
 
 /* Custom reading styles */
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-base-100 text-base-content;
   }
 }
 
 @layer components {
   .paragraph-hover {
-    @apply hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200;
+    @apply hover:bg-primary/10 hover:border-primary/20 transition-colors duration-200;
   }
 
   .glossary-highlight {
-    @apply bg-green-100 border-b-2 border-green-500 cursor-pointer;
+    @apply bg-success/20 border-b-2 border-success cursor-pointer;
   }
 
   .sidebar-transition {

@@ -1,12 +1,12 @@
 <template>
   <div v-if="settings.isSettingsVisible" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="handleBackdropClick">
-    <div class="bg-white rounded-lg w-full max-w-5xl h-[80vh] mx-4 flex overflow-hidden" @click.stop>
+     <div class="bg-base-100 rounded-lg w-full max-w-5xl h-[80vh] mx-4 flex overflow-hidden shadow-2xl" @click.stop>
       <!-- Sidebar -->
-      <div class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+       <div class="w-64 bg-base-200 border-r border-base-300 flex flex-col">
         <!-- Header -->
-        <div class="p-6 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">Settings</h2>
-          <p class="text-sm text-gray-500 mt-1">Manage your preferences</p>
+         <div class="p-6 border-b border-base-300">
+           <h2 class="text-lg font-semibold text-base-content">Settings</h2>
+           <p class="text-sm text-base-content/70 mt-1">Manage your preferences</p>
         </div>
 
         <!-- Navigation -->
@@ -17,7 +17,7 @@
             :key="section.id"
             @click="settings.setActiveSection(section.id)"
             class="w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors text-left"
-            :class="settings.activeSectionId === section.id ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
+             :class="settings.activeSectionId === section.id ? 'bg-primary/20 text-primary' : 'text-base-content hover:bg-base-300'"
           >
             <span v-if="section.icon" class="mr-3" v-html="section.icon"></span>
             <svg v-else class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,12 +32,12 @@
       <!-- Main panel -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+         <div class="flex items-center justify-between p-6 border-b border-base-300">
           <div v-if="currentSection">
-            <h3 class="text-lg font-semibold text-gray-900">{{ currentSection.title }}</h3>
-            <p v-if="currentSection.description" class="text-sm text-gray-500 mt-1">{{ currentSection.description }}</p>
+             <h3 class="text-lg font-semibold text-base-content">{{ currentSection.title }}</h3>
+             <p v-if="currentSection.description" class="text-sm text-base-content/70 mt-1">{{ currentSection.description }}</p>
           </div>
-          <button @click="settings.closeSettings()" class="text-gray-400 hover:text-gray-600 transition-colors">
+           <button @click="settings.closeSettings()" class="btn btn-ghost btn-sm btn-circle">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -60,18 +60,18 @@
               :key="item.id"
               class="space-y-2"
             >
-              <label class="block text-sm font-medium text-gray-700">{{ item.label }}</label>
-              <p v-if="item.description" class="text-xs text-gray-500">{{ item.description }}</p>
+               <label class="block text-sm font-medium text-base-content">{{ item.label }}</label>
+               <p v-if="item.description" class="text-xs text-base-content/70">{{ item.description }}</p>
 
               <div v-if="item.type === 'toggle'" class="flex items-center">
-                <input type="checkbox" v-model="item.value" class="text-blue-600 focus:ring-blue-500" />
-                <span class="ml-2 text-sm text-gray-700">{{ item.label }}</span>
+                 <input type="checkbox" v-model="item.value" class="checkbox checkbox-primary" />
+                 <span class="ml-2 text-sm text-base-content">{{ item.label }}</span>
               </div>
 
-              <select
-                v-else-if="item.type === 'select'"
-                v-model="item.value"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+               <select
+                 v-else-if="item.type === 'select'"
+                 v-model="item.value"
+                 class="select select-bordered w-full"
               >
                 <option
                   v-for="option in item.options"
@@ -86,7 +86,7 @@
                 v-else-if="item.type === 'input'"
                 v-model="item.value"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                 class="input input-bordered w-full"
               />
 
               <component
@@ -100,8 +100,8 @@
           <!-- Empty State -->
           <div v-else class="text-center py-12">
             <div class="text-4xl mb-4">⚙️</div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No Settings Available</h3>
-            <p class="text-gray-500">This section is not yet configured.</p>
+             <h3 class="text-lg font-medium text-base-content mb-2">No Settings Available</h3>
+             <p class="text-base-content/70">This section is not yet configured.</p>
           </div>
         </div>
       </div>

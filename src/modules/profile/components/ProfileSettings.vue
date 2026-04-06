@@ -42,7 +42,7 @@
       <button
         @click="save"
         :disabled="isSaving"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        class="px-4 py-2 btn btn-primary disabled:opacity-50"
       >
         {{ isSaving ? 'Saving...' : 'Save Changes' }}
       </button>

@@ -8,14 +8,14 @@
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     @click="handleBackdropClick"
   >
-    <div class="bg-white rounded-lg w-full max-w-5xl h-[80vh] mx-4 flex overflow-auto" @click.stop>
+     <div class="bg-base-100 rounded-lg w-full max-w-5xl h-[80vh] mx-4 flex overflow-auto shadow-2xl" @click.stop>
       <div class="flex-1 flex flex-col">
         <!-- Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">🔒 {{ titleText }}</h2>
+         <div class="flex items-center justify-between p-6 border-b border-base-300">
+           <h2 class="text-lg font-semibold text-base-content">🔒 {{ titleText }}</h2>
           <button
             @click="billingStore.closeUpgradeModal()"
-            class="text-gray-400 hover:text-gray-600 transition-colors"
+             class="btn btn-ghost btn-sm btn-circle"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -24,23 +24,23 @@
         </div>
 
         <!-- Description -->
-        <p class="p-6 pb-4 text-gray-600">
+         <p class="p-6 pb-4 text-base-content">
           {{ descriptionText }}
         </p>
 
         <!-- Upgrade Card -->
         <div class="px-6 pb-4">
           <UpgradeCard v-if="currentPlan && nextPlan" :currentPlan="currentPlan" :nextPlan="nextPlan" />
-          <div v-else class="text-center py-8 text-gray-500">
+           <div v-else class="text-center py-8 text-base-content/70">
             No upgrade option available...
           </div>
         </div>
 
         <!-- Maybe Later Button -->
-        <div class="p-6 pt-2 border-t border-gray-200">
+         <div class="p-6 pt-2 border-t border-base-300">
           <button
             @click="billingStore.closeUpgradeModal()"
-            class="w-full py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+             class="w-full btn btn-outline"
           >
             Maybe Later
           </button>

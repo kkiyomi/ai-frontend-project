@@ -57,7 +57,7 @@
       <button
         @click="scrapeContent"
         :disabled="!url.trim() || isLoading"
-        class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+        class="w-full flex items-center justify-center space-x-2 px-4 py-2 btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
       >
         <svg v-if="isLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

@@ -44,7 +44,7 @@
           v-if="!showAddForm"
           @click="showAddForm = true"
           :disabled="!currentSeries"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 btn btn-primary transition-colors text-sm font-medium"
           :class="{ 'opacity-50 cursor-not-allowed': !currentSeries }"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

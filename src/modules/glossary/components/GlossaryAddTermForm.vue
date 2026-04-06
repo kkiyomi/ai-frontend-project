@@ -61,7 +61,7 @@
       <button
         type="submit"
         :disabled="!newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError"
-        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        class="w-full px-4 py-2 btn btn-primary transition-colors text-sm font-medium"
         :class="{ 'opacity-50 cursor-not-allowed': !newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError }"
       >
         Add Term

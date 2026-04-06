@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-between px-4 py-2 rounded-md shadow-sm border-b-4 text-sm"
+    class="alert flex items-center justify-between px-4 py-2 rounded-md shadow-sm text-sm"
     :class="bannerClasses"
     role="alert"
     aria-live="polite"
@@ -14,7 +14,7 @@
 
     <button
       @click="$emit('close')"
-      class="ml-3 p-1 rounded hover:bg-black/10 transition"
+      class="btn btn-ghost btn-sm btn-circle"
       aria-label="Dismiss announcement"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,11 +44,11 @@ defineEmits<{
 const bannerClasses = computed(() => {
   switch (props.announcement.type) {
     case 'warning':
-      return 'bg-yellow-50 border-yellow-400 text-yellow-800';
+      return 'alert-warning';
     case 'error':
-      return 'bg-red-50 border-red-400 text-red-800';
+      return 'alert-error';
     default:
-      return 'bg-blue-50 border-blue-400 text-blue-800';
+      return 'alert-info';
   }
 });
 

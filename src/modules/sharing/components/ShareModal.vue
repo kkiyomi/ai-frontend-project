@@ -1,12 +1,12 @@
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="$emit('close')">
-    <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" @click.stop>
+     <div class="bg-base-100 rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" @click.stop>
       <!-- Header -->
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Share Your Translations</h2>
+       <div class="flex items-center justify-between p-6 border-b border-base-300">
+         <h2 class="text-xl font-semibold text-base-content">Share Your Translations</h2>
         <button
           @click="$emit('close')"
-          class="text-gray-400 hover:text-gray-600 transition-colors"
+           class="btn btn-ghost btn-sm btn-circle"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -60,17 +60,17 @@
           />
 
           <!-- Actions -->
-          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+           <div class="flex items-center justify-end space-x-3 pt-4 border-t border-base-300">
             <button
               @click="$emit('close')"
-              class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+               class="btn btn-ghost btn-sm"
             >
               Cancel
             </button>
             <button
               @click="handleShare"
               :disabled="!hasValidSelection || isCreatingShare"
-              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+               class="btn btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ isCreatingShare ? 'Creating...' : 'Create Share Link' }}
             </button>

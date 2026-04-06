@@ -3,7 +3,7 @@
     <button
       @click="toggleMenu"
       :disabled="!hasContent"
-      class="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+      class="btn btn-success btn-sm space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
       :title="hasContent ? 'Export' : 'No content to export'"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,39 +20,39 @@
     <!-- Dropdown -->
     <div
       v-if="open"
-      class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+      class="absolute right-0 mt-2 w-64 bg-base-100 rounded-lg shadow-lg border border-base-300 py-2 z-50"
       @click.stop
     >
       <!-- Series Export -->
-      <div v-if="series" class="px-3 py-2 border-b border-gray-100">
-        <h4 class="text-sm font-medium text-gray-900 mb-2">Series Export</h4>
+      <div v-if="series" class="px-3 py-2 border-b border-base-200">
+         <h4 class="text-sm font-medium text-base-content mb-2">Series Export</h4>
         <div class="space-y-1">
-          <button
-            @click="exportSeriesAsZip"
-            :disabled="seriesExporter.isExporting.value"
-            class="w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+           <button
+             @click="exportSeriesAsZip"
+             :disabled="seriesExporter.isExporting.value"
+             class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-base-200 disabled:opacity-50"
           >
-            Export current series as ZIP
+            Export current series
           </button>
-          <button
-            v-if="allSeries && allSeries.length > 0"
-            @click="exportAllSeriesAsZip"
-            :disabled="seriesExporter.isExporting.value"
-            class="w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+           <button
+             v-if="allSeries && allSeries.length > 0"
+             @click="exportAllSeriesAsZip"
+             :disabled="seriesExporter.isExporting.value"
+             class="btn btn-ghost btn-sm justify-start w-full text-base-content hover:bg-base-200 disabled:opacity-50"
           >
-            Export all series as ZIP ({{ allSeries.length }} series)
+            Export all series ({{ allSeries.length }} series)
           </button>
         </div>
       </div>
 
       <!-- Status -->
-      <div v-if="seriesExporter.isExporting.value || seriesExporter.error.value" class="px-3 py-2 border-t border-gray-100">
-        <div v-if="seriesExporter.isExporting.value" class="flex items-center space-x-2 text-blue-600 text-xs">
-          <div class="animate-spin h-3 w-3 border border-blue-600 border-t-transparent rounded-full"></div>
+      <div v-if="seriesExporter.isExporting.value || seriesExporter.error.value" class="px-3 py-2 border-t border-base-200">
+         <div v-if="seriesExporter.isExporting.value" class="flex items-center space-x-2 text-info text-xs">
+           <div class="animate-spin h-3 w-3 border border-info border-t-transparent rounded-full"></div>
           <span>Exporting series...</span>
         </div>
         
-        <div v-else-if="seriesExporter.error.value" class="text-xs text-red-600">
+         <div v-else-if="seriesExporter.error.value" class="text-xs text-error">
           Series export failed: {{ seriesExporter.error.value }}
         </div>
       </div>

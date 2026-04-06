@@ -1,6 +1,6 @@
 <template>
   <router-view v-if="$route.name === 'Share'" />
-  <div v-else class="h-screen flex flex-col bg-gray-50">
+  <div v-else class="h-screen flex flex-col bg-base-100">
     <!-- Announcement Banner at the very top -->
     <AnnouncementBannerManager />
 
@@ -19,7 +19,7 @@
           @click="closeGlossaryIfClickedOutside">
           <!-- Glossary Panel -->
           <div
-            class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
+            class="w-80 h-full bg-base-100 border-l border-base-300 shadow-2xl transform transition-transform duration-300 ease-in-out"
             @click.stop>
             <GlossaryPanel
               :currentChapter="currentChapter"

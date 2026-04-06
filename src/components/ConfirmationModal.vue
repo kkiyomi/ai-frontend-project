@@ -1,6 +1,6 @@
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="handleBackdropClick">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+     <div class="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl" @click.stop>
       <div class="flex items-center mb-4">
         <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full"
              :class="iconBgClass">
@@ -9,19 +9,19 @@
           </svg>
         </div>
         <div class="ml-4">
-          <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+           <h3 class="text-lg font-semibold text-base-content">{{ title }}</h3>
         </div>
       </div>
 
       <div class="mb-6">
-        <p class="text-sm text-gray-600">{{ message }}</p>
-        <p v-if="details" class="text-xs text-gray-500 mt-2">{{ details }}</p>
+         <p class="text-sm text-base-content">{{ message }}</p>
+         <p v-if="details" class="text-xs text-base-content/70 mt-2">{{ details }}</p>
       </div>
 
       <div class="flex items-center justify-end space-x-3">
         <button
           @click="handleCancel"
-          class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+           class="btn btn-ghost btn-sm"
           :disabled="isProcessing"
         >
           {{ cancelText }}
@@ -29,7 +29,7 @@
         <button
           @click="handleConfirm"
           :disabled="isProcessing"
-          class="px-4 py-2 rounded-lg transition-colors font-medium"
+           class="btn-sm"
           :class="confirmButtonClass"
         >
           {{ isProcessing ? processingText : confirmText }}
@@ -99,16 +99,16 @@ const handleBackdropClick = () => {
 
 // existing computed properties...
 const iconBgClass = computed(() => ({
-  danger: 'bg-red-100',
-  warning: 'bg-yellow-100',
-  info: 'bg-blue-100',
-}[props.type] || 'bg-red-100'));
+  danger: 'bg-error/20',
+  warning: 'bg-warning/20',
+  info: 'bg-info/20',
+}[props.type] || 'bg-error/20'));
 
 const iconClass = computed(() => ({
-  danger: 'text-red-600',
-  warning: 'text-yellow-600',
-  info: 'text-blue-600',
-}[props.type] || 'text-red-600'));
+  danger: 'text-error',
+  warning: 'text-warning',
+  info: 'text-info',
+}[props.type] || 'text-error'));
 
 const iconPath = computed(() => ({
   danger: 'M12 9v2m0 4h.01m-6.938 4h13.856...',
@@ -117,11 +117,11 @@ const iconPath = computed(() => ({
 }[props.type] || 'M12 9v2m0 4h.01m-6.938 4h13.856...'));
 
 const confirmButtonClass = computed(() => {
-  const base = 'disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'disabled:opacity-50 disabled:cursor-not-allowed btn';
   return {
-    danger: `${base} bg-red-600 text-white hover:bg-red-700`,
-    warning: `${base} bg-yellow-600 text-white hover:bg-yellow-700`,
-    info: `${base} bg-blue-600 text-white hover:bg-blue-700`,
-  }[props.type] || `${base} bg-red-600 text-white hover:bg-red-700`;
+    danger: `${base} btn-error`,
+    warning: `${base} btn-warning`,
+    info: `${base} btn-info`,
+  }[props.type] || `${base} btn-error`;
 });
 </script>

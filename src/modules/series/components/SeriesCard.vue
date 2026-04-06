@@ -1,16 +1,16 @@
 <template>
-  <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+  <div class="card card-bordered shadow-sm hover:shadow-md transition-shadow overflow-hidden">
     <div
-      class="bg-gray-50 p-4 cursor-pointer"
+      class="card-body bg-base-200 p-4 cursor-pointer"
       @click="toggleSeriesSelection(series.id)"
     >
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
-          <h4 class="text-sm font-semibold text-gray-900">{{ series.name }}</h4>
-          <p v-if="series.description" class="text-xs text-gray-500 mt-1 line-clamp-2">
+           <h4 class="text-sm font-semibold text-base-content">{{ series.name }}</h4>
+           <p v-if="series.description" class="text-xs text-base-content/70 mt-1 line-clamp-2">
             {{ series.description }}
           </p>
-          <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
+           <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/50">
             <span>{{ series.chapterIds.length }} chapters</span>
             <span>Created {{ formatDate(new Date(series.createdAt)) }}</span>
           </div>
@@ -18,7 +18,7 @@
         <div class="flex items-center space-x-1 ml-2">
           <button
             @click.stop="$emit('edit', series)"
-            class="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+             class="btn btn-ghost btn-sm btn-circle"
             title="Edit series"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
           </button>
           <button
             @click.stop="$emit('delete', series.id)"
-            class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+             class="btn btn-ghost btn-sm btn-circle"
             title="Delete series"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
