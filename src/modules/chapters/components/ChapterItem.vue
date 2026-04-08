@@ -51,7 +51,7 @@
         </button>
          <button 
             @click.stop="$emit('delete')"
-            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-red-500 transition-colors"
+             class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-error transition-colors"
             title="Remove chapter"
           >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

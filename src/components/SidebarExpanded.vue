@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="p-4 border-b border-base-300 flex-shrink-0">
             <h1 class="text-xl font-bold text-base-content mb-2">Absolute Mystery</h1>
-            <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
+            <p class="text-sm text-base-content/60">Upload and manage your novel chapters</p>
         </div>
 
         <!-- Scrollable Content Area -->
@@ -44,8 +44,8 @@
 
                     <div v-else class="h-full">
                       <!-- Chapter count indicator for large lists -->
-                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-warning/10 border-b border-yellow-200">
-                        <p class="text-xs text-yellow-700 text-center">
+                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-warning/10 border-b border-warning/20">
+                        <p class="text-xs text-warning text-center">
                           📚 {{ currentSeries.chapters.length }} chapters in this series
                         </p>
                       </div>
@@ -57,7 +57,7 @@
                         :buffer="5"
                         :scroll-container="scrollContainerProp"
                         item-key="id"
-                        class="divide-y divide-gray-100 flex-1"
+                         class="divide-y divide-base-300 flex-1"
                       >
                         <template #item="{ item }">
                           <ChapterItem

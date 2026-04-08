@@ -41,16 +41,19 @@
             @change="editor.toggleLayoutMode()"
             autocomplete="off"
           />
-          <svg class="swap-off w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <!-- Icon for Split Mode (Columns/Dual Pane) -->
+          <svg class="swap-on w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M4 8l4-4 4 4M4 16l4 4 4-4M20 8l-4-4-4 4M20 16l-4 4-4-4"/>
           </svg>
-          <svg class="swap-on w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="8" height="8" rx="1"/>
-            <rect x="13" y="3" width="8" height="8" rx="1"/>
-            <rect x="3" y="13" width="8" height="8" rx="1"/>
-            <rect x="13" y="13" width="8" height="8" rx="1"/>
+          <!-- Icon for Full Mode (Wide/Single Text) -->
+          <svg class="swap-off w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M3 6h18"></path>
+            <path d="M3 10h18"></path>
+            <path d="M3 14h18"></path>
+            <path d="M3 18h18"></path>
           </svg>
         </label>
+
 
         <!-- Content Toggle -->
         <label
@@ -64,11 +67,11 @@
             @change="editor.toggleContentMode()"
             autocomplete="off"
           />
-          <svg class="swap-off w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <svg class="swap-on w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <svg class="swap-on w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <svg class="swap-off w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M3 3l18 18M10.477 10.485a3 3 0 014.03 4.028M6.564 6.564C4.43 8.223 3 12 3 12s3.75 7.5 9.75 7.5c2.017 0 3.81-.572 5.33-1.5"/>
           </svg>
         </label>
