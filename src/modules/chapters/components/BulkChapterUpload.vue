@@ -1,7 +1,8 @@
 <template>
     <div class="relative inline-block">
         <!-- Upload Button -->
-        <button @click="triggerFileInput" class="p-1 text-base-content/40 hover:text-green-500 transition-colors"
+        <button @click="triggerFileInput"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-accent transition-colors"
             title="Upload multiple chapters" :disabled="isUploading">
             <svg v-if="!isUploading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

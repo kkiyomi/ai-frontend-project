@@ -19,7 +19,7 @@
         <!-- Add Chapter -->
         <button
           @click="handleCreateChapter('New Chapter!')"
-          class="p-1 text-base-content/40 hover:text-success transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-success transition-colors"
           title="Add chapter"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
         <!-- Edit -->
         <button
           @click="$emit('edit', series)"
-          class="p-1 text-base-content/40 hover:text-primary/70 transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-primary transition-colors"
           title="Edit series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
         <!-- Delete -->
         <button
           @click="$emit('delete', series.id)"
-          class="p-1 text-base-content/40 hover:text-error transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-error transition-colors"
           title="Remove series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
