@@ -57,7 +57,7 @@
           :series-id="currentSeries?.id"
           :chapter-id="currentChapter?.id"
           :disabled="!currentSeries"
-          button-class="btn btn-md btn-ghost text-base-content/40 px-3"
+          button-class="btn btn-md btn-ghost text-base-content/40"
           button-title="Import glossary terms from CSV"
         />
       </div>
