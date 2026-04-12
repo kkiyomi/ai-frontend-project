@@ -25,7 +25,7 @@
     >
       <!-- Series Export -->
       <div v-if="series" class="px-3 py-2 border-b border-base-200">
-         <h4 class="text-sm font-medium text-base-content mb-2">Series Export</h4>
+        <h4 class="text-sm font-medium text-base-content mb-2">Series Export</h4>
         <div class="space-y-1">
            <button
              @click="exportSeriesAsZip"

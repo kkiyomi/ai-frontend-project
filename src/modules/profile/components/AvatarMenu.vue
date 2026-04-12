@@ -7,7 +7,7 @@
       :class="{ 'bg-base-300': isMenuOpen }"
     >
       <!-- Avatar -->
-       <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
+       <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm font-medium">
         <img
           v-if="user?.avatar"
           :src="user.avatar"

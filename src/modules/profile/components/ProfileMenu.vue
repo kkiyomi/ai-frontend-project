@@ -9,7 +9,7 @@
         :class="{ 'bg-base-300': isMenuOpen }"
       >
         <!-- Avatar -->
-          <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
+          <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-sm font-medium">
           <img
             v-if="user?.avatar"
             :src="user.avatar"
@@ -39,7 +39,7 @@
         <!-- User Header -->
          <div class="px-4 py-3 border-b border-base-300">
           <div class="flex items-center space-x-3">
-             <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium">
+             <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-medium">
               <img
                 v-if="user?.avatar"
                 :src="user.avatar"
