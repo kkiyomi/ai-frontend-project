@@ -1,81 +1,95 @@
 <template>
   <div class="h-full bg-base-100 flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
     <!-- Header -->
-    <div class="p-4 border-b border-base-300">
+    <div class="p-3 border-b border-base-300 space-y-2">
+      <!-- Title row -->
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-base-content">Glossary</h2>
-        <button
-          @click="toggleGlossaryVisibility"
-          class="btn btn-ghost btn-square btn-sm"
-          title="Close glossary"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <p class="text-sm text-base-content/60 mt-1">{{ glossaryTerms.length }} terms defined</p>
-      <p v-if="currentSeries && currentChapter" class="text-xs text-primary/70 mt-1">
-        {{ currentSeries.name }}
-        <br/>
-        Chapter: {{ currentChapter.title }}
-      </p>
-      <p v-else-if="currentSeries" class="text-xs text-green-600 mt-1">
-        Series: {{ currentSeries.name }} ({{ showSeriesLevelTerms ? 'series-level terms' : 'chapter-level terms only' }})
-      </p>
-      
-      <!-- Highlight Terms Toggle -->
-      <div class="mt-3">
-        <button
-          @click="toggleHighlight"
-          class="w-full btn btn-md space-x-2"
-          :class="isHighlightEnabled ? 'btn-neutral' : 'btn-ghost'"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
-          </svg>
-          <span>{{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}</span>
-        </button>
-      </div>
-      
-      <!-- Series Level Terms Toggle -->
-      <div class="mt-2">
-        <button
-          @click="toggleSeriesLevelTerms"
-          :disabled="!currentSeries"
-          class="w-full btn btn-md space-x-2"
-          :class="showSeriesLevelTerms ? 'btn-neutral' : 'btn-ghost'"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span>{{ showSeriesLevelTerms ? 'Hide Series Terms' : 'Show Series Terms' }}</span>
-        </button>
-      </div>
-      
-      <!-- Add Term Button -->
-      <div class="mt-3 flex items-center gap-2">
-        <button
-          v-if="!showAddForm"
-          @click="showAddForm = true"
-          :disabled="!currentSeries"
-          class="flex-1 btn btn-md btn-primary flex items-center justify-center gap-2"
-          :class="{ 'btn-disabled': !currentSeries }"
-        >
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          <span>{{ currentSeries ? 'Add New Term' : 'Select Series First' }}</span>
-        </button>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content">Glossary</h2>
+          <p class="text-sm text-base-content/50">{{ glossaryTerms.length }} terms</p>
+        </div>
 
-        <GlossaryImportButton
-          :series-id="currentSeries?.id"
-          :chapter-id="currentChapter?.id"
-          :disabled="!currentSeries"
-          button-class="btn btn-md btn-ghost text-base-content/40"
-          button-title="Import glossary terms from CSV"
-        />
+        <!-- Action icon strip -->
+        <div class="flex items-center gap-1">
+
+          <!-- Add Term -->
+          <div class="tooltip tooltip-bottom" data-tip="Add Term">
+            <button
+              v-if="!showAddForm"
+              @click="showAddForm = true"
+              :disabled="!currentSeries"
+              class="btn btn-primary btn-square btn-sm"
+              :class="{ 'btn-disabled': !currentSeries }"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Import -->
+          <div class="tooltip tooltip-bottom" data-tip="Import from CSV">
+            <GlossaryImportButton
+              :series-id="currentSeries?.id"
+              :chapter-id="currentChapter?.id"
+              :disabled="!currentSeries"
+              button-class="btn btn-ghost btn-square btn-sm text-base-content/40"
+              button-title="Import glossary terms from CSV"
+            />
+          </div>
+
+          <div class="w-px h-4 bg-base-300 mx-0.5"></div>
+
+          <!-- Highlight Toggle -->
+          <div class="tooltip tooltip-bottom" :data-tip="isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms'">
+            <button
+              @click="toggleHighlight"
+              class="btn btn-ghost btn-square btn-sm"
+              :class="isHighlightEnabled ? 'text-primary' : 'text-base-content/40'"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Series Terms Toggle -->
+          <div class="tooltip tooltip-bottom" :data-tip="showSeriesLevelTerms ? 'Hide Series Terms' : 'Show Series Terms'">
+            <button
+              @click="toggleSeriesLevelTerms"
+              :disabled="!currentSeries"
+              class="btn btn-ghost btn-square btn-sm"
+              :class="showSeriesLevelTerms ? 'text-primary' : 'text-base-content/40'"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="w-px h-4 bg-base-300 mx-0.5"></div>
+
+          <!-- Close -->
+          <button
+            @click="toggleGlossaryVisibility"
+            class="btn btn-ghost btn-square btn-sm text-base-content/40"
+            title="Close glossary"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      <!-- Context breadcrumb -->
+      <p v-if="currentSeries && currentChapter" class="text-xs text-base-content/40 truncate">
+        {{ currentSeries.name }} › {{ currentChapter.title }}
+      </p>
+      <p v-else-if="currentSeries" class="text-xs text-base-content/40 truncate">
+        {{ currentSeries.name }}
+        <span class="text-primary/60"> · {{ showSeriesLevelTerms ? 'series-level' : 'chapter-level' }}</span>
+      </p>
     </div>
 
     <!-- Add Term Form -->
@@ -89,7 +103,7 @@
     />
 
     <!-- Terms List -->
-    <div class="flex-1 ">
+    <div class="flex-1">
       <div v-if="isLoading" class="p-8 text-center">
         <div class="text-4xl mb-3">⏳</div>
         <p class="text-sm text-base-content/60">Loading glossary terms...</p>
@@ -97,12 +111,12 @@
 
       <div v-else-if="!currentChapter" class="p-8 text-center">
         <div class="text-4xl mb-3">📖</div>
-         <p class="text-sm text-base-content/60">
-           {{ currentSeries ? (showSeriesLevelTerms ? 'Viewing all glossary terms for this series' : 'Viewing chapter-level terms only') : 'Select a series to view its glossary' }}
-         </p>
-         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
-           Showing {{ glossaryTerms.length }} {{ showSeriesLevelTerms ? 'terms across all chapters' : 'chapter-level terms across all chapters' }}
-         </p>
+        <p class="text-sm text-base-content/60">
+          {{ currentSeries ? (showSeriesLevelTerms ? 'Viewing all glossary terms for this series' : 'Viewing chapter-level terms only') : 'Select a series to view its glossary' }}
+        </p>
+        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
+          Showing {{ glossaryTerms.length }} {{ showSeriesLevelTerms ? 'terms across all chapters' : 'chapter-level terms across all chapters' }}
+        </p>
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-primary/70 mt-1">
           Select a chapter to focus on chapter-specific context
         </p>
@@ -115,31 +129,24 @@
       </div>
 
       <div v-else class="p-4 space-y-4">
-        <!-- Terms List -->
-          <VirtualScrollingList
-            :items="termsByCategoryFlat"
-            :visible-count="60"
-            :buffer="10"
-            :scroll-container="scrollContainerProp"
-            item-key="id"
-            class="space-y-2"
-          >
-            <template #item="{ item }">
-              <!-- Header -->
-              <div
-                v-if="item.type === 'header'"
-                class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-              >
-                {{ item.category }} ({{ item.count }})
-              </div>
-
-              <!-- Term -->
-              <GlossaryTermItem
-                v-else
-                :term="item"
-              />
-            </template>
-          </VirtualScrollingList>
+        <VirtualScrollingList
+          :items="termsByCategoryFlat"
+          :visible-count="60"
+          :buffer="10"
+          :scroll-container="scrollContainerProp"
+          item-key="id"
+          class="space-y-2"
+        >
+          <template #item="{ item }">
+            <div
+              v-if="item.type === 'header'"
+              class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
+            >
+              {{ item.category }} ({{ item.count }})
+            </div>
+            <GlossaryTermItem v-else :term="item" />
+          </template>
+        </VirtualScrollingList>
       </div>
     </div>
 
