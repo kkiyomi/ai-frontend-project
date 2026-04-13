@@ -40,6 +40,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
   const error = ref<string | null>(null);
   const isGlossaryVisible = ref(false);
   const isHighlightEnabled = ref(true);
+  const showSeriesLevelTerms = ref(true);
   const currentSeriesId = ref<string | undefined>();
   const currentChapterId = ref<string | undefined>();
 
@@ -79,22 +80,30 @@ export const useGlossaryStore = defineStore('glossary', () => {
   })
 
   const termsByCurrentChapter = computed(() => {
-    return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value);
+    return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value, showSeriesLevelTerms.value);
   });
 
   // Helper function
-  function getFilteredTerms(termsList: GlossaryTerm[], seriesId?: string, chapterId?: string) {
+  function getFilteredTerms(termsList: GlossaryTerm[], seriesId?: string, chapterId?: string, includeSeriesLevel = true) {
     if (!seriesId) return [];
 
+    const seriesTermsList = termsList.filter(term => term.seriesId === seriesId);
     if (!chapterId) {
-      return termsList.filter(term => term.seriesId === seriesId);
+      return seriesTermsList;
     }
 
-    const filteredTerms = termsList.filter(term =>
-      (!term.chapterId && term.seriesId === seriesId) ||
+    const filteredTerms = seriesTermsList.filter(term =>
+      (!term.chapterId) ||
       (term.chapterId && term.chapterId === chapterId) ||
       (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
     );
+
+    if (!includeSeriesLevel) {
+      return filteredTerms.filter(term =>
+        (term.chapterId && term.chapterId === chapterId) ||
+        (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
+      );
+    }
 
     return filteredTerms;
   }
@@ -395,15 +404,24 @@ export const useGlossaryStore = defineStore('glossary', () => {
     localStorage.setItem('glossary:isHighlightEnabled', String(isHighlightEnabled.value));
   }
 
+  function toggleSeriesLevelTerms() {
+    showSeriesLevelTerms.value = !showSeriesLevelTerms.value;
+    localStorage.setItem('glossary:showSeriesLevelTerms', String(showSeriesLevelTerms.value));
+  }
+
   function clearError() {
     error.value = null;
   }
 
   function loadPreferences() {
     const savedIisHighlight = localStorage.getItem('glossary:isHighlightEnabled');
+    const savedShowSeriesLevel = localStorage.getItem('glossary:showSeriesLevelTerms');
 
     if (savedIisHighlight !== null) {
       isHighlightEnabled.value = savedIisHighlight === 'true';
+    }
+    if (savedShowSeriesLevel !== null) {
+      showSeriesLevelTerms.value = savedShowSeriesLevel === 'true';
     }
   }
 
@@ -417,6 +435,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     error,
     isGlossaryVisible,
     isHighlightEnabled,
+    showSeriesLevelTerms,
     currentSeriesId,
     currentChapterId,
     
@@ -438,6 +457,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     highlightTermsInTexts,
     toggleVisibility,
     toggleHighlight,
+    toggleSeriesLevelTerms,
     clearError,
   };
 });

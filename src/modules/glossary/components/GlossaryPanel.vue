@@ -21,7 +21,7 @@
         Chapter: {{ currentChapter.title }}
       </p>
       <p v-else-if="currentSeries" class="text-xs text-green-600 mt-1">
-        Series: {{ currentSeries.name }} (series-level terms)
+        Series: {{ currentSeries.name }} ({{ showSeriesLevelTerms ? 'series-level terms' : 'chapter-level terms only' }})
       </p>
       
       <!-- Highlight Terms Toggle -->
@@ -35,6 +35,21 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
           </svg>
           <span>{{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}</span>
+        </button>
+      </div>
+      
+      <!-- Series Level Terms Toggle -->
+      <div class="mt-2">
+        <button
+          @click="toggleSeriesLevelTerms"
+          :disabled="!currentSeries"
+          class="w-full btn btn-md space-x-2"
+          :class="showSeriesLevelTerms ? 'btn-neutral' : 'btn-ghost'"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>{{ showSeriesLevelTerms ? 'Hide Series Terms' : 'Show Series Terms' }}</span>
         </button>
       </div>
       
@@ -82,12 +97,12 @@
 
       <div v-else-if="!currentChapter" class="p-8 text-center">
         <div class="text-4xl mb-3">📖</div>
-        <p class="text-sm text-base-content/60">
-          {{ currentSeries ? 'Viewing all glossary terms for this series' : 'Select a series to view its glossary' }}
-        </p>
-        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
-          Showing {{ glossaryTerms.length }} terms across all chapters
-        </p>
+         <p class="text-sm text-base-content/60">
+           {{ currentSeries ? (showSeriesLevelTerms ? 'Viewing all glossary terms for this series' : 'Viewing chapter-level terms only') : 'Select a series to view its glossary' }}
+         </p>
+         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
+           Showing {{ glossaryTerms.length }} {{ showSeriesLevelTerms ? 'terms across all chapters' : 'chapter-level terms across all chapters' }}
+         </p>
         <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-primary/70 mt-1">
           Select a chapter to focus on chapter-specific context
         </p>
@@ -167,6 +182,7 @@ const {
   termsByCurrentChapter: glossaryTerms,
   isLoading,
   isHighlightEnabled,
+  showSeriesLevelTerms,
   termsByCategory,
   termsByCategoryFlat,
 } = state;
@@ -175,7 +191,8 @@ const {
   loadTerms: loadGlossaryTerms,
   suggestTermsFromText,
   toggleVisibility: toggleGlossaryVisibility,
-  toggleHighlight
+  toggleHighlight,
+  toggleSeriesLevelTerms
 } = store;
 
 const suggestions = ref<string[]>([]);

@@ -76,7 +76,7 @@ export const useTranslationStore = defineStore('translation', () => {
       if (activeJobId.value) {
         pollJobStatus(activeJobId.value);
       }
-    }, 1500);
+    }, 2500);
     
     pollingInterval.value = intervalId;
     
