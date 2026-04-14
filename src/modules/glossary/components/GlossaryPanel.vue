@@ -6,7 +6,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-semibold text-base-content">Glossary</h2>
-          <p class="text-sm text-base-content/50">{{ glossaryTerms.length }} terms</p>
+          <p class="text-sm text-base-content/50">{{ displayTermCount }}</p>
         </div>
 
         <!-- Action icon strip -->
@@ -18,7 +18,7 @@
               v-if="!showAddForm"
               @click="showAddForm = true"
               :disabled="!currentSeries"
-              class="btn btn-primary btn-square btn-sm"
+              class="btn btn-primary btn-square btn-xs"
               :class="{ 'btn-disabled': !currentSeries }"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,6 +82,31 @@
         </div>
       </div>
 
+      <!-- Search -->
+      <div class="mt-2">
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search terms, translations..."
+            class="w-full pl-9 pr-3 py-1.5 text-sm bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
+          />
+          <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-base-content/40 hover:text-base-content"
+            title="Clear search"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <!-- Context breadcrumb -->
       <p v-if="currentSeries && currentChapter" class="text-xs text-base-content/40 truncate">
         {{ currentSeries.name }} › {{ currentChapter.title }}
@@ -128,9 +153,15 @@
         <p v-if="currentChapter" class="text-xs text-base-content/40 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
       </div>
 
+      <div v-else-if="filteredTerms.length === 0" class="p-8 text-center">
+        <div class="text-4xl mb-3">🔍</div>
+        <p class="text-sm text-base-content/60">No matching terms</p>
+        <p class="text-xs text-base-content/40 mt-1">Try a different search term</p>
+      </div>
+
       <div v-else class="p-4 space-y-4">
         <VirtualScrollingList
-          :items="termsByCategoryFlat"
+          :items="filteredTermsByCategoryFlat"
           :visible-count="60"
           :buffer="10"
           :scroll-container="scrollContainerProp"
@@ -173,7 +204,7 @@ import GlossaryTermItem from './GlossaryTermItem.vue';
 import GlossarySuggestions from './GlossarySuggestions.vue';
 
 import type { Chapter, Series } from '@/types';
-import type { GlossaryItem } from '../types';
+import type { GlossaryItem, GlossaryTerm } from '../types';
 
 interface Props {
   currentChapter?: Chapter | null;
@@ -206,11 +237,68 @@ const suggestions = ref<string[]>([]);
 const isGeneratingSuggestions = ref(false);
 const showAddForm = ref(false);
 const initialTerm = ref('');
+const searchQuery = ref('');
 
 const addSuggestedTerm = (suggestion: string) => {
   initialTerm.value = suggestion;
   showAddForm.value = true;
 };
+
+// Search functionality
+const filteredTerms = computed(() => {
+  if (!searchQuery.value.trim()) return glossaryTerms.value;
+  const query = searchQuery.value.toLowerCase().trim();
+  return glossaryTerms.value.filter(term =>
+    term.term.toLowerCase().includes(query) ||
+    term.translation.toLowerCase().includes(query)
+  );
+});
+
+const filteredTermsByCategoryFlat = computed(() => {
+  if (!searchQuery.value.trim()) return termsByCategoryFlat.value;
+  
+  const grouped: Record<string, GlossaryTerm[]> = {};
+  filteredTerms.value.forEach(term => {
+    if (!grouped[term.category]) {
+      grouped[term.category] = [];
+    }
+    grouped[term.category].push(term);
+});
+
+// Clear search when context changes
+watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
+  searchQuery.value = '';
+});
+
+  
+  const items: GlossaryItem[] = [];
+  for (const [category, flatTerms] of Object.entries(grouped)) {
+    items.push({
+      type: 'header',
+      id: `header-${category}`,
+      category,
+      count: flatTerms.length,
+    } as GlossaryItem);
+    
+    for (const term of flatTerms) {
+      items.push({
+        type: 'term',
+        ...term,
+        category,
+      } as GlossaryItem);
+    }
+  }
+  return items;
+});
+
+const displayTermCount = computed(() => {
+  const total = glossaryTerms.value.length;
+  const filtered = filteredTerms.value.length;
+  if (!searchQuery.value.trim() || filtered === total) {
+    return `${total} terms`;
+  }
+  return `${filtered} of ${total} terms`;
+});
 
 const generateSuggestions = () => {
   if (!props.currentChapter || !props.currentSeries) return;
