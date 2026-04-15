@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: light --default, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night --prefersdark, coffee, winter, dim, nord, sunset, caramellatte, abyss, silk;
+  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night --prefersdark, coffee, winter, dim, nord, sunset, caramellatte, abyss, silk;
 }
 
 @plugin "daisyui/theme" {
-  name: "dark2";
+  name: "am-dark";
   default: false;
   prefersdark: false;
   color-scheme: "dark";
@@ -35,6 +35,41 @@
   --size-field: 0.25rem;
   --border: 1px;
   --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "am-light";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(97% 0.02 75);
+  --color-base-200: oklch(94% 0.025 75);
+  --color-base-300: oklch(88% 0.03 75);
+  --color-base-content: oklch(20% 0.02 70);
+  --color-primary: oklch(20% 0.02 70);
+  --color-primary-content: oklch(98% 0 0);
+  --color-secondary: oklch(55% 0.18 35);
+  --color-secondary-content: oklch(98% 0 0);
+  --color-accent: oklch(50% 0.03 70);
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(18% 0.02 70);
+  --color-neutral-content: oklch(90% 0.02 75);
+  --color-info: oklch(70% 0.12 230);
+  --color-info-content: oklch(20% 0.05 230);
+  --color-success: oklch(72% 0.14 160);
+  --color-success-content: oklch(25% 0.05 160);
+  --color-warning: oklch(80% 0.16 85);
+  --color-warning-content: oklch(30% 0.08 60);
+  --color-error: oklch(65% 0.18 25);
+  --color-error-content: oklch(25% 0.08 25);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
   --noise: 0;
 }
 

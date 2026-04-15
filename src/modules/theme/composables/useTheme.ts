@@ -21,6 +21,7 @@ export function useTheme() {
   
   // Reactive state from store
   const {
+    defaultTheme,
     currentTheme,
     availableThemes,
     isLoading,
@@ -45,6 +46,7 @@ export function useTheme() {
 
   return {
     // State
+    defaultTheme,
     currentTheme,
     availableThemes,
     isLoading,

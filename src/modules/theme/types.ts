@@ -13,9 +13,10 @@ export interface ThemeState {
 
 // All daisyUI v5.5.19 themes
 export const DAISYUI_THEMES = [
+  'am-light',
+  'am-dark',
   'light',
   'dark',
-  'dark2',
   'cupcake',
   'bumblebee',
   'emerald',

@@ -29,7 +29,8 @@ import { DAISYUI_THEMES } from './types';
 
 export const useThemeStore = defineStore('theme', () => {
   // State
-  const currentTheme = ref<DaisyUITheme>('light');
+  const defaultTheme = ref<DaisyUITheme>('am-light');
+  const currentTheme = ref<DaisyUITheme>('am-light');
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
@@ -97,9 +98,9 @@ export const useThemeStore = defineStore('theme', () => {
       if (savedTheme && availableThemes.value.includes(savedTheme as DaisyUITheme)) {
         setTheme(savedTheme as DaisyUITheme);
       } else {
-        // Use default theme (light) if no valid saved theme
-        applyThemeToDocument('light');
-        currentTheme.value = 'light';
+        // Use default theme if no valid saved theme
+        applyThemeToDocument(defaultTheme.value);
+        currentTheme.value = defaultTheme.value;
       }
       
       error.value = null;
@@ -112,7 +113,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function resetTheme() {
-    setTheme('light');
+    setTheme(defaultTheme.value);
   }
 
   // Initialize theme on store creation
@@ -120,6 +121,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     // State (refs exposed directly)
+    defaultTheme,
     currentTheme,
     availableThemes,
     isLoading,

@@ -18,7 +18,7 @@
         <button
           @click="resetTheme"
           class="btn btn-sm btn-ghost"
-          :disabled="currentTheme === 'light'"
+          :disabled="currentTheme === defaultTheme"
         >
           Reset to Default
         </button>
@@ -114,6 +114,7 @@
 import { useTheme } from '../composables/useTheme';
 
 const {
+  defaultTheme,
   currentTheme,
   availableThemes,
   isLoading,
