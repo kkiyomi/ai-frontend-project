@@ -7,7 +7,7 @@ Essential information for AI agents working in this Vue 3 + TypeScript project.
 - **Framework**: Vue 3 with Composition API and `<script setup>` syntax
 - **Language**: TypeScript
 - **State Management**: Pinia
-- **Styling**: Tailwind CSS v4
+- **Styling**: daisyUI, Tailwind CSS v4
 - **Build Tool**: Vite
 - **Router**: Vue Router 4
 
