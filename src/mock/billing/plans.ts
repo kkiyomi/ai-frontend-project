@@ -3,6 +3,7 @@
 
 import type { Plan } from '@/modules/billing/types';
 import {
+  customThemesFeature,
   translationFeature,
   collaborationFeature,
   prioritySupportFeature,
@@ -81,6 +82,7 @@ export const mockPlanPro: Plan = {
   period: 'monthly',
   features: {
     translation: { ...translationFeature, enabled: true },
+    custom_themes: { ...customThemesFeature, enabled: true },
     split_view: { ...splitViewFeature, enabled: true },
     full_view: { ...fullViewFeature, enabled: true },
     content_filtering: { ...contentFilteringFeature, enabled: true },
@@ -130,6 +132,7 @@ export const mockPlanTeam: Plan = {
   period: 'monthly',
   features: {
     translation: { ...translationFeature, enabled: true },
+    custom_themes: { ...customThemesFeature, enabled: true },
     split_view: { ...splitViewFeature, enabled: true },
     full_view: { ...fullViewFeature, enabled: true },
     content_filtering: { ...contentFilteringFeature, enabled: true },

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 relative">
     <!-- Header -->
     <div>
       <h3 class="text-lg font-medium text-base-content">Theme Selection</h3>
@@ -17,7 +17,7 @@
         </div>
         <button
           @click="resetTheme"
-          class="btn btn-sm btn-ghost"
+          class="btn btn-sm btn-ghost pointer-events-none"
           :disabled="currentTheme === defaultTheme"
         >
           Reset to Default
@@ -30,7 +30,7 @@
       <div
         v-for="theme in availableThemes"
         :key="theme"
-        @click="setTheme(theme)"
+        @click="handelSetTheme(theme)"
         class="relative cursor-pointer group"
       >
         <!-- Theme Card -->
@@ -40,7 +40,7 @@
             isThemeSelected(theme) 
               ? 'border-primary ring-2 ring-primary/20' 
               : 'border-base-300 hover:border-base-content/30',
-            'theme-card'
+            'transition hover:-translate-y-0.5 hover:shadow-lg'
           ]"
         >
           <!-- Theme Preview Area -->
@@ -107,11 +107,41 @@
         <span class="text-sm text-error">{{ error }}</span>
       </div>
     </div>
+
+    <!-- Feature Lock Overlay -->
+    <div
+      v-if="!hasCustomThemes" 
+      class="absolute inset-0 mt-8 z-20 h-fit flex justify-center"
+    >
+      <div class="text-center p-6 bg-base-200 rounded-lg border border-base-300 shadow-xl max-w-sm mx-4 cursor-pointer"
+        @click="openUpgradeModal"
+      >
+        <svg class="w-12 h-12 text-warning mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <h4 class="text-lg font-medium text-base-content mb-2">Themes Locked</h4>
+        <p class="text-base-content/70 mb-4">Upgrade your plan to unlock custom themes and personalize your experience.</p>
+        <button class="btn btn-primary">Upgrade Now</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useTheme } from '../composables/useTheme';
+import { useBillingStore } from '@/modules/billing';
+
+const billingStore = useBillingStore();
+const hasCustomThemes = computed(() => billingStore.hasFeature('custom_themes'));
+
+const openUpgradeModal = () => {
+  billingStore.openUpgradeModal({ featureName: 'custom_themes' });
+};
+
+const handelSetTheme = (theme) => {
+  if (hasCustomThemes.value) setTheme(theme);
+};
 
 const {
   defaultTheme,
@@ -126,14 +156,3 @@ const {
   getThemePreviewClasses,
 } = useTheme();
 </script>
-
-<style scoped>
-.theme-card {
-  transition-property: border-color, box-shadow, transform;
-}
-
-.theme-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-</style>

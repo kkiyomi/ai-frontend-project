@@ -3,6 +3,15 @@
 
 import type { FeatureDefinition } from '@/modules/billing/types';
 
+export const customThemesFeature: FeatureDefinition = {
+  key: 'custom_themes',
+  enabled: true,
+  name: '40 custom themes',
+  description: 'Customize the look and feel of the application',
+  icon: 'theme',
+  category: 'core'
+};
+
 export const translationFeature: FeatureDefinition = {
   key: 'translation',
   enabled: true,
