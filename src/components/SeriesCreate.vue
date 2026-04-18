@@ -1,7 +1,7 @@
 <template>
     <div class="p-4 flex-shrink-0">
         <button
-            @click="createSeries"
+            @click="openCreateModal"
             :disabled="isCreating"
             class="w-full flex items-center gap-2 btn btn-outline btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -16,13 +16,19 @@
             <progress class="progress progress-primary h-2 rounded-full"></progress>
             <p class="text-xs text-base-content/60 mt-1">Processing...</p>
         </div>
+
+        <SeriesEditModal
+          v-if="showModal"
+          @close="closeModal"
+          @save="handleSave"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useSeriesStore, type Series } from '@/modules/series';
+import { useSeriesStore, type Series, SeriesEditModal } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 
 const emit = defineEmits<{
@@ -33,27 +39,35 @@ const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const isCreating = ref(false);
+const showModal = ref(false);
 
-const createSeries = async () => {
-    if (isCreating.value) return;
-    isCreating.value = true;
+const openCreateModal = () => {
+  showModal.value = true;
+};
 
-    try {
-        const defaultName = `New Series ${new Date().toLocaleTimeString()}`;
-        const response = await seriesStore.createSeries({
-            name: defaultName,
-            description: '',
-        });
-         if (response) {
-             console.log(`✅ Created series: ${defaultName}`);
-             router.push(`/series/${response.id}`);
-             emit('edit', response);
-         }
-    } catch (error) {
-        console.error('❌ Error creating series:', error);
-        // optional: toast notification
-    } finally {
-        isCreating.value = false;
+const closeModal = () => {
+  showModal.value = false;
+};
+
+const handleSave = async (name: string, description?: string) => {
+  if (isCreating.value) return;
+  isCreating.value = true;
+
+  try {
+    const response = await seriesStore.createSeries({
+      name,
+      description,
+    });
+    if (response) {
+      console.log(`✅ Created series: ${name}`);
+      router.push(`/series/${response.id}`);
+      closeModal();
     }
+  } catch (error) {
+    console.error('❌ Error creating series:', error);
+    // optional: toast notification
+  } finally {
+    isCreating.value = false;
+  }
 };
 </script>

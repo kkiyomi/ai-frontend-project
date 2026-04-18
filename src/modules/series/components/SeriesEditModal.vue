@@ -2,7 +2,7 @@
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="$emit('close')">
     <div class="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl" @click.stop>
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-base-content">Edit Series</h3>
+         <h3 class="text-lg font-semibold text-base-content">{{ modalTitle }}</h3>
         <button @click="$emit('close')" class="btn btn-ghost btn-sm btn-circle">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -54,11 +54,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import type { Series } from '../types';
 
 interface Props {
-  series: Series;
+  series?: Series;
 }
 
 const props = defineProps<Props>();
@@ -71,10 +71,11 @@ const emit = defineEmits<{
 const editedName = ref('');
 const editedDescription = ref('');
 const isSaving = ref(false);
+const modalTitle = computed(() => props.series ? 'Edit Series' : 'Create Series');
 
 onMounted(() => {
-  editedName.value = props.series.name;
-  editedDescription.value = props.series.description || '';
+  editedName.value = props.series?.name ?? '';
+  editedDescription.value = props.series?.description ?? '';
 });
 
 const handleSave = async () => {
