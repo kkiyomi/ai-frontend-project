@@ -6,7 +6,7 @@ import type { FeatureDefinition } from '@/modules/billing/types';
 export const customThemesFeature: FeatureDefinition = {
   key: 'custom_themes',
   enabled: true,
-  name: '40 custom themes',
+  name: '+40 custom themes',
   description: 'Customize the look and feel of the application',
   icon: 'theme',
   category: 'core'
@@ -19,51 +19,6 @@ export const translationFeature: FeatureDefinition = {
   description: 'Automatically translate chapters using AI',
   icon: 'translate',
   category: 'core'
-};
-
-export const collaborationFeature: FeatureDefinition = {
-  key: 'collaboration',
-  enabled: false,
-  name: 'Collaboration',
-  description: 'Share projects and work together in real-time',
-  icon: 'users',
-  category: 'collaboration'
-};
-
-export const prioritySupportFeature: FeatureDefinition = {
-  key: 'priority_support',
-  enabled: true,
-  name: 'Priority Support',
-  description: 'Get fast responses from our support team',
-  icon: 'support',
-  category: 'support'
-};
-
-export const advancedGlossaryFeature: FeatureDefinition = {
-  key: 'advanced_glossary',
-  enabled: true,
-  name: 'Advanced Glossary',
-  description: 'Custom glossary with term frequency and suggestions',
-  icon: 'book-open',
-  category: 'glossary'
-};
-
-export const bulkOperationsFeature: FeatureDefinition = {
-  key: 'bulk_operations',
-  enabled: true,
-  name: 'Bulk Operations',
-  description: 'Import, export, and update multiple items at once',
-  icon: 'layers',
-  category: 'productivity'
-};
-
-export const exportFormatsFeature: FeatureDefinition = {
-  key: 'export_formats',
-  enabled: true,
-  name: 'Export Formats',
-  description: 'Export to PDF, EPUB, and DOCX formats',
-  icon: 'download',
-  category: 'export'
 };
 
 export const splitViewFeature: FeatureDefinition = {
@@ -81,15 +36,6 @@ export const fullViewFeature: FeatureDefinition = {
   name: 'Full View',
   description: 'Full-width single column view for focused editing',
   icon: 'maximize',
-  category: 'editor'
-};
-
-export const contentFilteringFeature: FeatureDefinition = {
-  key: 'content_filtering',
-  enabled: true,
-  name: 'Content Filtering',
-  description: 'Filter content between all text and translated only',
-  icon: 'filter',
   category: 'editor'
 };
 
@@ -136,51 +82,6 @@ export const glossaryImportFeature: FeatureDefinition = {
   description: 'Import glossary terms from CSV files',
   icon: 'upload',
   category: 'import-export'
-};
-
-export const glossarySuggestionsFeature: FeatureDefinition = {
-  key: 'glossary_suggestions',
-  enabled: true,
-  name: 'Glossary Suggestions',
-  description: 'Get smart term suggestions from text content',
-  icon: 'lightbulb',
-  category: 'glossary'
-};
-
-export const fileImportFeature: FeatureDefinition = {
-  key: 'file_import',
-  enabled: true,
-  name: 'File Import',
-  description: 'Import series and chapters from various file formats',
-  icon: 'file-up',
-  category: 'import-export'
-};
-
-export const virtualScrollingFeature: FeatureDefinition = {
-  key: 'virtual_scrolling',
-  enabled: true,
-  name: 'Virtual Scrolling',
-  description: 'Smooth performance for large lists and content',
-  icon: 'move-vertical',
-  category: 'performance'
-};
-
-export const settingsFeature: FeatureDefinition = {
-  key: 'settings',
-  enabled: true,
-  name: 'Settings',
-  description: 'Customize user preferences and application behavior',
-  icon: 'settings',
-  category: 'core'
-};
-
-export const autoSaveFeature: FeatureDefinition = {
-  key: 'auto_save',
-  enabled: true,
-  name: 'Auto Save',
-  description: 'Automatically save changes as you work',
-  icon: 'save',
-  category: 'editor'
 };
 
 export const draftModeFeature: FeatureDefinition = {
