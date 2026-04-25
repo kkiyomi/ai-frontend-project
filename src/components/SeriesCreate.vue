@@ -49,17 +49,19 @@ const closeModal = () => {
   showModal.value = false;
 };
 
-const handleSave = async (name: string, description?: string) => {
+const handleSave = async (data: { name: string; description?: string; sourceLanguage?: string; targetLanguage?: string }) => {
   if (isCreating.value) return;
   isCreating.value = true;
 
   try {
     const response = await seriesStore.createSeries({
-      name,
-      description,
+      name: data.name,
+      description: data.description,
+      sourceLanguage: data.sourceLanguage,
+      targetLanguage: data.targetLanguage,
     });
     if (response) {
-      console.log(`✅ Created series: ${name}`);
+      console.log(`✅ Created series: ${data.name}`);
       router.push(`/series/${response.id}`);
       closeModal();
     }

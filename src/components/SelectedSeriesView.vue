@@ -60,14 +60,20 @@
     <div class="p-3">
       <h4 class="text-sm font-semibold text-base-content">{{ series.name }}</h4>
 
-      <p v-if="series.description" class="text-xs text-base-content/60 mt-1">
-        {{ series.description }}
-      </p>
+       <p v-if="series.description" class="text-xs text-base-content/60 mt-1">
+         {{ series.description }}
+       </p>
 
-      <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/40">
-        <span>{{ series.chapters.length }} chapters</span>
-        <span>{{ translationProgress }}% translated</span>
-      </div>
+       <div v-if="series.sourceLanguage || series.targetLanguage" class="mt-1">
+         <span class="badge badge-sm badge-outline mr-1" v-if="series.sourceLanguage">{{ series.sourceLanguage }}</span>
+         <span class="text-xs text-base-content/40 mx-1" v-if="series.sourceLanguage && series.targetLanguage">→</span>
+         <span class="badge badge-sm badge-outline" v-if="series.targetLanguage">{{ series.targetLanguage }}</span>
+       </div>
+
+       <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/40">
+         <span>{{ series.chapters.length }} chapters</span>
+         <span>{{ translationProgress }}% translated</span>
+       </div>
     </div>
 
 

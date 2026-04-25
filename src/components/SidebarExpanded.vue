@@ -158,11 +158,16 @@ const closeEditModal = () => {
   editingSeries.value = null;
 };
 
-const handleSeriesEdit = async (name: string, description?: string) => {
+const handleSeriesEdit = async (data: { name: string; description?: string; sourceLanguage?: string; targetLanguage?: string }) => {
   if (!editingSeries.value) return;
 
   try {
-    await seriesStore.updateSeries(editingSeries.value.id, { name, description });
+    await seriesStore.updateSeries(editingSeries.value.id, { 
+      name: data.name, 
+      description: data.description,
+      sourceLanguage: data.sourceLanguage,
+      targetLanguage: data.targetLanguage
+    });
     closeEditModal();
   } catch (error) {
     console.error('Error updating series:', error);

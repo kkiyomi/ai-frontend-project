@@ -8,12 +8,17 @@
         <div class="flex-1 min-w-0">
            <h4 class="text-sm font-semibold text-base-content">{{ series.name }}</h4>
            <p v-if="series.description" class="text-xs text-base-content/70 mt-1 line-clamp-2">
-            {{ series.description }}
-          </p>
+             {{ series.description }}
+           </p>
+           <div v-if="series.sourceLanguage || series.targetLanguage" class="mt-1">
+             <span class="badge badge-sm badge-outline mr-1" v-if="series.sourceLanguage">{{ series.sourceLanguage }}</span>
+             <span class="text-xs text-base-content/50 mx-1" v-if="series.sourceLanguage && series.targetLanguage">→</span>
+             <span class="badge badge-sm badge-outline" v-if="series.targetLanguage">{{ series.targetLanguage }}</span>
+           </div>
            <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/50">
-            <span>{{ series.chapterIds.length }} chapters</span>
-            <span>Created {{ formatDate(new Date(series.createdAt)) }}</span>
-          </div>
+             <span>{{ series.chapterIds.length }} chapters</span>
+             <span>Created {{ formatDate(new Date(series.createdAt)) }}</span>
+           </div>
         </div>
         <div class="flex items-center space-x-1 ml-2">
           <button

@@ -2,6 +2,8 @@ export interface Series {
   id: string;
   name: string;
   description?: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
   createdAt: Date | string;
   chapters?: Chapter[];
   chapterIds: string[];

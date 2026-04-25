@@ -6,6 +6,8 @@ export const mockSeries: Series[] = [
     "id": "21ca339b4abe",
     "name": "Weird Game Awakening a Bug-Level Talent from the Start",
     "description": "Auto-generated data for Weird Game Awakening a Bug-Level Talent from the Start",
+    "sourceLanguage": "zh-CN",
+    "targetLanguage": "en-US",
     "createdAt": "2025-10-05T20:55:27.211558",
     "chapterIds": [
       "ac18c6d53fc7",

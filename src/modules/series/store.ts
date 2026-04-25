@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { seriesAPI } from './api';
-import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from './types';
+import type { Series, CreateSeriesRequest, UpdateSeriesRequest, Language } from './types';
 
 /**
  * Series Module - Pinia Store
@@ -10,23 +10,6 @@ import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from './types';
  * Provides comprehensive error handling, loading states, and computed properties
  * for accessing the currently selected series. Integrates with series API layer
  * with automatic mock/real switching based on environment configuration.
- *
- * Usage Example:
- * ```typescript
- * import { useSeriesStore } from '@/modules/series';
- *
- * const series = useSeriesStore();
- * await series.fetchSeries();
- *
- * // Create a new series
- * await series.createSeries({ name: 'My Series', description: 'Description' });
- *
- * // Select a series
- * series.selectSeries('series-id');
- *
- * // Access selected series
- * console.log(series.selectedSeries?.name);
- * ```
  */
 
 export const useSeriesStore = defineStore('series', () => {
@@ -34,6 +17,8 @@ export const useSeriesStore = defineStore('series', () => {
   const selectedSeriesId = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const languages = ref<Language[]>([]);
+  const languagesLoading = ref(false);
 
   const selectedSeries = computed(() => {
     if (!selectedSeriesId.value) return null;
@@ -158,6 +143,22 @@ export const useSeriesStore = defineStore('series', () => {
     }
   }
 
+  async function fetchLanguages() {
+    if (languages.value.length > 0) return;
+    languagesLoading.value = true;
+
+    try {
+      const response = await seriesAPI.getLanguages();
+      if (response.success && response.data) {
+        languages.value = response.data;
+      }
+    } catch {
+      // silent
+    } finally {
+      languagesLoading.value = false;
+    }
+  }
+
   function selectSeries(seriesId: string | null) {
     selectedSeriesId.value = seriesId;
   }
@@ -172,11 +173,14 @@ export const useSeriesStore = defineStore('series', () => {
     selectedSeries,
     loading,
     error,
+    languages,
+    languagesLoading,
     fetchSeries,
     fetchSeriesById,
     createSeries,
     updateSeries,
     deleteSeries,
+    fetchLanguages,
     selectSeries,
     clearError
   };

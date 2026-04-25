@@ -152,7 +152,6 @@ Each module follows this pattern:
 
 ## Common Pitfalls
 
-- **Scraper module exclusion**: TypeScript checks skip `src/modules/scraper`
 - **Mock data bundling**: Files with `mock_data_` prefix get special treatment
 - **Component registration**: Remember to use `markRaw` when storing components in Pinia
 - **Environment variables**: Must be prefixed with `VITE_` to be exposed
