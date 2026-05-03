@@ -4,8 +4,9 @@
 <template>
   <div 
     v-if="term"
-    class="glossary-popup absolute z-50 bg-base-100 border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm transition-opacity duration-150"
-    :style="{ left: position.x + 'px', top: position.y + 'px' }"
+    ref="popupRef"
+    class="glossary-popup fixed z-50 bg-base-100 border border-gray-300 rounded-lg shadow-lg p-4 min-w-xs max-w-sm max-h-[60vh] overflow-y-auto transition-opacity duration-150"
+    :style="{ left: adjustedPosition.x + 'px', top: adjustedPosition.y + 'px' }"
     @click.stop
   >
     <div v-if="!isEditing" class="space-y-2">
@@ -95,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick, watch } from 'vue';
 import { useGlossaryStore } from '../store';
 import { useGlossaryPopup } from '../composables/useGlossaryPopup';
 import type { GlossaryTerm } from '../types';
@@ -115,6 +116,9 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const popupRef = ref<HTMLElement | null>(null);
+const adjustedPosition = ref({ x: props.position.x, y: props.position.y });
+
 const isEditing = ref(false);
 const editForm = reactive({
   term: '',
@@ -123,12 +127,40 @@ const editForm = reactive({
   category: ''
 });
 
+function clampToViewport() {
+  if (!popupRef.value) return;
+  const rect = popupRef.value.getBoundingClientRect();
+  const margin = 8;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let x = rect.left;
+  let y = rect.top;
+
+  if (x + rect.width > vw - margin) x = vw - rect.width - margin;
+  if (x < margin) x = margin;
+  if (y + rect.height > vh - margin) y = vh - rect.height - margin;
+  if (y < margin) y = margin;
+
+  adjustedPosition.value = { x, y };
+}
+
 onMounted(() => {
+  nextTick(clampToViewport);
+
   // Initialize edit form with current values
   editForm.term = props.term.term;
   editForm.translation = props.term.translation;
   editForm.definition = props.term.definition || '';
   editForm.category = props.term.category;
+});
+
+// When hovering a new term, the composable sends an updated (already viewport-clamped)
+// position. Apply it immediately, then re-clamp once the popup has re-rendered with
+// the new content (dimensions may differ).
+watch(() => props.position, (newPos) => {
+  adjustedPosition.value = { x: newPos.x, y: newPos.y };
+  nextTick(clampToViewport);
 });
 
 const startEditing = () => {

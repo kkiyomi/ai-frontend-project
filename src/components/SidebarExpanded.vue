@@ -52,6 +52,7 @@
 
                       <!-- Chapters list -->
                       <VirtualScrollingList
+                        ref="virtualListRef"
                         :items="currentSeries.chapters"
                         :visible-count="30"
                         :buffer="5"
@@ -115,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { VirtualScrollingList } from '@/modules/core';
 import {
@@ -213,4 +214,24 @@ const deleteChapter = (chapter: Chapter | null) => {
 
 const chaptersScrollContainer = ref<HTMLElement | null>(null);
 const scrollContainerProp = computed(() => chaptersScrollContainer);
+
+// Ref to the VirtualScrollingList instance for scroll-to-chapter
+const virtualListRef = ref<{ scrollToIndex: (index: number, behavior?: ScrollBehavior) => void } | null>(null);
+
+// Tracks which series we've already auto-scrolled for (prevents re-scroll on chapter click)
+const lastScrolledSeriesId = ref<string | null>(null);
+
+// Auto-scroll to current chapter when sidebar first opens or series switches
+watchEffect(() => {
+  const series = currentSeries.value;
+  const list = virtualListRef.value;
+  if (!series || !chaptersStore.currentChapterId || !list?.scrollToIndex) return;
+  if (lastScrolledSeriesId.value === series.id) return;
+
+  const idx = series.chapters.findIndex(ch => ch.id === chaptersStore.currentChapterId);
+  if (idx >= 0) {
+    lastScrolledSeriesId.value = series.id;
+    nextTick(() => list.scrollToIndex(idx));
+  }
+});
 </script>

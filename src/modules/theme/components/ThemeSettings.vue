@@ -130,6 +130,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTheme } from '../composables/useTheme';
+import type { DaisyUITheme } from '../types';
 import { useBillingStore } from '@/modules/billing';
 
 const billingStore = useBillingStore();
@@ -139,7 +140,7 @@ const openUpgradeModal = () => {
   billingStore.openUpgradeModal({ featureName: 'custom_themes' });
 };
 
-const handelSetTheme = (theme) => {
+const handelSetTheme = (theme: DaisyUITheme) => {
   if (hasCustomThemes.value) setTheme(theme);
 };
 

@@ -29,11 +29,12 @@
           v-if="currentSeries"
         />
 
-        <!-- Layout Toggle -->
+        <!-- Layout Toggle (disabled during streaming — only full mode works) -->
         <label
           v-if="currentChapter"
           class="btn btn-sm swap swap-rotate"
-          title="Toggle layout"
+          :class="{ 'opacity-40 pointer-events-none': isTranslating }"
+          :title="isTranslating ? 'Not available during translation' : 'Toggle layout'"
         >
           <input
             type="checkbox"
@@ -99,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 
 import ExportButton from './ExportButton.vue';
 import { AvatarMenu, useProfileStore } from "@/modules/profile";
@@ -134,6 +135,16 @@ const billingStore = useBillingStore();
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const allChapters = computed(() => chaptersStore.chapters);
+const isTranslating = computed(() => translationStore.isTranslating);
+
+// Keep the translation store's currentChapterId in sync with navigation
+// so backward-compat getters (isTranslating, translationProgress, etc.)
+// always reflect the chapter the user is currently viewing. This allows
+// starting translations on multiple chapters independently while the
+// header always shows the right chapter's state.
+watch(currentChapterId, (id) => {
+  translationStore.setCurrentChapterId(id);
+}, { immediate: true });
 
 const allSeries = computed(() =>
   seriesStore.series.map((s) => ({

@@ -56,11 +56,11 @@
         <TextColumn
           title="Translation"
           :paragraphs="currentChapter.translatedParagraphs"
-          :fullText="layoutMode === 'full' ? getFullTranslatedText() : undefined"
+          :fullText="layoutMode === 'full' || streamingText ? getFullTranslatedText() : undefined"
           :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
-          :showEditButton="layoutMode === 'split'"
+          :showEditButton="!streamingText && layoutMode === 'split'"
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
@@ -87,6 +87,8 @@ interface Props {
   isHighlightEnabled?: boolean;
   isTranslating?: boolean;
   translationProgress?: number;
+  /** Live streaming translation content — shown in full mode during translation. */
+  streamingText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -95,6 +97,7 @@ const props = withDefaults(defineProps<Props>(), {
   isHighlightEnabled: false,
   isTranslating: false,
   translationProgress: 0,
+  streamingText: '',
 });
 
 const editor = useEditorStore();
@@ -128,8 +131,12 @@ function getFullOriginalText(): string {
 }
 
 function getFullTranslatedText(): string {
+  // Streaming content takes priority — shown in full mode during active stream.
+  if (props.streamingText) return props.streamingText
   if (!currentChapter.value) return '';
-  return currentChapter.value.translatedParagraphs.join('<br>');
+  return currentChapter.value.translatedContent
+    ? currentChapter.value.translatedContent
+    : currentChapter.value.translatedParagraphs.join('\n\n');
 }
 
 </script>

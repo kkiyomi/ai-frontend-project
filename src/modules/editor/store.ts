@@ -195,13 +195,30 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  /** Update chapter in local state only (no API call). */
+  /** Update chapter in local state only (no API call).
+   *
+   *  Mutates properties in-place rather than replacing the whole object ref,
+   *  avoiding an unnecessary reactive-proxy cascade on unrelated properties.
+   */
   function updateLocalChapter(updates: Partial<Chapter>) {
     const ch = currentChapter.value;
     if (!ch) return;
-    currentChapter.value = { ...ch, ...updates };
-    if (updates.content !== undefined) dirtyFields.value.add('content');
-    if (updates.translatedContent !== undefined) dirtyFields.value.add('translatedContent');
+
+    if (updates.content !== undefined) {
+      ch.content = updates.content;
+      dirtyFields.value.add('content');
+    }
+
+    if (updates.translatedContent !== undefined) {
+      ch.translatedContent = updates.translatedContent;
+      dirtyFields.value.add('translatedContent');
+    }
+
+    if (updates.title !== undefined) ch.title = updates.title;
+    if (updates.originalParagraphs !== undefined) ch.originalParagraphs = updates.originalParagraphs;
+    if (updates.translatedParagraphs !== undefined) ch.translatedParagraphs = updates.translatedParagraphs;
+    if (updates.seriesId !== undefined) ch.seriesId = updates.seriesId;
+    if (updates.isTranslated !== undefined) ch.isTranslated = updates.isTranslated;
   }
 
   /** Signal that a chapter save should be initiated. */

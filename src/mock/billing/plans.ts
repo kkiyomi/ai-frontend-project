@@ -5,7 +5,6 @@ import type { Plan } from '@/modules/billing/types';
 import {
   customThemesFeature,
   translationFeature,
-  prioritySupportFeature,
   splitViewFeature,
   fullViewFeature,
   paragraphEditingFeature,
@@ -13,7 +12,6 @@ import {
   glossaryCategoriesFeature,
   glossaryPopupFeature,
   glossaryImportFeature,
-  settingsFeature,
   draftModeFeature
 } from './featureDefinitions';
 import {

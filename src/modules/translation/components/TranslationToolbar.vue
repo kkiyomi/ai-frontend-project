@@ -15,6 +15,15 @@
     </button>
 
     <button
+      v-if="showTranslateNowButton"
+      @click="translateNow"
+      :disabled="store.isTranslating || disabled"
+       class="btn btn-secondary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ store.isTranslating ? 'Translating…' : 'Translate Now' }}
+    </button>
+
+    <button
       v-if="showRetranslateButton"
       @click="$emit('retranslate')"
       :disabled="store.isTranslating || disabled"
@@ -45,6 +54,7 @@ interface Props {
   chapterId?: string | null;
   disabled?: boolean;
   showTranslateButton?: boolean;
+  showTranslateNowButton?: boolean;
   showRetranslateButton?: boolean;
   showClearButton?: boolean;
 }
@@ -53,6 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
   chapterId: null,
   disabled: false,
   showTranslateButton: true,
+  showTranslateNowButton: true,
   showRetranslateButton: false,
   showClearButton: false,
 });
@@ -85,10 +96,36 @@ const translateAllParagraphs = async () => {
     if (result) {
       console.log('Translation job started:', result.jobId);
       // Polling is now handled automatically by the store
-      // No need for setTimeout or manual refresh calls
     }
   } catch (error) {
     console.error('Error starting chapter translation:', error);
+  }
+};
+
+const translateNow = async () => {
+  const chapterId = props.chapterId;
+  if (!chapterId) return;
+
+  // Check if the user has access to translation feature
+  if (!billingStore.hasFeature('translation')) {
+    billingStore.openUpgradeModal({ featureName: 'translation' });
+    return;
+  }
+
+  // Check if the user has translation tokens available
+  if (!billingStore.canConsume('translation_tokens_limit')) {
+    billingStore.openLimitUpgradeModal('translation_tokens_limit');
+    return;
+  }
+
+  try {
+    const result = await store.translateChapterStream(chapterId);
+
+    if (result) {
+      console.log('Streaming translation started:', result.jobId);
+    }
+  } catch (error) {
+    console.error('Error starting streaming translation:', error);
   }
 };
 </script>

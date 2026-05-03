@@ -51,4 +51,14 @@ export { default as TranslationToolbar } from './components/TranslationToolbar.v
 
 export type {
   TranslationState,
+  ChapterTranslationState,
+  StreamJobResponse,
+  StreamEvent,
+  StreamEventType,
+  StreamProgressData,
+  StreamTokenData,
+  StreamChunkCompleteData,
+  StreamCompletedData,
+  StreamErrorData,
+  StreamJobData,
 } from './types';

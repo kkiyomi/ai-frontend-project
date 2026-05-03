@@ -20,6 +20,7 @@
       :isHighlightEnabled="glossary.isHighlightEnabled"
       :isTranslating="translation.isTranslating"
       :translationProgress="translation.translationProgress"
+      :streamingText="currentStreamingText"
     />
   </div>
 
@@ -31,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { debounce } from 'perfect-debounce';
 import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import {
@@ -49,6 +50,12 @@ const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const editor = useEditorStore();
 const translation = useTranslationStore();
 const glossary = useGlossaryStore();
+
+/** Per-chapter streaming text — looks up the current chapter's accumulated tokens. */
+const currentStreamingText = computed(() => {
+  const id = currentChapterId.value;
+  return id ? (translation.streamingTranslatedContent[id] ?? '') : '';
+});
 
 const {
   showPopup: showGlossaryPopup,
@@ -95,7 +102,41 @@ watch(
   }
 );
 
-// Watch for translation completion and refresh chapter
+//
+// // Watch for streaming translation completion: refresh chapter and clear
+// // streamingText so the editor switches from live tokens to backend content.
+// watch(
+//   () => translation.streamJobData,
+//   async (data) => {
+//     if (!data) return;
+//
+//     if (data.status === 'completed') {
+//       const chapterId = translation.currentChapterId;
+//       if (chapterId) {
+//         await chaptersStore.refresh(undefined, [chapterId]);
+//
+//         const updatedChapter = chaptersStore.chapters.find(ch => ch.id === chapterId);
+//
+//         if (editor.currentChapterId === chapterId && updatedChapter) {
+//           editor.loadChapter(updatedChapter);
+//         }
+//
+//         // Only clear streaming content if the backend actually has translated
+//         // content — otherwise keep the live tokens visible as a fallback.
+//         if (updatedChapter?.translatedContent) {
+//           translation.streamingTranslatedContent = '';
+//         }
+//       }
+//     }
+//
+//     if (data.status === 'failed') {
+//       console.error('[TranslationView] Stream translation failed:', data.errorMessage);
+//     }
+//   },
+//   { deep: true },
+// );
+
+// Watch for polling-based translation completion and refresh chapter
 watch(
   () => translation.currentJobData?.status,
   async (status, previousStatus) => {
@@ -121,5 +162,7 @@ watch(
     }
   }
 );
+
+
 
 </script>

@@ -9,7 +9,7 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { TranslationJobResponse } from '../types';
+import type { StreamJobResponse, TranslationJobResponse } from '../types';
 
 export class TranslationRealAPI {
 
@@ -17,6 +17,14 @@ export class TranslationRealAPI {
     chapterId: string
   ): Promise<APIResponse<{ jobId: string }>> {
     return apiClient.post<{ jobId: string }>('/translate-chapter', {
+      chapterId
+    });
+  }
+
+  async translateChapterStream(
+    chapterId: string
+  ): Promise<APIResponse<StreamJobResponse>> {
+    return apiClient.post<StreamJobResponse>('/translate-chapter-stream', {
       chapterId
     });
   }

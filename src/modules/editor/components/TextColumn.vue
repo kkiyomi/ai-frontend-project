@@ -6,12 +6,12 @@
       </div>
     </div>
     
-    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+    <div ref="columnContent" class="flex-1 flex flex-col p-4 overflow-y-auto" @scroll="onColumnScroll">
       <!-- Full Text Mode -->
       <div v-if="mode === 'full'" class="flex flex-col max-w-4xl">
         <div v-if="fullText" 
-             class="reading-text text-base-content leading-relaxed space-y-4 flex-1 overflow-y-auto"
-             v-html="displayFullText">
+             class="reading-text text-base-content leading-relaxed space-y-4 flex-1"
+             v-html="displayFormattedFullText">
         </div>
         <div v-else class="text-base-content/40 italic flex-1 flex items-center justify-center">
           {{ emptyMessage }}
@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import { useEditorStore } from '../store';
 import ParagraphEditor from './ParagraphEditor.vue';
 
@@ -107,23 +107,57 @@ const highlightedParagraphs = computed(() => {
   return props.paragraphs;
 });
 
-const displayFullText = computed(() => {
-  if (!props.fullText) return '';
+const displayFormattedFullText = computed(() => {
+  let fullText = props.fullText;
+
+  if (!fullText) return '';
+
+  fullText = fullText.replace(/\n+/g, "<br>");
   
   if (props.isHighlightEnabled) {
     // Use batch API if available (single element array)
     if (props.highlightTermsInTexts) {
-      const result = props.highlightTermsInTexts([props.fullText]);
-      return result[0] || props.fullText;
+      const result = props.highlightTermsInTexts([fullText]);
+      return result[0] || fullText;
     }
     
     // Fallback to single text API
     if (props.highlightTermsInText) {
-      return props.highlightTermsInText(props.fullText);
+      return props.highlightTermsInText(fullText);
     }
   }
   
-  return props.fullText;
+  return fullText;
 });
 
+// ── Auto-scroll for streaming content ──────────────────────────────────────
+// Scrolls to bottom on new content only if the user is already at the bottom.
+// If the user has scrolled up to read earlier content, we stay put.
+
+const columnContent = ref<HTMLElement | null>(null);
+const isAtBottom = ref(true);
+const SCROLL_THRESHOLD = 40; // px from bottom considered "at bottom"
+
+function onColumnScroll() {
+  const el = columnContent.value;
+  if (!el) return;
+  isAtBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
+}
+
+function scrollToBottom() {
+  const el = columnContent.value;
+  if (!el) return;
+  nextTick(() => {
+    el.scrollTop = el.scrollHeight;
+  });
+}
+
+watch(
+  () => props.fullText,
+  () => {
+    if (props.mode === 'full' && isAtBottom.value) {
+      scrollToBottom();
+    }
+  },
+);
 </script>

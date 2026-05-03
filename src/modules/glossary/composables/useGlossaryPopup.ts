@@ -43,12 +43,37 @@ export function useGlossaryPopup() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let x = rect.left + rect.width / 2 - tooltipWidth / 2;
-    let y = rect.bottom + margin;
+    // Vertically center relative to the term
+    const centerY = rect.top + rect.height / 2 - tooltipHeight / 2;
 
+    let x: number;
+    let y: number;
+
+    // Strategy: side-by-side preferred (right → left), fall back to below → above
+    const fitsRight = rect.right + margin + tooltipWidth <= viewportWidth - margin;
+    const fitsLeft = rect.left - margin - tooltipWidth >= margin;
+
+    if (fitsRight) {
+      // Place to the right of the term
+      x = rect.right + margin;
+      y = centerY;
+    } else if (fitsLeft) {
+      // Place to the left of the term
+      x = rect.left - margin - tooltipWidth;
+      y = centerY;
+    } else {
+      // Not enough horizontal room — place below, or above as fallback
+      x = rect.left + rect.width / 2 - tooltipWidth / 2;
+      y = rect.bottom + margin;
+      if (y + tooltipHeight > viewportHeight - margin) {
+        y = rect.top - tooltipHeight - margin;
+      }
+    }
+
+    // Clamp to viewport bounds
     if (x + tooltipWidth > viewportWidth - margin) x = viewportWidth - tooltipWidth - margin;
     if (x < margin) x = margin;
-    if (y + tooltipHeight > viewportHeight - margin) y = rect.top - tooltipHeight - margin;
+    if (y + tooltipHeight > viewportHeight - margin) y = viewportHeight - tooltipHeight - margin;
     if (y < margin) y = margin;
 
     return { x, y };

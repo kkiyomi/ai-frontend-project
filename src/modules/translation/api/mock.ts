@@ -9,7 +9,7 @@
  */
 
 import type { APIResponse } from '@/modules/core';
-import type { TranslationJobResponse } from '../types';
+import type { StreamJobResponse, TranslationJobResponse } from '../types';
 
 const simulateDelay = (min = 300, max = 1000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -73,6 +73,40 @@ export class TranslationMockAPI {
     return {
       success: true,
       data: { jobId }
+    };
+  }
+
+  async translateChapterStream(
+    chapterId: string
+  ): Promise<APIResponse<StreamJobResponse>> {
+    await simulateDelay(300, 600);
+
+    if (simulateFailure(0.05)) {
+      return {
+        success: false,
+        error: 'Failed to start streaming translation'
+      };
+    }
+
+    const jobId = `mock-stream-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const streamUrl = `http://localhost:8765/stream/${jobId}`;
+
+    const job: MockJob = {
+      jobId,
+      chapterId,
+      status: 'processing',
+      progress: 0,
+      totalParagraphs: 10,
+      processedParagraphs: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.mockJobs.set(jobId, job);
+
+    return {
+      success: true,
+      data: { jobId, streamUrl, completed: false }
     };
   }
 
