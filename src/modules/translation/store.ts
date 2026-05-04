@@ -33,6 +33,7 @@ import { ref, computed } from 'vue';
 import { translationAPI } from './api';
 import { connectSSE, type SSEStreamHandle } from './sseClient';
 import { useBillingStore } from '@/modules/billing';
+import { useErrorStore } from '@/modules/core/stores/errorStore';
 import type {
   TranslationState,
   ChapterTranslationState,
@@ -227,7 +228,7 @@ export const useTranslationStore = defineStore('translation', () => {
         // Update isTranslating based on job status
         if (jobData.status === 'processing' || jobData.status === 'pending') {
           state.isTranslating = true;
-        } else if (jobData.status === 'completed' || jobData.status === 'failed') {
+        } else if (jobData.status === 'completed') {
           state.isTranslating = false;
 
           // Stop polling interval but keep job data for components
@@ -237,6 +238,20 @@ export const useTranslationStore = defineStore('translation', () => {
             pollingIntervals.delete(chapterId);
           }
           state.jobId = null;
+        } else if (jobData.status === 'failed') {
+          state.isTranslating = false;
+
+          // Stop polling interval but keep job data for components
+          const interval = pollingIntervals.get(chapterId);
+          if (interval) {
+            clearInterval(interval);
+            pollingIntervals.delete(chapterId);
+          }
+          state.jobId = null;
+
+          // Show error to the user
+          const errMsg = jobData.errorMessage || 'Translation job failed';
+          useErrorStore().openErrorModal(errMsg, 'Translation job failed');
         }
       } else {
         console.warn('[Translation Store] Failed to poll job status:', response.error);
@@ -266,13 +281,16 @@ export const useTranslationStore = defineStore('translation', () => {
           state.translationProgress = 100;
           state.streamJobData = { jobId, status: 'completed', progress: 100 };
         } else if (jobData.status === 'failed') {
-          console.error('[StreamTx] Fallback poll: job failed:', jobData.errorMessage);
+          const errMsg = jobData.errorMessage ?? 'Translation job failed';
+          console.error('[StreamTx] Fallback poll: job failed:', errMsg);
           state.streamJobData = {
             jobId,
             status: 'failed',
             progress: jobData.progress,
-            errorMessage: jobData.errorMessage ?? 'Translation job failed',
+            errorMessage: errMsg,
           };
+          // Show error to the user
+          useErrorStore().openErrorModal(errMsg, 'Translation job failed');
         } else {
           // Still in progress — start periodic polling
           console.log('[StreamTx] Fallback poll: job still %s, starting interval', jobData.status);
@@ -499,6 +517,8 @@ export const useTranslationStore = defineStore('translation', () => {
               errorMessage: errMsg,
             };
             handleCleanup();
+            // Show error to the user
+            useErrorStore().openErrorModal(errMsg, 'Translation job failed');
           },
 
           onClose: () => {
