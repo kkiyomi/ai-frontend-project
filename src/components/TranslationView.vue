@@ -102,7 +102,26 @@ watch(
   }
 );
 
+// When streaming translation completes (or chapter is already translated),
+// refetch the chapter from the backend and reload the editor.
+watch(
+  () => translation.streamJobData,
+  async (data) => {
+    if (!data) return;
 
+    if (data.status === 'completed') {
+      const chapterId = translation.currentChapterId;
+      if (chapterId) {
+        await chaptersStore.refresh(undefined, [chapterId]);
 
-
+        if (editor.currentChapterId === chapterId) {
+          const updatedChapter = chaptersStore.chapters.find(ch => ch.id === chapterId);
+          if (updatedChapter) {
+            editor.loadChapter(updatedChapter);
+          }
+        }
+      }
+    }
+  },
+);
 </script>
