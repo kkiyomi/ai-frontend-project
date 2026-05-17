@@ -40,6 +40,7 @@
             type="checkbox"
             :checked="editor.layoutMode === 'full'"
             @change="editor.toggleLayoutMode()"
+            :disabled="isTranslating"
             autocomplete="off"
           />
           <!-- Icon for Split Mode (Columns/Dual Pane) -->
@@ -145,6 +146,13 @@ const isTranslating = computed(() => translationStore.isTranslating);
 watch(currentChapterId, (id) => {
   translationStore.setCurrentChapterId(id);
 }, { immediate: true });
+
+// When translation starts, force full layout mode (split mode doesn't work with streaming)
+watch(isTranslating, (translating) => {
+  if (translating) {
+    editor.layoutMode = 'full';
+  }
+});
 
 const allSeries = computed(() =>
   seriesStore.series.map((s) => ({
