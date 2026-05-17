@@ -17,7 +17,7 @@
  * const translation = useTranslationStore();
  *
  * // Translate an entire chapter
- * const translations = await translation.translateChapter(paragraphs, glossaryContext);
+ * const result = await translation.translateChapterStream(chapterId);
  *
  * // Watch translation progress
  * watch(translation.translationProgress, (progress) => {

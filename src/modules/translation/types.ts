@@ -18,20 +18,9 @@ export interface TranslationState {
 export interface ChapterTranslationState {
   isTranslating: boolean;
   translationProgress: number;
-  jobData: TranslationJobResponse | null;
   streamJobData: StreamJobData | null;
   streamingContent: string;
-  jobId: string | null;
   activeStreamJobId: string | null;
-}
-
-// Add these interfaces to the existing types
-
-export interface TranslationJobResponse {
-  jobId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  progress: number;
-  errorMessage?: string;
 }
 
 // ── Streaming Translation Types ──────────────────────────────────────────

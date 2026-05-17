@@ -120,7 +120,6 @@ export function connectSSE(
     try {
       const headers: Record<string, string> = {
         Accept: 'text/event-stream',
-        'Cache-Control': 'no-cache',
       };
 
       if (options?.authorization) {
