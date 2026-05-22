@@ -10,22 +10,16 @@
       <SidebarMain />
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Translation View (always full width) -->
+      <div class="flex-1 flex flex-row overflow-hidden">
+        <!-- Translation View (shrinks when glossary panel is visible) -->
         <TranslationView />
 
-        <!-- Glossary Panel Overlay -->
-        <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"
-          @click="closeGlossaryIfClickedOutside">
-          <!-- Glossary Panel -->
-          <div
-            class="w-80 h-full bg-base-100 border-l border-base-300 shadow-2xl transform transition-transform duration-300 ease-in-out"
-            @click.stop>
-            <GlossaryPanel
-              :currentChapter="currentChapter"
-              :currentSeries="currentSeries"
-            />
-          </div>
+        <!-- Glossary Side Panel (side-by-side, not overlay) -->
+        <div v-if="isGlossaryVisible" class="flex-shrink-0 w-80 border-l border-base-300">
+          <GlossaryPanel
+            :currentChapter="currentChapter"
+            :currentSeries="currentSeries"
+          />
         </div>
       </div>
     </div>
@@ -80,12 +74,6 @@ onMounted(async () => {
   await billingStore.fetchSubscription();
   await billingStore.loadPlans();
 });
-
-const closeGlossaryIfClickedOutside = (event: Event) => {
-  if (event.target === event.currentTarget) {
-    glossaryStore.toggleVisibility();
-  }
-};
 
 // Watch for chapter changes and reload glossary
 watch(() => currentChapter.value?.id, () => {
