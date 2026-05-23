@@ -129,6 +129,7 @@
           v-if="currentChapter"
           :chapterId="currentChapterId"
           :disabled="!currentChapter"
+          :hasExistingTerms="hasExistingTerms"
         />
 
       </div>
@@ -155,6 +156,7 @@ import { AvatarMenu, useProfileStore } from "@/modules/profile";
 import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
 import { useEditorStore } from "@/modules/editor";
+import { useGlossaryStore } from "@/modules/glossary";
 import { useSeriesWithChapters, useChapterNavigation } from '@/composables';
 
 // Import translation module components and store
@@ -214,11 +216,21 @@ onBeforeUnmount(() => {
 // Use translation store
 const translationStore = useTranslationStore();
 const billingStore = useBillingStore();
+const glossaryStore = useGlossaryStore();
 
 const currentChapter = computed(() => chaptersStore.currentChapter);
 const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const allChapters = computed(() => chaptersStore.chapters);
 const isTranslating = computed(() => translationStore.isTranslating);
+
+/** True when glossary terms exist specifically for the current chapter (survives page reload). */
+const hasExistingTerms = computed(() => {
+  const chapterId = currentChapterId.value;
+  if (!chapterId) return false;
+  return glossaryStore.terms.some(
+    t => t.chapterId === chapterId || t.chapterIds?.includes(chapterId),
+  );
+});
 
 // Keep the translation store's currentChapterId in sync with navigation
 // so backward-compat getters (isTranslating, translationProgress, etc.)

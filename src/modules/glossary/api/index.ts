@@ -11,7 +11,7 @@
  * The decision is made at runtime based on environment configuration.
  */
 
-import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
+import { shouldUseMockAPI, apiBaseURL, type CacheOptions } from '@/modules/core';
 import { GlossaryMockAPI } from './mock';
 import { GlossaryRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
@@ -53,9 +53,14 @@ class GlossaryAPIService {
     return this.apiInstance!;
   }
 
-  async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
+  invalidateCache(): void {
+    // Fire-and-forget: the API layer is already initialized or will be
+    this.initializeAPI().then(() => this.apiInstance!.invalidateCache());
+  }
+
+  async getGlossaryTerms(seriesId?: string, chapterId?: string, cacheOptions?: CacheOptions): Promise<APIResponse<GlossaryTerm[]>> {
     const api = await this.getAPI();
-    return api.getGlossaryTerms(seriesId, chapterId);
+    return api.getGlossaryTerms(seriesId, chapterId, cacheOptions);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {

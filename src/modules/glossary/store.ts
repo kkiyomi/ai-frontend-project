@@ -32,6 +32,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { glossaryAPI } from './api';
 import type { GlossaryTerm, GlossaryItem } from './types';
+import type { CacheOptions } from '@/modules/core';
 
 export const useGlossaryStore = defineStore('glossary', () => {
   // State
@@ -109,11 +110,17 @@ export const useGlossaryStore = defineStore('glossary', () => {
   }
 
   // Actions
-  function getTermsByContext(seriesId: string, chapterId?: string) {
-    return getFilteredTerms(terms.value, seriesId, chapterId);
+
+  function invalidateCache() {
+    glossaryAPI.invalidateCache();
   }
 
-  async function loadTerms(seriesId?: string, chapterId?: string) {
+  /** Return terms filtered by series context (used by exporter). */
+  function getTermsByContext(seriesId?: string): GlossaryTerm[] {
+    return getFilteredTerms(terms.value, seriesId, undefined, true);
+  }
+
+  async function loadTerms(seriesId?: string, chapterId?: string, cacheOptions?: CacheOptions) {
     if (!seriesId) {
       return;
     }
@@ -124,7 +131,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     currentChapterId.value = chapterId;
 
     try {
-      const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId);
+      const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId, cacheOptions);
       if (response.success && response.data) {
         const filteredTerms = getFilteredTerms(response.data, seriesId, chapterId);
         filteredTerms.forEach(newTerm => {
@@ -222,11 +229,11 @@ export const useGlossaryStore = defineStore('glossary', () => {
     );
   }
 
-  async function termExistsInSeries(termText: string): Promise<boolean> {
+  async function termExistsInSeries(termText: string, cacheOptions?: CacheOptions): Promise<boolean> {
     if (!currentSeriesId.value) return false;
 
     try {
-      const response = await glossaryAPI.getGlossaryTerms(currentSeriesId.value);
+      const response = await glossaryAPI.getGlossaryTerms(currentSeriesId.value, undefined, cacheOptions);
       const seriesTerms = response.success && response.data ? response.data : [];
       return seriesTerms.some(term => term.term.toLowerCase() === termText.toLowerCase());
     } catch (error) {
@@ -446,6 +453,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     
     // Actions
     getTermsByContext,
+    invalidateCache,
     loadTerms,
     addTerm,
     updateTerm,

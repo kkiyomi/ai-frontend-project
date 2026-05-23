@@ -8,13 +8,18 @@
  * glossary endpoints - each feature module owns its own API definitions.
  */
 
-import { apiClient, type APIResponse } from '@/modules/core';
+import { apiClient, type CacheOptions } from '@/modules/core';
+import type { APIResponse } from '@/modules/core';
 import type { GlossaryTerm, GlossaryImportResponse } from '../types';
 
 
 export class GlossaryRealAPI {
 
-  async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
+  invalidateCache(): void {
+    apiClient.invalidate('/glossary-terms');
+  }
+
+  async getGlossaryTerms(seriesId?: string, chapterId?: string, cacheOptions?: CacheOptions): Promise<APIResponse<GlossaryTerm[]>> {
     const params = new URLSearchParams();
 
     if (chapterId) {
@@ -28,7 +33,7 @@ export class GlossaryRealAPI {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return apiClient.get<GlossaryTerm[]>(`/glossary-terms${query}`);
+    return apiClient.get<GlossaryTerm[]>(`/glossary-terms${query}`, cacheOptions);
   }
 
   async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {

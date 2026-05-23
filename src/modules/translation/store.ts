@@ -189,10 +189,14 @@ export const useTranslationStore = defineStore('translation', () => {
    * Frontend: enable DEBUG=translation:* in browser console to see SSE events.
    * Backend:  docker compose logs -f ai-worker ai-stream
    */
+  /** Monotomically increasing call counter — each translateChapterStream call gets a unique id. */
+  let _callSeq = 0;
+
   async function translateChapterStream(
     chapterId: string,
     mode: TranslationMode = 'full',
   ): Promise<{ jobId: string } | null> {
+    const callId = ++_callSeq;
     const billingStore = useBillingStore();
     if (!billingStore.hasFeature('translation')) {
       console.error('[StreamTx] Billing check failed — translation feature not available');
@@ -200,9 +204,14 @@ export const useTranslationStore = defineStore('translation', () => {
     }
 
     const state = _getOrCreateState(chapterId);
+    const prevMode = state.mode;
     state.mode = mode;
+    console.log('[DEBUG] [call#%d] translateChapterStream — chapter=%s mode=%s prevMode=%s isTranslating=%s', callId, chapterId, mode, prevMode, state.isTranslating);
 
     if (state.isTranslating) {
+      if (mode !== prevMode && prevMode !== null) {
+        console.warn('[DEBUG] [call#%d] *** MODE OVERWRITTEN! chapter=%s prevMode=%s overwrittenTo=%s (subsequent call before SSE completed)', callId, chapterId, prevMode, mode);
+      }
       console.log('[StreamTx] Chapter %s streaming translation already in progress, skipping', chapterId);
       return null;
     }
@@ -225,7 +234,7 @@ export const useTranslationStore = defineStore('translation', () => {
       }
 
       const { jobId, streamUrl, completed } = response.data;
-      console.log('[StreamTx] POST OK — jobId=%s streamUrl=%s completed=%s', jobId, streamUrl, completed);
+      console.log('[StreamTx] POST OK — jobId=%s streamUrl=%s completed=%s state.mode=%s', jobId, streamUrl, completed, state.mode);
 
       // ── Chapter already done: skip SSE, mark completed immediately ──
       if (completed) {
@@ -278,16 +287,21 @@ export const useTranslationStore = defineStore('translation', () => {
           },
 
           onCompleted: () => {
+            console.log('[DEBUG] [call#%d] onCompleted — chapter=%s jobId=%s state.mode=%s', callId, chapterId, jobId, state.mode);
             console.log('[StreamTx] completed event — translation done');
             state.translationProgress = 100;
             state.streamJobData = { jobId, status: 'completed', progress: 100 };
             if (state.mode === 'extract_only') {
+              console.log('[DEBUG] [call#%d] onCompleted — setting hasFreshExtraction = true', callId);
               state.hasFreshExtraction = true;
+            } else {
+              console.warn('[DEBUG] [call#%d] onCompleted — CONDITION FAILED! state.mode=%s expected=extract_only', callId, state.mode);
             }
             handleCleanup();
           },
 
           onError: (data) => {
+            console.warn('[DEBUG] [call#%d] onError — chapter=%s jobId=%s state.mode=%s', callId, chapterId, jobId, state.mode);
             const errMsg = typeof data.error === 'string'
               ? data.error
               : 'Stream translation failed';

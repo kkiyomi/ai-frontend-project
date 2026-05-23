@@ -1,20 +1,20 @@
 <!--
   TranslationToolbar - Toolbar with translation actions
 
-  Provides controls for translation operations with mode selection:
-  - Full Auto (one-click extract + translate)
-  - Two-Step (extract first, then translate with reviewed terms)
+  Always-visible split button:
+  - Main click → smart Translate Now (auto-picks full / translate_only)
+  - Dropdown → Extract Glossary (disabled when terms already exist)
 -->
 <template>
   <div class="flex items-center space-x-2">
-    <!-- Mode A: Direct "Translate Now" split button (no fresh extraction yet) -->
+    <!-- Always-visible split button -->
     <div
-      v-if="showTranslateNowButton && !hasFreshExtraction"
+      v-if="showTranslateNowButton"
       class="dropdown dropdown-end"
     >
       <div class="join">
         <button
-          @click="translateNow('full')"
+          @click="translateNow"
           :disabled="store.isTranslating || disabled"
           class="btn btn-secondary btn-sm join-item disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -31,35 +31,22 @@
       </div>
       <ul
         tabindex="0"
-        class="dropdown-content menu bg-base-100 rounded-box z-10 w-64 p-2 shadow-sm"
+        class="dropdown-content menu bg-base-100 rounded-box z-10 w-56 p-2 shadow-sm"
       >
         <li>
-          <a @click="translateNow('full')" class="flex flex-col items-start gap-0">
-            <span>Full Auto Translate</span>
-            <span class="text-xs text-base-content/40">Extract + translate in one step</span>
-          </a>
-        </li>
-        <li>
-          <a @click="translateNow('extract_only')" class="flex flex-col items-start gap-0">
-            <span>Extract Glossary First…</span>
-            <span class="text-xs text-base-content/40">Review terms before translating</span>
+          <a
+            @click="extractGlossary"
+            :class="{ 'opacity-40 pointer-events-none': extractDisabled }"
+            class="flex flex-col items-start gap-0"
+          >
+            <span>Extract Glossary</span>
+            <span class="text-xs text-base-content/40">Extract terms only, no translation</span>
           </a>
         </li>
       </ul>
     </div>
 
-    <!-- Mode B post-extraction state -->
-    <template v-if="showTranslateNowButton && hasFreshExtraction">
-      <button
-        @click="translateNow('translate_only')"
-        :disabled="store.isTranslating || disabled"
-        class="btn btn-secondary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Translate with Reviewed Terms
-      </button>
-    </template>
-
-    <!-- Existing retranslate / clear buttons (unchanged) -->
+    <!-- Retranslate / clear buttons -->
     <button
       v-if="showRetranslateButton"
       @click="$emit('retranslate')"
@@ -95,6 +82,7 @@ interface Props {
   showTranslateNowButton?: boolean;
   showRetranslateButton?: boolean;
   showClearButton?: boolean;
+  hasExistingTerms?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -103,6 +91,7 @@ const props = withDefaults(defineProps<Props>(), {
   showTranslateNowButton: true,
   showRetranslateButton: false,
   showClearButton: false,
+  hasExistingTerms: false,
 });
 
 defineEmits<{
@@ -110,36 +99,66 @@ defineEmits<{
   clear: [];
 }>();
 
-const hasFreshExtraction = computed(() => {
+/** Extract Glossary dropdown item is disabled when terms already exist. */
+const extractDisabled = computed(() => {
   if (!props.chapterId) return false;
-  const state = store.chapterStates[props.chapterId];
-  return state?.hasFreshExtraction ?? false;
+  return props.hasExistingTerms;
 });
 
-const translateNow = async (mode: TranslationMode = 'full') => {
+/**
+ * Smart Translate Now — auto-picks the right mode:
+ * - Terms already exist → translate_only (skip extraction)
+ * - No terms            → full (extract + translate)
+ */
+const translateNow = async () => {
   const chapterId = props.chapterId;
   if (!chapterId) return;
 
-  // Check if the user has access to translation feature
   if (!billingStore.hasFeature('translation')) {
     billingStore.openUpgradeModal({ featureName: 'translation' });
     return;
   }
+  if (!billingStore.canConsume('translation_tokens_limit')) {
+    billingStore.openLimitUpgradeModal('translation_tokens_limit');
+    return;
+  }
 
-  // Check if the user has translation tokens available
+  const mode: TranslationMode = props.hasExistingTerms ? 'translate_only' : 'full';
+  try {
+    const result = await store.translateChapterStream(chapterId, mode);
+    if (result) {
+      console.log(`Streaming ${mode} started:`, result.jobId);
+    }
+  } catch (error) {
+    console.error(`Error starting ${mode}:`, error);
+  }
+};
+
+/** Extract glossary terms only — no translation. */
+const extractGlossary = async () => {
+  const chapterId = props.chapterId;
+  if (!chapterId || extractDisabled.value) return;
+  console.log('[DEBUG] extractGlossary CALLED — chapterId=%s', chapterId);
+
+  if (!billingStore.hasFeature('translation')) {
+    billingStore.openUpgradeModal({ featureName: 'translation' });
+    return;
+  }
   if (!billingStore.canConsume('translation_tokens_limit')) {
     billingStore.openLimitUpgradeModal('translation_tokens_limit');
     return;
   }
 
   try {
-    const result = await store.translateChapterStream(chapterId, mode);
-
+    console.log('[DEBUG] extractGlossary calling translateChapterStream — chapterId=%s mode=extract_only', chapterId);
+    const result = await store.translateChapterStream(chapterId, 'extract_only');
     if (result) {
-      console.log(`Streaming ${mode} started:`, result.jobId);
+      console.log('[DEBUG] Extraction started — jobId=%s', result.jobId);
+    } else {
+      console.warn('[DEBUG] extractGlossary — translateChapterStream returned null!');
     }
   } catch (error) {
-    console.error(`Error starting ${mode}:`, error);
+    console.error('[DEBUG] Error starting extraction:', error);
   }
 };
 </script>

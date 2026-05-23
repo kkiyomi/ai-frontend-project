@@ -14,7 +14,7 @@ interface CacheEntry<T> {
   ttl: number;
 }
 
-interface CacheOptions {
+export interface CacheOptions {
   ttl?: number; // Time to live in milliseconds
   bypassCache?: boolean;
   tags?: string[]; // For cache invalidation by tag

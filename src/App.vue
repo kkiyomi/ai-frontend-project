@@ -84,21 +84,21 @@ watch(() => currentChapter.value?.id, () => {
   }
 });
 
-// Watch for extraction completion → auto-reload glossary + open panel
+// Watch for extraction completion on current chapter → auto-reload glossary + open panel
+// Uses targeted path watch instead of deep-watching all chapter states.
 watch(
-  () => translationStore.chapterStates,
-  (states) => {
-    for (const state of Object.values(states)) {
-      if (state?.hasFreshExtraction) {
-        glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
-        if (!glossaryStore.isGlossaryVisible) {
-          glossaryStore.toggleVisibility();
-        }
-        break;
+  () => {
+    const chapterId = currentChapter.value?.id;
+    return chapterId ? translationStore.chapterStates[chapterId]?.hasFreshExtraction : undefined;
+  },
+  (fresh) => {
+    if (fresh) {
+      glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id, { bypassCache: true });
+      if (!glossaryStore.isGlossaryVisible) {
+        glossaryStore.toggleVisibility();
       }
     }
   },
-  { deep: true },
 );
 
 // Watch for route prop changes and sync store (as backup to route guard)
