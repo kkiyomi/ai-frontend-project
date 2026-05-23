@@ -291,11 +291,9 @@ export const useTranslationStore = defineStore('translation', () => {
             console.log('[StreamTx] completed event — translation done');
             state.translationProgress = 100;
             state.streamJobData = { jobId, status: 'completed', progress: 100 };
-            if (state.mode === 'extract_only') {
+            if (state.mode === 'extract_only' || state.mode === 'full') {
               console.log('[DEBUG] [call#%d] onCompleted — setting hasFreshExtraction = true', callId);
               state.hasFreshExtraction = true;
-            } else {
-              console.warn('[DEBUG] [call#%d] onCompleted — CONDITION FAILED! state.mode=%s expected=extract_only', callId, state.mode);
             }
             handleCleanup();
           },
