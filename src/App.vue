@@ -45,6 +45,7 @@ import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
+import { useTranslationStore } from '@/modules/translation';
 import { AnnouncementBannerManager } from '@/modules/announcements';
 import { useSeriesWithChapters } from '@/composables';
 import { useSettingsRouteSync } from '@/composables/useSettingsRouteSync';
@@ -60,6 +61,7 @@ const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const glossaryStore = useGlossaryStore();
+const translationStore = useTranslationStore();
 const billingStore = useBillingStore();
 const errorStore = useErrorStore();
 
@@ -81,6 +83,23 @@ watch(() => currentChapter.value?.id, () => {
     glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
+
+// Watch for extraction completion → auto-reload glossary + open panel
+watch(
+  () => translationStore.chapterStates,
+  (states) => {
+    for (const state of Object.values(states)) {
+      if (state?.hasFreshExtraction) {
+        glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
+        if (!glossaryStore.isGlossaryVisible) {
+          glossaryStore.toggleVisibility();
+        }
+        break;
+      }
+    }
+  },
+  { deep: true },
+);
 
 // Watch for route prop changes and sync store (as backup to route guard)
 watch(() => props.seriesId, (newSeriesId) => {

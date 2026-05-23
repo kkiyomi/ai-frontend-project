@@ -4,6 +4,8 @@
  * Domain types for the Translation module.
  */
 
+export type TranslationMode = 'full' | 'extract_only' | 'translate_only';
+
 export interface TranslationState {
   currentChapterId: string | null;
   isTranslating: boolean;
@@ -21,6 +23,10 @@ export interface ChapterTranslationState {
   streamJobData: StreamJobData | null;
   streamingContent: string;
   activeStreamJobId: string | null;
+  /** Which mode was triggered for this chapter's current/last job. */
+  mode: TranslationMode | null;
+  /** True after an extract_only job completes — signals user can review & translate. */
+  hasFreshExtraction: boolean;
 }
 
 // ── Streaming Translation Types ──────────────────────────────────────────

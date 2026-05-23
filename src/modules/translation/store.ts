@@ -38,6 +38,7 @@ import type {
   TranslationState,
   ChapterTranslationState,
   StreamJobData,
+  TranslationMode,
 } from './types';
 
 export const useTranslationStore = defineStore('translation', () => {
@@ -74,6 +75,8 @@ export const useTranslationStore = defineStore('translation', () => {
         streamJobData: null,
         streamingContent: '',
         activeStreamJobId: null,
+        mode: null,
+        hasFreshExtraction: false,
       };
     }
     return chapterStates.value[chapterId];
@@ -188,6 +191,7 @@ export const useTranslationStore = defineStore('translation', () => {
    */
   async function translateChapterStream(
     chapterId: string,
+    mode: TranslationMode = 'full',
   ): Promise<{ jobId: string } | null> {
     const billingStore = useBillingStore();
     if (!billingStore.hasFeature('translation')) {
@@ -196,6 +200,7 @@ export const useTranslationStore = defineStore('translation', () => {
     }
 
     const state = _getOrCreateState(chapterId);
+    state.mode = mode;
 
     if (state.isTranslating) {
       console.log('[StreamTx] Chapter %s streaming translation already in progress, skipping', chapterId);
@@ -210,7 +215,7 @@ export const useTranslationStore = defineStore('translation', () => {
     console.log('[StreamTx] Requesting stream for chapter %s…', chapterId);
 
     try {
-      const response = await translationAPI.translateChapterStream(chapterId);
+      const response = await translationAPI.translateChapterStream(chapterId, mode);
 
       if (!response.success || !response.data) {
         console.error('[StreamTx] POST /translate-chapter-stream failed:', response.error);
@@ -276,6 +281,9 @@ export const useTranslationStore = defineStore('translation', () => {
             console.log('[StreamTx] completed event — translation done');
             state.translationProgress = 100;
             state.streamJobData = { jobId, status: 'completed', progress: 100 };
+            if (state.mode === 'extract_only') {
+              state.hasFreshExtraction = true;
+            }
             handleCleanup();
           },
 
@@ -314,6 +322,26 @@ export const useTranslationStore = defineStore('translation', () => {
       abortStream(chapterId);
       return null;
     }
+  }
+
+  // ── Mode convenience wrappers ────────────────────────────────────────────
+
+  /**
+   * Extract glossary terms only (no translation). After completion,
+   * the user can review/edit terms in the glossary panel, then call
+   * `translateWithReviewedTerms()` to translate using those terms.
+   */
+  async function extractGlossaryOnly(chapterId: string): Promise<{ jobId: string } | null> {
+    return translateChapterStream(chapterId, 'extract_only');
+  }
+
+  /**
+   * Translate a chapter using pre-existing glossary terms only,
+   * skipping LLM re-extraction. Use after reviewing terms extracted
+   * via `extractGlossaryOnly()`.
+   */
+  async function translateWithReviewedTerms(chapterId: string): Promise<{ jobId: string } | null> {
+    return translateChapterStream(chapterId, 'translate_only');
   }
 
   // ── Glossary ────────────────────────────────────────────────────────────
@@ -356,9 +384,17 @@ export const useTranslationStore = defineStore('translation', () => {
     streamJobData,
     streamingTranslatedContent,
 
+    // Convenience getters
+    canTranslateWithReviewedTerms: (chapterId: string) => {
+      const state = _getState(chapterId);
+      return state?.hasFreshExtraction === true && !state?.isTranslating;
+    },
+
     // Actions
     setCurrentChapterId,
     translateChapterStream,
+    extractGlossaryOnly,
+    translateWithReviewedTerms,
     suggestGlossaryTerms,
     clearOngoingTranslations,
     abortStream,

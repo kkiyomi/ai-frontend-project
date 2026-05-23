@@ -23,7 +23,8 @@ const simulateFailure = (failureRate = 0.05): boolean => {
 export class TranslationMockAPI {
 
   async translateChapterStream(
-    chapterId: string
+    chapterId: string,
+    mode: string = 'full'
   ): Promise<APIResponse<StreamJobResponse>> {
     await simulateDelay(300, 600);
 

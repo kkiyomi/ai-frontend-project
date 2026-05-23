@@ -54,10 +54,11 @@ class TranslationAPIService {
   }
 
   async translateChapterStream(
-    chapterId: string
+    chapterId: string,
+    mode: string = 'full'
   ): Promise<APIResponse<StreamJobResponse>> {
     const api = await this.getAPI();
-    return api.translateChapterStream(chapterId);
+    return api.translateChapterStream(chapterId, mode);
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {

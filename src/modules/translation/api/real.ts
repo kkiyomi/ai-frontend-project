@@ -14,10 +14,12 @@ import type { StreamJobResponse } from '../types';
 export class TranslationRealAPI {
 
   async translateChapterStream(
-    chapterId: string
+    chapterId: string,
+    mode: string = 'full'
   ): Promise<APIResponse<StreamJobResponse>> {
     return apiClient.post<StreamJobResponse>('/translate-chapter-stream', {
-      chapterId
+      chapterId,
+      mode,
     });
   }
 
