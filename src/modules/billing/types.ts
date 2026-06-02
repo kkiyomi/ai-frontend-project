@@ -80,6 +80,7 @@ export const FEATURE_KEYS = {
   seriesLimit: 'series_limit',
   chapterLimit: 'chapter_limit',
   glossaryLimit: 'glossary_limit',
+  customThemes: 'custom_themes',
 } as const;
 
 // Type for known feature keys

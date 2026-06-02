@@ -1,8 +1,8 @@
 <template>
-  <div class="border border-gray-200 rounded-lg p-6 bg-white shadow-sm space-y-6">
+  <div class="card card-bordered shadow-sm bg-base-100 p-6 space-y-6">
 
     <!-- Title -->
-    <h2 class="text-lg font-medium text-gray-900">
+    <h2 class="text-lg font-medium text-base-content">
       Upgrade to {{ nextPlan.name }}
     </h2>
 
@@ -12,25 +12,25 @@
       <div class="space-y-4">
 
         <!-- Price -->
-        <div class="text-4xl font-semibold text-gray-900">
+         <div class="text-4xl font-semibold text-base-content">
           ${{ formatNextPlan().price }}
-          <span class="text-base font-normal text-gray-500">
+           <span class="text-base font-normal text-base-content/70">
             per month
           </span>
         </div>
-        <div class="text-sm text-gray-500 -mt-2">billed {{ formatNextPlan().period }}</div>
+         <div class="text-sm text-base-content/70 -mt-2">billed {{ formatNextPlan().period }}</div>
 
         <!-- Current Plan -->
-        <div class="text-sm text-gray-600">
+         <div class="text-sm text-base-content/80">
           Your current plan:
-          <span class="font-medium text-gray-900">
+           <span class="font-medium text-base-content">
             {{ currentPlan.name }}
           </span>
         </div>
 
         <!-- Button -->
         <button
-          class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          class="w-full py-2 btn btn-primary"
           @click="goToProduct"
         >
           Upgrade
@@ -39,7 +39,7 @@
 
       <!-- Right Side -->
       <div>
-        <h3 class="text-sm font-medium text-gray-700 mb-3">Included:</h3>
+         <h3 class="text-sm font-medium text-base-content mb-3">Included:</h3>
 
         <ul class="space-y-2 text-sm">
 
@@ -51,7 +51,7 @@
           >
             <span
               class="inline-flex items-center"
-              :class="feat.enabled ? 'text-green-600' : 'text-gray-400'"
+               :class="feat.enabled ? 'text-success' : 'text-base-content/30'"
               aria-hidden="true"
             >
               <!-- Check icon -->
@@ -84,8 +84,8 @@
             </span>
 
             <div class="flex-1">
-              <div class="text-gray-800 font-medium">{{ feat.name }}</div>
-              <div v-if="feat.description" class="text-sm text-gray-500">{{ feat.description }}</div>
+               <div class="text-base-content font-medium">{{ feat.name }}</div>
+               <div v-if="feat.description" class="text-sm text-base-content/70">{{ feat.description }}</div>
             </div>
           </li>
 
@@ -96,7 +96,7 @@
             class="flex items-start justify-between"
           >
             <div class="flex items-start gap-2 flex-1">
-              <span class="text-green-600 font-medium">
+               <span class="text-success font-medium">
                 <svg
                   class="w-4 h-4"
                   viewBox="0 0 24 24"
@@ -110,8 +110,8 @@
                 </svg>
               </span>
               <div class="flex-1">
-                <div class="text-gray-800 font-medium">{{ limit.name }}</div>
-                <div v-if="limit.description" class="text-sm text-gray-500">{{ limit.description }}</div>
+                 <div class="text-base-content font-medium">{{ limit.name }}</div>
+                 <div v-if="limit.description" class="text-sm text-base-content/70">{{ limit.description }}</div>
               </div>
             </div>
           </li>

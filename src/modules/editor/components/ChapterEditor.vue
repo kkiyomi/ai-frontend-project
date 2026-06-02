@@ -22,13 +22,13 @@
   - Core API for data persistence
 -->
 <template>
-  <div class="flex-1 flex flex-col bg-white overflow-hidden">
+  <div class="flex-1 flex flex-col bg-base-100 overflow-hidden">
 
     <div v-if="!currentChapter" class="flex-1 flex items-center justify-center">
       <div class="text-center">
         <div class="text-6xl mb-4">📖</div>
-        <h3 class="text-xl font-medium text-secondary-900 mb-2">Ready to Edit</h3>
-        <p class="text-secondary-500">Select a chapter from the sidebar to get started</p>
+        <h3 class="text-xl font-medium text-base-content mb-2">Ready to Edit</h3>
+        <p class="text-base-content/70">Select a chapter from the sidebar to get started</p>
       </div>
     </div>
 
@@ -48,6 +48,7 @@
           emptyMessage="No original text yet"
           placeholder="Enter original text..."
           :highlightTermsInText="highlightFn"
+          :highlightTermsInTexts="highlightFnBatch"
           :isHighlightEnabled="isHighlightEnabled"
         />
 
@@ -55,14 +56,15 @@
         <TextColumn
           title="Translation"
           :paragraphs="currentChapter.translatedParagraphs"
-          :fullText="layoutMode === 'full' ? getFullTranslatedText() : undefined"
+          :fullText="layoutMode === 'full' || streamingText ? getFullTranslatedText() : undefined"
           :mode="layoutMode === 'split' ? 'paragraph' : 'full'"
           type="translated"
           :editingParagraphs="editingTranslatedParagraphs"
-          :showEditButton="layoutMode === 'split'"
+          :showEditButton="!streamingText && layoutMode === 'split'"
           emptyMessage="No translation yet"
           placeholder="Enter translation..."
           :highlightTermsInText="highlightFn"
+          :highlightTermsInTexts="highlightFnBatch"
           :isHighlightEnabled="isHighlightEnabled"
         />
       </div>
@@ -81,9 +83,12 @@ interface Props {
   chapter: Chapter | null;
   chapterId?: string | null;
   highlightTermsInText?: (text: string) => string;
+  highlightTermsInTexts?: (texts: string[]) => string[];
   isHighlightEnabled?: boolean;
   isTranslating?: boolean;
   translationProgress?: number;
+  /** Live streaming translation content — shown in full mode during translation. */
+  streamingText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -92,6 +97,7 @@ const props = withDefaults(defineProps<Props>(), {
   isHighlightEnabled: false,
   isTranslating: false,
   translationProgress: 0,
+  streamingText: '',
 });
 
 const editor = useEditorStore();
@@ -109,6 +115,7 @@ const {
 } = state;
 
 const highlightFn = computed(() => props.highlightTermsInText);
+const highlightFnBatch = computed(() => props.highlightTermsInTexts);
 
 watch(() => props.chapterId, (newChapterId: string | null) => {
   if (props.chapter) {
@@ -124,8 +131,12 @@ function getFullOriginalText(): string {
 }
 
 function getFullTranslatedText(): string {
+  // Streaming content takes priority — shown in full mode during active stream.
+  if (props.streamingText) return props.streamingText
   if (!currentChapter.value) return '';
-  return currentChapter.value.translatedParagraphs.join('<br>');
+  return currentChapter.value.translatedContent
+    ? currentChapter.value.translatedContent
+    : currentChapter.value.translatedParagraphs.join('\n\n');
 }
 
 </script>

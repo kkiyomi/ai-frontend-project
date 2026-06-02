@@ -32,6 +32,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { glossaryAPI } from './api';
 import type { GlossaryTerm, GlossaryItem } from './types';
+import type { CacheOptions } from '@/modules/core';
 
 export const useGlossaryStore = defineStore('glossary', () => {
   // State
@@ -40,6 +41,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
   const error = ref<string | null>(null);
   const isGlossaryVisible = ref(false);
   const isHighlightEnabled = ref(true);
+  const showSeriesLevelTerms = ref(true);
   const currentSeriesId = ref<string | undefined>();
   const currentChapterId = ref<string | undefined>();
 
@@ -79,32 +81,46 @@ export const useGlossaryStore = defineStore('glossary', () => {
   })
 
   const termsByCurrentChapter = computed(() => {
-    return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value);
+    return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value, showSeriesLevelTerms.value);
   });
 
   // Helper function
-  function getFilteredTerms(termsList: GlossaryTerm[], seriesId?: string, chapterId?: string) {
+  function getFilteredTerms(termsList: GlossaryTerm[], seriesId?: string, chapterId?: string, includeSeriesLevel = true) {
     if (!seriesId) return [];
 
+    const seriesTermsList = termsList.filter(term => term.seriesId === seriesId);
     if (!chapterId) {
-      return termsList.filter(term => term.seriesId === seriesId);
+      return seriesTermsList;
     }
 
-    const filteredTerms = termsList.filter(term =>
-      (!term.chapterId && term.seriesId === seriesId) ||
+    const filteredTerms = seriesTermsList.filter(term =>
+      (!term.chapterId) ||
       (term.chapterId && term.chapterId === chapterId) ||
       (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
     );
+
+    if (!includeSeriesLevel) {
+      return filteredTerms.filter(term =>
+        (term.chapterId && term.chapterId === chapterId) ||
+        (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
+      );
+    }
 
     return filteredTerms;
   }
 
   // Actions
-  function getTermsByContext(seriesId: string, chapterId?: string) {
-    return getFilteredTerms(terms.value, seriesId, chapterId);
+
+  function invalidateCache() {
+    glossaryAPI.invalidateCache();
   }
 
-  async function loadTerms(seriesId?: string, chapterId?: string) {
+  /** Return terms filtered by series context (used by exporter). */
+  function getTermsByContext(seriesId?: string): GlossaryTerm[] {
+    return getFilteredTerms(terms.value, seriesId, undefined, true);
+  }
+
+  async function loadTerms(seriesId?: string, chapterId?: string, cacheOptions?: CacheOptions) {
     if (!seriesId) {
       return;
     }
@@ -115,7 +131,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     currentChapterId.value = chapterId;
 
     try {
-      const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId);
+      const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId, cacheOptions);
       if (response.success && response.data) {
         const filteredTerms = getFilteredTerms(response.data, seriesId, chapterId);
         filteredTerms.forEach(newTerm => {
@@ -213,11 +229,11 @@ export const useGlossaryStore = defineStore('glossary', () => {
     );
   }
 
-  async function termExistsInSeries(termText: string): Promise<boolean> {
+  async function termExistsInSeries(termText: string, cacheOptions?: CacheOptions): Promise<boolean> {
     if (!currentSeriesId.value) return false;
 
     try {
-      const response = await glossaryAPI.getGlossaryTerms(currentSeriesId.value);
+      const response = await glossaryAPI.getGlossaryTerms(currentSeriesId.value, undefined, cacheOptions);
       const seriesTerms = response.success && response.data ? response.data : [];
       return seriesTerms.some(term => term.term.toLowerCase() === termText.toLowerCase());
     } catch (error) {
@@ -243,9 +259,9 @@ export const useGlossaryStore = defineStore('glossary', () => {
       .map(([word, _]) => word);
   }
 
-  function highlightTermsInText(text: string): string {
+  function buildHighlightPatterns() {
     const terms = termsByCurrentChapter.value;
-    if (!terms.length || !text) return text;
+    if (!terms.length) return null;
 
     const escapeRegex = (s: string) =>
       s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -268,6 +284,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
       }
     }
 
+    if (!patterns.length) return null;
+
     patterns.sort((a, b) => b.length - a.length);
 
     // chunk to avoid huge regex
@@ -277,6 +295,14 @@ export const useGlossaryStore = defineStore('glossary', () => {
     for (let i = 0; i < patterns.length; i += chunkSize) {
       chunks.push(new RegExp(`(${patterns.slice(i, i + chunkSize).join("|")})`, "gi"));
     }
+
+    return { termMap, patterns, chunks };
+  }
+
+  function highlightTermsInTextWithPatterns(text: string, patterns: ReturnType<typeof buildHighlightPatterns>): string {
+    if (!patterns || !text) return text;
+
+    const { termMap, chunks } = patterns;
 
     // Parse HTML safely
     const container = document.createElement("div");
@@ -304,6 +330,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
       let replaced = false;
 
       for (const regex of chunks) {
+        // Reset lastIndex for global regex
+        regex.lastIndex = 0;
         if (!regex.test(content)) continue;
 
         replaced = true;
@@ -311,6 +339,8 @@ export const useGlossaryStore = defineStore('glossary', () => {
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
 
+        // Reset lastIndex before replace
+        regex.lastIndex = 0;
         content.replace(regex, (match, _, offset) => {
           const id = termMap.get(match.toLowerCase());
           if (!id) return match;
@@ -350,6 +380,28 @@ export const useGlossaryStore = defineStore('glossary', () => {
     return container.innerHTML;
   }
 
+  function highlightTermsInText(text: string): string {
+    const terms = termsByCurrentChapter.value;
+    if (!terms.length || !text) return text;
+    
+    const patterns = buildHighlightPatterns();
+    if (!patterns) return text;
+    
+    return highlightTermsInTextWithPatterns(text, patterns);
+  }
+
+  function highlightTermsInTexts(texts: string[]): string[] {
+    const terms = termsByCurrentChapter.value;
+    if (!terms.length || !texts.length) return texts;
+    
+    const patterns = buildHighlightPatterns();
+    if (!patterns) return texts;
+    
+    return texts.map(text => 
+      text ? highlightTermsInTextWithPatterns(text, patterns) : text
+    );
+  }
+
   function toggleVisibility() {
     isGlossaryVisible.value = !isGlossaryVisible.value;
   }
@@ -359,15 +411,24 @@ export const useGlossaryStore = defineStore('glossary', () => {
     localStorage.setItem('glossary:isHighlightEnabled', String(isHighlightEnabled.value));
   }
 
+  function toggleSeriesLevelTerms() {
+    showSeriesLevelTerms.value = !showSeriesLevelTerms.value;
+    localStorage.setItem('glossary:showSeriesLevelTerms', String(showSeriesLevelTerms.value));
+  }
+
   function clearError() {
     error.value = null;
   }
 
   function loadPreferences() {
     const savedIisHighlight = localStorage.getItem('glossary:isHighlightEnabled');
+    const savedShowSeriesLevel = localStorage.getItem('glossary:showSeriesLevelTerms');
 
     if (savedIisHighlight !== null) {
       isHighlightEnabled.value = savedIisHighlight === 'true';
+    }
+    if (savedShowSeriesLevel !== null) {
+      showSeriesLevelTerms.value = savedShowSeriesLevel === 'true';
     }
   }
 
@@ -381,6 +442,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     error,
     isGlossaryVisible,
     isHighlightEnabled,
+    showSeriesLevelTerms,
     currentSeriesId,
     currentChapterId,
     
@@ -391,6 +453,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     
     // Actions
     getTermsByContext,
+    invalidateCache,
     loadTerms,
     addTerm,
     updateTerm,
@@ -399,8 +462,10 @@ export const useGlossaryStore = defineStore('glossary', () => {
     termExistsInSeries,
     suggestTermsFromText,
     highlightTermsInText,
+    highlightTermsInTexts,
     toggleVisibility,
     toggleHighlight,
+    toggleSeriesLevelTerms,
     clearError,
   };
 });

@@ -8,11 +8,11 @@
     <!-- Overlay controls inside the banner -->
     <div
       v-if="hasMultipleAnnouncements"
-      class="absolute inset-y-0 right-10 flex items-center space-x-2"
+      class="absolute inset-y-0 right-15 flex items-center space-x-2"
     >
       <button
         @click="prevAnnouncement"
-        class="p-1 rounded hover:bg-black/10 transition"
+        class="btn btn-xs btn-square btn-neutral"
         aria-label="Previous announcement"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,13 +20,13 @@
         </svg>
       </button>
 
-      <span class="text-xs opacity-70 whitespace-nowrap">
+      <span class="text-xs whitespace-nowrap">
         {{ currentIndex + 1 }} / {{ activeAnnouncements.length }}
       </span>
 
       <button
         @click="nextAnnouncement"
-        class="p-1 rounded hover:bg-black/10 transition"
+        class="btn btn-xs btn-square btn-neutral"
         aria-label="Next announcement"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,10 +78,3 @@ function prevAnnouncement() {
   currentIndex.value = (currentIndex.value - 1 + activeAnnouncements.value.length) % activeAnnouncements.value.length;
 }
 </script>
-
-<style scoped>
-.announcement-banner-manager {
-  position: relative;
-  z-index: 50;
-}
-</style>

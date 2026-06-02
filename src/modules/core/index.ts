@@ -34,6 +34,7 @@ export { apiClient } from './services/index';
 export { sessionAPI, type SessionCheckResponse, type CheckSessionOptions } from './api/session';
 
 export type { APIResponse, SettingsItem, SettingsSection } from './types';
+export type { CacheOptions } from './services/apiClient';
 
 export { default as SettingsModal } from './components/SettingsModal.vue';
 export { default as ImportButton } from './components/ImportButton.vue';

@@ -1,7 +1,8 @@
 <template>
     <div class="relative inline-block">
         <!-- Upload Button -->
-        <button @click="triggerFileInput" class="p-1 text-gray-400 hover:text-green-500 transition-colors"
+        <button @click="triggerFileInput"
+            class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-accent transition-colors"
             title="Upload multiple chapters" :disabled="isUploading">
             <svg v-if="!isUploading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -20,13 +21,13 @@
         <!-- Progress Modal -->
         <div v-if="isUploading || showResults"
             class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="closeModal">
-            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+            <div class="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">
+                    <h3 class="text-lg font-semibold text-base-content">
                         {{ isUploading ? 'Uploading Chapters' : 'Upload Results' }}
                     </h3>
                     <button v-if="!isUploading" @click="closeModal"
-                        class="text-gray-400 hover:text-gray-600 transition-colors">
+                        class="text-base-content/40 hover:text-gray-600 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -36,14 +37,15 @@
 
                 <!-- Upload Progress -->
                 <div v-if="isUploading" class="space-y-4">
-                    <div class="bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                            :style="{ width: `${uploadProgress}%` }" />
-                    </div>
+                    <progress
+                        class="progress progress-primary h-2 rounded-full"
+                        :value="uploadProgress"
+                        max="100"
+                    ></progress>
                     <p class="text-sm text-gray-600 text-center">
                         Uploading {{ currentFileIndex }} of {{ totalFiles }} files...
                     </p>
-                    <p v-if="currentFileName" class="text-xs text-gray-500 text-center truncate">
+                    <p v-if="currentFileName" class="text-xs text-base-content/60 text-center truncate">
                         {{ currentFileName }}
                     </p>
                 </div>
@@ -83,7 +85,7 @@
                     </div>
 
                     <button @click="closeModal"
-                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        class="w-full px-4 py-2 btn btn-primary transition-colors">
                         Close
                     </button>
                 </div>

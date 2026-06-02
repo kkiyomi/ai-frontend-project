@@ -9,7 +9,7 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
+import type { Series, CreateSeriesRequest, UpdateSeriesRequest, Language } from '../types';
 
 export class SeriesRealAPI {
   async getSeries(): Promise<APIResponse<Series[]>> {
@@ -30,5 +30,9 @@ export class SeriesRealAPI {
 
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
     return apiClient.delete<void>(`/series/${seriesId}`);
+  }
+
+  async getLanguages(): Promise<APIResponse<Language[]>> {
+    return apiClient.get<Language[]>('/languages');
   }
 }

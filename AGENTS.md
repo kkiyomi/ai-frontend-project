@@ -2,13 +2,15 @@
 
 Essential information for AI agents working in this Vue 3 + TypeScript project.
 
+**NOTE:** This file was revised on 2026-05-22. Previous version listed only 5 modules — 10 now exist.
+
 ## Project Overview
 
 - **Framework**: Vue 3 with Composition API and `<script setup>` syntax
 - **Language**: TypeScript
 - **State Management**: Pinia
-- **Styling**: Tailwind CSS v4
-- **Build Tool**: Vite
+- **Styling**: daisyUI v5, Tailwind CSS v4
+- **Build Tool**: Vite 8
 - **Router**: Vue Router 4
 
 ## Build and Development Commands
@@ -61,26 +63,36 @@ Feature modules are designed to be **fully standalone** and must not depend on o
 
 Instead, shared layers (such as `components/` and `composables/`) may import functionality from modules when necessary. This preserves module isolation while allowing shared abstractions to be built on top of module functionality.
 
+### Module Isolation Compliance
+
+Verified: **Zero violations** of module isolation. Feature modules only import from `core` and `billing` (designated as globally accessible).
 
 ## Project Structure
 
 ```
 src/
 ├── modules/           # Feature modules (self-contained)
-│   ├── core/         # Core functionality (settings, utils)
-│   ├── billing/      # Billing functionality
+│   ├── core/         # Core functionality (settings, utils, services, stores)
+│   ├── billing/      # Billing & subscription functionality
 │   ├── series/       # Series/chapter management
-│   └── profile/      # User profile
+│   ├── profile/      # User profile
+│   ├── theme/        # Appearance and theme management
+│   ├── chapters/     # Chapter reading/navigation
+│   ├── editor/       # Chapter editing (directives/, utils.ts)
+│   ├── glossary/     # Glossary terms management
+│   ├── announcements/# Announcements display
+│   └── translation/  # Translation interface (sseClient.ts)
 ├── components/       # Global/reusable components
 ├── composables/      # Global composables
 ├── router/          # Vue Router configuration
 ├── types/           # Global TypeScript types
 ├── utils/           # Utility functions
-└── assets/          # Static assets
+├── assets/          # Static assets
+└── mock/            # Mock data for development
 ```
 
 ### Module Structure
-Each module follows this pattern:
+Each module follows this pattern (+ deviations noted):
 - `index.ts` - Module exports
 - `types.ts` - Module-specific types
 - `store.ts` - Pinia store (if needed)
@@ -88,14 +100,24 @@ Each module follows this pattern:
 - `composables/` - Module-specific composables
 - `api/` - API clients (mock/real implementations)
 
+**Notable deviations:**
+- `core/` has additional `services/`, `stores/` (second), and `utils/` subdirectories
+- `editor/` has `directives/` directory and `utils.ts` but no `api/`
+- `theme/` has `composables/` but no `api/`
+- `billing/` has `constants.ts`, `settings.ts`, `utils.ts` alongside standard files
+- `translation/` has `sseClient.ts` for Server-Sent Events
+
 ## TypeScript Configuration
 
 - **Target**: ES2020
 - **Module**: ESNext
+- **Module resolution**: bundler
 - **Strict mode**: Enabled (`"strict": true`)
 - **Unused locals/parameters**: Disabled (`"noUnusedLocals": false`, `"noUnusedParameters": false`)
 - **Path alias**: `@/` points to `src/`
-- **Exclusion**: `src/modules/scraper` is excluded from TypeScript compilation (see `tsconfig.app.json`)
+- **Additional settings**: `isolatedModules: true`, `skipLibCheck: true`, `noEmit: true`
+- **Exclusion**: `src/modules/scraper` is excluded from TypeScript compilation (see `tsconfig.app.json`) — note: the directory does not actually exist; only `src/types/scraper.ts` exists with scraper type definitions
+- **`tsconfig.node.json`**: Has stricter unused checks for Vite config only
 
 ## Code Style Guidelines
 
@@ -143,18 +165,34 @@ Each module follows this pattern:
 
 ## Development Notes
 
-- Modules register themselves via `src/settings.ts`
-- API modules have `mock.ts` and `real.ts` implementations
-- Mock data files use `mock_data_` prefix (bundled separately)
+- Modules register themselves via `src/settings.ts` (currently 3 sections registered: profile, billing, appearance/theme)
+- API modules may have `mock.ts` and `real.ts` implementations (billing ✓, series ✓, translation ✓, announcements ✓; chapters and glossary only have `real.ts`)
+- Mock data files use `mock_data_` prefix (bundled separately via custom `rollupOptions.output.manualChunks` in `vite.config.ts`)
 - Environment variables prefixed with `VITE_`
 - Use `import.meta.env` for environment variables
+- Custom Vite config: `@tailwindcss/vite` plugin, `@vitejs/plugin-vue`, `allowedHosts` for CodeSandbox
+
+## Key Dependencies
+
+### Runtime
+- `vue` ^3.4, `vue-router` ^4.5, `pinia` ^3.0
+- `jszip` ^3.10 (zip file export)
+- `papaparse` ^5.5 (CSV parsing)
+- `autoprefixer` ^10.4, `postcss` ^8.5
+
+### Dev
+- `vite` ^8.0, `vue-tsc` ^2.1, `typescript` ^5.5
+- `@vitejs/plugin-vue` ^6.0
+- `tailwindcss` ^4.2, `daisyui` ^5.5
+- `@tailwindcss/postcss` ^4.1, `@tailwindcss/vite` ^4.2
 
 ## Common Pitfalls
 
-- **Scraper module exclusion**: TypeScript checks skip `src/modules/scraper`
-- **Mock data bundling**: Files with `mock_data_` prefix get special treatment
+- **Mock data bundling**: Files with `mock_data_` prefix get special treatment via custom rollup chunking
 - **Component registration**: Remember to use `markRaw` when storing components in Pinia
 - **Environment variables**: Must be prefixed with `VITE_` to be exposed
+- **Settings registration**: Not automatic — must manually `registerSection()` in `src/settings.ts`
+- **API mock/real pairs**: Some modules lack `mock.ts` files (chapters, glossary) — check before assuming
 
 ## Quick Reference
 
@@ -166,3 +204,35 @@ Each module follows this pattern:
 - **Styling**: Tailwind CSS + scoped CSS
 - **Path alias**: `@/` for `src/`
 - **Module structure**: Feature-based organization
+- **Modules**: 10 total (core, billing, series, profile, theme, chapters, editor, glossary, announcements, translation)
+
+## MANDATORY: AGENTS.md Auto-Update Rule
+
+**Every AI agent that makes structural changes to this project MUST update this file as part of the same unit of work.** This is not optional.
+
+### Trigger events (any of the following require an update):
+
+1. **Module added or removed** — update the module list
+2. **New dependency added** (major lib) — update the Key Dependencies section
+3. **New shared layer created** (`components/`, `composables/`, `utils/`, `types/`) — update structure
+4. **Test files added** — update the note about no testing being configured
+5. **Linting tooling added** — update the commands section and "No linting" note
+6. **Vite config changes** (new plugins, significant rollup changes) — update Development Notes
+7. **Architecture rules change** (module isolation rules, import patterns) — update Core Principles
+8. **TypeScript config changes** (strict mode, path aliases, excludes) — update TypeScript Configuration
+
+### How to update:
+
+1. Read the existing file first
+2. Identify which claims are now stale
+3. Make targeted edits — only update what changed, preserve the rest
+4. If correcting a factual error, add a brief note so future agents understand the history
+
+### Exemptions:
+
+- Pure bug fixes with no structural impact
+- Whitespace/cosmetic changes
+- Dependency version bumps within the same major version
+- Changes to `src/mock/` or `src/assets/`
+
+**When in doubt, update.** Stale documentation is worse than slightly verbose documentation.

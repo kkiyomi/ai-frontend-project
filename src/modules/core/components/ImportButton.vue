@@ -40,15 +40,15 @@
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       @click="closeModal"
     >
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+      <div class="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-base-content">
             {{ isImporting ? getStageTitle() : 'Import Results' }}
           </h3>
           <button
             v-if="!isImporting"
             @click="closeModal"
-            class="text-gray-400 hover:text-gray-600 transition-colors"
+            class="text-base-content/40 hover:text-gray-600 transition-colors"
             type="button"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,24 +60,23 @@
 
         <!-- Import Progress -->
         <div v-if="isImporting" class="space-y-4">
-          <div class="bg-gray-200 rounded-full h-2">
-            <div
-              class="bg-blue-500 h-2 rounded-full transition-all duration-300"
-              :style="{ width: `${importProgress?.percentage || 0}%` }"
-            />
-          </div>
+          <progress
+            class="progress progress-primary h-2 rounded-full"
+            :value="importProgress?.percentage || 0"
+            max="100"
+          ></progress>
           <div class="space-y-2">
             <p class="text-sm text-gray-600 text-center">
               {{ getStageDescription() }}
             </p>
-            <p v-if="importProgress" class="text-xs text-gray-500 text-center">
+            <p v-if="importProgress" class="text-xs text-base-content/60 text-center">
               Row {{ importProgress.currentRow }} of {{ importProgress.totalRows }}
             </p>
           </div>
           <div class="text-center">
             <button
               @click="cancelImport"
-              class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+              class="px-4 py-2 alert alert-error rounded-lg transition-colors text-sm font-medium"
               type="button"
             >
               Cancel Import
@@ -94,7 +93,7 @@
             <p class="text-sm text-gray-600">
               {{ importResult.successRows }} of {{ importResult.totalRows }} rows imported successfully
             </p>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-base-content/60 mt-1">
               Import completed in {{ (importResult.duration / 1000).toFixed(1) }} seconds
             </p>
           </div>
@@ -131,7 +130,7 @@
           <!-- Close Button -->
           <button
             @click="closeModal"
-            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            class="w-full px-4 py-2 btn btn-primary transition-colors text-sm font-medium"
             type="button"
           >
             Close
@@ -143,11 +142,11 @@
           <div class="text-center">
             <div class="text-4xl mb-2">❌</div>
             <p class="text-sm text-red-600">Import failed</p>
-            <p class="text-xs text-gray-500 mt-1">{{ importError }}</p>
+            <p class="text-xs text-base-content/60 mt-1">{{ importError }}</p>
           </div>
           <button
             @click="closeModal"
-            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            class="w-full px-4 py-2 btn btn-primary transition-colors text-sm font-medium"
             type="button"
           >
             Close
@@ -186,7 +185,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  buttonClass: 'p-1 text-gray-400 hover:text-blue-500 transition-colors',
+  buttonClass: 'p-1 text-base-content/40 hover:text-primary/60 transition-colors',
   buttonTitle: 'Import data from file',
   accept: '.csv',
   multiple: false,

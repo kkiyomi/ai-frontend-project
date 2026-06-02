@@ -96,6 +96,14 @@ export interface VirtualScrollApi<T> {
    * Reset the height cache (e.g., when items change significantly).
    */
   resetHeights: () => void;
+
+  /**
+   * Scroll to the item at the given index.
+   * Shifts the virtual window and scrolls the container so the item is visible.
+   * @param index - The index of the item to scroll to
+   * @param behavior - Scroll behavior ('instant' | 'smooth', default 'instant')
+   */
+  scrollToIndex: (index: number, behavior?: ScrollBehavior) => void;
 }
 
 /**

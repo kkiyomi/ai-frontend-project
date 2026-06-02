@@ -1,12 +1,12 @@
 <template>
   <!-- Series Header -->
-  <div class="bg-blue-50 p-3 border-b border-gray-200">
+  <div class="bg-primary/10 p-3 border-b border-base-300">
     <!-- Top Row: Icons -->
     <div class="flex items-center justify-between">
       <!-- Left: Back -->
       <button
         @click="deselectSeries"
-        class="p-1 text-blue-600 hover:text-blue-700 transition-colors"
+        class="btn btn-ghost btn-xs btn-circle p-1 text-primary/70 hover:text-primary/80 transition-colors"
         title="Back to all series"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +19,7 @@
         <!-- Add Chapter -->
         <button
           @click="handleCreateChapter('New Chapter!')"
-          class="p-1 text-gray-400 hover:text-green-600 transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-success transition-colors"
           title="Add chapter"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@
         <!-- Edit -->
         <button
           @click="$emit('edit', series)"
-          class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-primary transition-colors"
           title="Edit series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
         <!-- Delete -->
         <button
           @click="$emit('delete', series.id)"
-          class="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          class="btn btn-ghost btn-xs btn-circle p-1 text-base-content/40 hover:text-error transition-colors"
           title="Remove series"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,27 +58,32 @@
 
     <!-- Bottom: Series Info -->
     <div class="p-3">
-      <h4 class="text-sm font-semibold text-gray-900">{{ series.name }}</h4>
+      <h4 class="text-sm font-semibold text-base-content">{{ series.name }}</h4>
 
-      <p v-if="series.description" class="text-xs text-gray-500 mt-1">
-        {{ series.description }}
-      </p>
+       <p v-if="series.description" class="text-xs text-base-content/60 mt-1">
+         {{ series.description }}
+       </p>
 
-      <div class="flex items-center space-x-3 mt-2 text-xs text-gray-400">
-        <span>{{ series.chapters.length }} chapters</span>
-        <span>{{ translationProgress }}% translated</span>
-      </div>
+       <div v-if="series.sourceLanguage || series.targetLanguage" class="mt-1">
+         <span class="badge badge-sm badge-outline mr-1" v-if="series.sourceLanguage">{{ series.sourceLanguage }}</span>
+         <span class="text-xs text-base-content/40 mx-1" v-if="series.sourceLanguage && series.targetLanguage">→</span>
+         <span class="badge badge-sm badge-outline" v-if="series.targetLanguage">{{ series.targetLanguage }}</span>
+       </div>
+
+       <div class="flex items-center space-x-3 mt-2 text-xs text-base-content/40">
+         <span>{{ series.chapters.length }} chapters</span>
+         <span>{{ translationProgress }}% translated</span>
+       </div>
     </div>
 
 
     <!-- Series Progress Bar -->
     <div class="mt-2">
-      <div class="bg-gray-200 rounded-full h-1">
-        <div
-          class="bg-blue-500 h-1 rounded-full transition-all duration-300"
-          :style="{ width: `${translationProgress}%` }"
-        />
-      </div>
+      <progress
+        class="progress progress-primary h-1 rounded-full"
+        :value="translationProgress"
+        max="100"
+      ></progress>
     </div>
   </div>
 </template>

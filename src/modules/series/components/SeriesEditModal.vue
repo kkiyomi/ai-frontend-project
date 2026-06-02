@@ -1,9 +1,9 @@
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="$emit('close')">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+    <div class="bg-base-100 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl" @click.stop>
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Edit Series</h3>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 transition-colors">
+         <h3 class="text-lg font-semibold text-base-content">{{ modalTitle }}</h3>
+        <button @click="$emit('close')" class="btn btn-ghost btn-sm btn-circle">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -12,38 +12,74 @@
 
       <form @submit.prevent="handleSave" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Series Name</label>
+          <label class="block text-sm font-medium text-base-content mb-2">Series Name</label>
           <input
             v-model="editedName"
             type="text"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="input input-bordered w-full"
             placeholder="Enter series name"
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
-          <textarea
-            v-model="editedDescription"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            placeholder="Enter series description"
-          ></textarea>
-        </div>
+         <div>
+           <label class="block text-sm font-medium text-base-content mb-2">Description (optional)</label>
+           <textarea
+             v-model="editedDescription"
+             rows="3"
+             class="textarea textarea-bordered w-full resize-none"
+             placeholder="Enter series description"
+           ></textarea>
+         </div>
 
-        <div class="flex items-center justify-end space-x-3 pt-4">
+         <div>
+           <label class="block text-sm font-medium text-base-content mb-2">Source Language (optional)</label>
+           <select
+             v-model="editedSourceLanguage"
+             class="select select-bordered w-full"
+             :disabled="languagesLoading"
+           >
+             <option value=""></option>
+             <option
+               v-for="lang in languages"
+               :key="lang.code"
+               :value="lang.code"
+             >
+               {{ lang.name }} ({{ lang.code }})
+             </option>
+           </select>
+         </div>
+
+         <div>
+           <label class="block text-sm font-medium text-base-content mb-2">Target Language (optional)</label>
+           <select
+             v-model="editedTargetLanguage"
+             class="select select-bordered w-full"
+             :disabled="languagesLoading"
+           >
+             <option value=""></option>
+             <option
+               v-for="lang in languages"
+               :key="lang.code"
+               :value="lang.code"
+             >
+               {{ lang.name }} ({{ lang.code }})
+             </option>
+           </select>
+         </div>
+
+         <div class="flex items-center justify-end space-x-3 pt-4">
           <button
             type="button"
             @click="$emit('close')"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+             class="btn btn-ghost btn-sm"
           >
             Cancel
           </button>
           <button
             type="submit"
-            :disabled="!editedName.trim() || isSaving"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            :disabled="!editedName.trim() || isSaving || languagesLoading"
+             class="btn btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ isSaving ? 'Saving...' : 'Save Changes' }}
           </button>
@@ -54,35 +90,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import type { Series } from '../types';
+import { ref, onMounted, computed } from 'vue';
+import type { Series, Language } from '../types';
+import { seriesAPI } from '../api';
 
 interface Props {
-  series: Series;
+  series?: Series;
 }
 
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
   close: [];
-  save: [name: string, description?: string];
+  save: [data: { name: string; description?: string; sourceLanguage?: string; targetLanguage?: string }];
 }>();
 
 const editedName = ref('');
 const editedDescription = ref('');
+const editedSourceLanguage = ref('');
+const editedTargetLanguage = ref('');
 const isSaving = ref(false);
+const languages = ref<Language[]>([]);
+const languagesLoading = ref(true);
+const modalTitle = computed(() => props.series ? 'Edit Series' : 'Create Series');
 
-onMounted(() => {
-  editedName.value = props.series.name;
-  editedDescription.value = props.series.description || '';
+onMounted(async () => {
+  editedName.value = props.series?.name ?? '';
+  editedDescription.value = props.series?.description ?? '';
+  editedSourceLanguage.value = props.series?.sourceLanguage ?? '';
+  editedTargetLanguage.value = props.series?.targetLanguage ?? '';
+
+  try {
+    const res = await seriesAPI.getLanguages();
+    if (res.success && res.data) {
+      languages.value = res.data;
+    }
+  } catch {
+    // languages stay empty; user gets no options
+  } finally {
+    languagesLoading.value = false;
+  }
 });
 
 const handleSave = async () => {
   if (!editedName.value.trim()) return;
-  
+
   isSaving.value = true;
   try {
-    emit('save', editedName.value.trim(), editedDescription.value.trim() || undefined);
+    emit('save', {
+      name: editedName.value.trim(),
+      description: editedDescription.value.trim() || undefined,
+      sourceLanguage: editedSourceLanguage.value || undefined,
+      targetLanguage: editedTargetLanguage.value || undefined
+    });
   } finally {
     isSaving.value = false;
   }

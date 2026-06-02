@@ -1,6 +1,6 @@
 <template>
   <div class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors group" 
-       :class="{ 'border-primary-200 bg-primary-50': isDragging }"
+       :class="{ 'border-primary/20 bg-primary/10': isDragging }"
        draggable="true"
        @dragstart="handleDragStart"
        @dragend="handleDragEnd"
@@ -8,18 +8,18 @@
        @drop="handleDrop">
     <div class="flex items-start justify-between mb-2">
       <div class="flex items-center space-x-2">
-        <span class="text-xs text-secondary-500 font-medium">{{ label }} {{ index + 1 }}</span>
+        <span class="text-xs text-base-content/60 font-medium">{{ label }} {{ index + 1 }}</span>
         <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
+           <button
             @click="editor.addParagraph(index, type)"
-            class="text-xs text-green-600 hover:text-green-700 transition-colors"
+            class="btn btn-success btn-ghost btn-xs"
             title="Add paragraph above"
           >
             + Add
           </button>
-          <button
+           <button
             @click="editor.deleteParagraph(index, type)"
-            class="text-xs text-red-600 hover:text-red-700 transition-colors"
+            class="btn btn-error btn-ghost btn-xs"
             title="Delete paragraph"
           >
             × Delete
@@ -28,30 +28,29 @@
       </div>
       <div class="flex space-x-2">
         <div v-if="isEditing" class="flex space-x-1">
-          <button
+           <button
             @click="editor.undo"
             :disabled="!editor.canUndo"
-            class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="editor.canUndo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
+            class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="editor.canUndo ? 'text-info hover:text-info/80' : 'text-base-content/40'"
             title="Undo"
           >
             ↶ Undo
           </button>
-          <button
+           <button
             @click="editor.redo"
             :disabled="!editor.canRedo"
-            class="text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="editor.canRedo ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'"
+            class="btn btn-ghost btn-xs text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="editor.canRedo ? 'text-info hover:text-info/80' : 'text-base-content/40'"
             title="Redo"
           >
             ↷ Redo
           </button>
         </div>
-        <button
+         <button
           v-if="showEditButton"
           @click="toggleEditing"
-          class="text-xs transition-colors"
-          :class="editButtonClass"
+          class="btn btn-primary btn-ghost btn-xs text-xs transition-colors"
         >
           {{ isEditing ? 'Save' : 'Edit' }}
         </button>
@@ -59,9 +58,9 @@
     </div>
     
     <div v-if="!isEditing" 
-         class="reading-text text-secondary-900">
+         class="reading-text text-base-content">
       <div v-if="content" v-html="displayContent"></div>
-      <div v-else class="text-secondary-400 italic">{{ emptyMessage }}</div>
+      <div v-else class="text-base-content/40 italic">{{ emptyMessage }}</div>
     </div>
     
     <textarea
@@ -72,7 +71,7 @@
       @keyup.enter="handleEnter"
       @keydown.tab.exact.prevent="handleForwards"
       @keydown.shift.tab.prevent="handleBackwards"
-      class="w-full p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:border-secondary-500 reading-text resize-none"
+      class="w-full p-3 border border-base/35 rounded-lg focus:ring-2 focus:border-base/60 reading-text resize-none"
       :class="textareaClass"
       rows="4"
       :placeholder="placeholder"
@@ -102,6 +101,7 @@ interface Props {
   type?: 'original' | 'translated';
   highlightTermsInText?: (text: string) => string;
   isHighlightEnabled?: boolean;
+  highlightedContent?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -124,22 +124,19 @@ watch(() => props.content, (newContent: string) => {
 });
 
 const displayContent = computed(() => {
+  if (props.highlightedContent !== undefined) {
+    return props.highlightedContent;
+  }
   if (props.isHighlightEnabled && props.highlightTermsInText) {
     return props.highlightTermsInText(props.content);
   }
   return props.content;
 });
 
-const editButtonClass = computed(() => {
-  return props.type === 'translated' 
-    ? 'text-primary-600 hover:text-primary-700'
-    : 'text-blue-600 hover:text-blue-700';
-});
-
 const textareaClass = computed(() => {
   return props.type === 'translated'
-    ? 'focus:ring-primary-500 focus:border-primary-500'
-    : 'focus:ring-blue-500 focus:border-blue-500';
+    ? 'focus:ring-primary/60 focus:border-primary/60'
+    : 'focus:ring-blue-500 focus:border-primary/50';
 });
 
 const toggleEditing = () => {

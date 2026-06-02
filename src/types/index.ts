@@ -2,6 +2,8 @@ export interface Series {
   id: string;
   name: string;
   description?: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
   createdAt: Date | string;
   chapters?: Chapter[];
   chapterIds: string[];
@@ -46,6 +48,3 @@ export interface APIResponse<T> {
   data?: T;
   error?: string;
 }
-
-// Re-export sharing types from module
-export type { ShareRequest, ShareResponse, SharedContent, ShareStats } from '@/modules/sharing';

@@ -4,25 +4,26 @@
 <template>
   <div 
     v-if="term"
-    class="glossary-popup absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm transition-opacity duration-150"
-    :style="{ left: position.x + 'px', top: position.y + 'px' }"
+    ref="popupRef"
+    class="glossary-popup fixed z-50 bg-base-100 border border-gray-300 rounded-lg shadow-lg p-4 min-w-xs max-w-sm max-h-[60vh] overflow-y-auto transition-opacity duration-150"
+    :style="{ left: adjustedPosition.x + 'px', top: adjustedPosition.y + 'px' }"
     @click.stop
   >
     <div v-if="!isEditing" class="space-y-2">
       <div class="flex items-start justify-between">
         <div class="flex-1">
           <div class="flex items-center space-x-2">
-            <span class="font-semibold text-gray-900">{{ term.term }}</span>
-            <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full"> -->
+            <span class="font-semibold text-base-content">{{ term.term }}</span>
+            <!-- <span class="text-xs px-2 py-1 bg-blue-100 text-primary/80 rounded-full"> -->
             <!--   {{ getCategoryIcon(term.category) }} -->
             <!-- </span> -->
           </div>
           <p class="text-sm text-green-600 font-medium mt-1">{{ term.translation }}</p>
-          <p v-if="term.definition" class="text-xs text-gray-500 mt-1">{{ term.definition }}</p>
+          <p v-if="term.definition" class="text-xs text-base-content/60 mt-1">{{ term.definition }}</p>
         </div>
         <button
           @click="startEditing"
-          class="ml-2 p-1 text-gray-400 hover:text-blue-600 transition-colors"
+          class="btn btn-ghost btn-square btn-sm ml-2"
           title="Edit term"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,19 +33,19 @@
         </button>
       </div>
       
-      <div class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-200">
+      <div class="flex items-center justify-between text-xs text-base-content/40 pt-2 border-t border-base-300">
         <span>Used {{ term.frequency }} times</span>
-        <span v-if="term.isUserDefined" class="px-2 py-1 bg-gray-100 rounded-full">Custom</span>
+        <span v-if="term.isUserDefined" class="badge badge-outline badge-sm">Custom</span>
       </div>
     </div>
 
     <!-- Edit Form -->
     <div v-else class="space-y-3">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-gray-700">Edit Term</span>
+        <span class="text-sm font-medium text-base-content/80">Edit Term</span>
         <button
           @click="cancelEdit"
-          class="text-xs text-gray-500 hover:text-gray-700"
+          class="btn btn-link btn-xs"
         >
           Cancel
         </button>
@@ -54,38 +55,38 @@
         v-model="editForm.term"
         type="text"
         placeholder="Term"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       <input
         v-model="editForm.translation"
         type="text"
         placeholder="Translation"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       <textarea
         v-model="editForm.definition"
         placeholder="Definition"
         rows="2"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm resize-none"
+        class="textarea textarea-bordered textarea-sm w-full resize-none"
       ></textarea>
       <input
         v-model="editForm.category"
         type="text"
         placeholder="Category"
-        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+        class="input input-bordered input-sm w-full"
       />
       
       <div class="flex items-center space-x-2">
         <button
           @click="saveEdit"
           :disabled="!editForm.term.trim() || !editForm.translation.trim()"
-          class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          class="btn btn-primary btn-xs"
         >
           Save
         </button>
         <button
           @click="cancelEdit"
-          class="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400 transition-colors"
+          class="btn btn-ghost btn-xs"
         >
           Cancel
         </button>
@@ -95,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick, watch } from 'vue';
 import { useGlossaryStore } from '../store';
 import { useGlossaryPopup } from '../composables/useGlossaryPopup';
 import type { GlossaryTerm } from '../types';
@@ -115,6 +116,9 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const popupRef = ref<HTMLElement | null>(null);
+const adjustedPosition = ref({ x: props.position.x, y: props.position.y });
+
 const isEditing = ref(false);
 const editForm = reactive({
   term: '',
@@ -123,12 +127,40 @@ const editForm = reactive({
   category: ''
 });
 
+function clampToViewport() {
+  if (!popupRef.value) return;
+  const rect = popupRef.value.getBoundingClientRect();
+  const margin = 8;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let x = rect.left;
+  let y = rect.top;
+
+  if (x + rect.width > vw - margin) x = vw - rect.width - margin;
+  if (x < margin) x = margin;
+  if (y + rect.height > vh - margin) y = vh - rect.height - margin;
+  if (y < margin) y = margin;
+
+  adjustedPosition.value = { x, y };
+}
+
 onMounted(() => {
+  nextTick(clampToViewport);
+
   // Initialize edit form with current values
   editForm.term = props.term.term;
   editForm.translation = props.term.translation;
   editForm.definition = props.term.definition || '';
   editForm.category = props.term.category;
+});
+
+// When hovering a new term, the composable sends an updated (already viewport-clamped)
+// position. Apply it immediately, then re-clamp once the popup has re-rendered with
+// the new content (dimensions may differ).
+watch(() => props.position, (newPos) => {
+  adjustedPosition.value = { x: newPos.x, y: newPos.y };
+  nextTick(clampToViewport);
 });
 
 const startEditing = () => {

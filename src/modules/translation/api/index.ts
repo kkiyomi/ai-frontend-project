@@ -15,7 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { TranslationMockAPI } from './mock';
 import { TranslationRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
-import type { TranslationJobResponse } from '../types';
+import type { StreamJobResponse } from '../types';
 
 class TranslationAPIService {
   private static instance: TranslationAPIService | null = null;
@@ -53,23 +53,17 @@ class TranslationAPIService {
     return this.apiInstance!;
   }
 
-  async translateChapter(
-    chapterId: string
-  ): Promise<APIResponse<{ jobId: string }>> {
+  async translateChapterStream(
+    chapterId: string,
+    mode: string = 'full'
+  ): Promise<APIResponse<StreamJobResponse>> {
     const api = await this.getAPI();
-    return api.translateChapter(chapterId);
+    return api.translateChapterStream(chapterId, mode);
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
     const api = await this.getAPI();
     return api.suggestGlossaryTerms(text);
-  }
-
-  async getTranslationJobStatus(
-    jobId: string
-  ): Promise<APIResponse<TranslationJobResponse>> {
-    const api = await this.getAPI();
-    return api.getTranslationJobStatus(jobId);
   }
 }
 

@@ -1,17 +1,17 @@
 <template>
-  <div v-if="currentChapter" class="border-t border-gray-200 p-4 bg-gray-50">
+  <div v-if="currentChapter" class="border-t border-base-300 p-4 bg-base-200">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-900">Suggested Terms</h3>
+      <h3 class="text-sm font-semibold text-base-content">Suggested Terms</h3>
       <button
         @click="$emit('refresh')"
         :disabled="isGenerating"
-        class="text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50"
+        class="btn btn-link btn-xs"
       >
         {{ isGenerating ? 'Analyzing...' : 'Refresh' }}
       </button>
     </div>
     
-    <div v-if="suggestions.length === 0" class="text-xs text-gray-500">
+    <div v-if="suggestions.length === 0" class="text-xs text-base-content/60">
       No suggestions available
     </div>
     
@@ -20,7 +20,7 @@
         v-for="suggestion in suggestions.slice(0, 5)"
         :key="suggestion"
         @click="$emit('add-suggestion', suggestion)"
-        class="block w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-blue-100 hover:text-blue-700 rounded transition-colors"
+        class="btn btn-ghost btn-xs w-full justify-start"
       >
         + {{ suggestion }}
       </button>

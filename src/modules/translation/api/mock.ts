@@ -9,7 +9,7 @@
  */
 
 import type { APIResponse } from '@/modules/core';
-import type { TranslationJobResponse } from '../types';
+import type { StreamJobResponse } from '../types';
 
 const simulateDelay = (min = 300, max = 1000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -20,59 +20,27 @@ const simulateFailure = (failureRate = 0.05): boolean => {
   return Math.random() < failureRate;
 };
 
-interface MockJob {
-  jobId: string;
-  chapterId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  progress: number;
-  totalParagraphs: number;
-  processedParagraphs: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export class TranslationMockAPI {
-  private mockJobs = new Map<string, MockJob>();
 
-  async translateChapter(
-    chapterId: string
-  ): Promise<APIResponse<{ jobId: string }>> {
-    await simulateDelay(500, 1000);
-    
+  async translateChapterStream(
+    chapterId: string,
+    mode: string = 'full'
+  ): Promise<APIResponse<StreamJobResponse>> {
+    await simulateDelay(300, 600);
+
     if (simulateFailure(0.05)) {
       return {
         success: false,
-        error: 'Failed to start chapter translation'
+        error: 'Failed to start streaming translation'
       };
     }
-    
-    const jobId = `mock-job-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    const job: MockJob = {
-      jobId,
-      chapterId,
-      status: 'pending',
-      progress: 0,
-      totalParagraphs: 10, // Mock number of paragraphs
-      processedParagraphs: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.mockJobs.set(jobId, job);
-    
-    // Start processing after a short delay
-    setTimeout(() => {
-      const currentJob = this.mockJobs.get(jobId);
-      if (currentJob) {
-        currentJob.status = 'processing';
-        currentJob.updatedAt = new Date();
-      }
-    }, 1000);
-    
+
+    const jobId = `mock-stream-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const streamUrl = `http://localhost:8765/stream/${jobId}`;
+
     return {
       success: true,
-      data: { jobId }
+      data: { jobId, streamUrl, completed: false }
     };
   }
 
@@ -95,54 +63,6 @@ export class TranslationMockAPI {
     return {
       success: true,
       data: suggestions,
-    };
-  }
-
-  async getTranslationJobStatus(
-    jobId: string
-  ): Promise<APIResponse<TranslationJobResponse>> {
-    await simulateDelay(200, 500);
-    
-    const job = this.mockJobs.get(jobId);
-    
-    if (!job) {
-      return {
-        success: false,
-        error: 'Job not found'
-      };
-    }
-    
-    // Simulate progress for in-progress jobs
-    if (job.status === 'processing') {
-      const elapsed = Date.now() - job.createdAt.getTime();
-      const totalTime = 8000; // 8 seconds simulated translation time
-      
-      // Simulate occasional failure
-      if (simulateFailure(0.02)) {
-        job.status = 'failed';
-        job.progress = 0;
-        job.updatedAt = new Date();
-      } else if (elapsed >= totalTime) {
-        job.status = 'completed';
-        job.progress = 100;
-        job.processedParagraphs = job.totalParagraphs;
-        job.updatedAt = new Date();
-      } else {
-        const progress = Math.min(95, Math.floor((elapsed / totalTime) * 100));
-        job.progress = progress;
-        job.processedParagraphs = Math.floor((progress / 100) * job.totalParagraphs);
-        job.updatedAt = new Date();
-      }
-    }
-    
-    return {
-      success: true,
-      data: {
-        jobId: job.jobId,
-        status: job.status,
-        progress: job.progress,
-        errorMessage: job.status === 'failed' ? 'Translation job failed' : undefined
-      }
     };
   }
 }

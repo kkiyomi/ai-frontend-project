@@ -1,6 +1,6 @@
 <template>
   <router-view v-if="$route.name === 'Share'" />
-  <div v-else class="h-screen flex flex-col bg-gray-50">
+  <div v-else class="h-screen flex flex-col bg-base-100">
     <!-- Announcement Banner at the very top -->
     <AnnouncementBannerManager />
 
@@ -10,22 +10,16 @@
       <SidebarMain />
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Translation View (always full width) -->
+      <div class="flex-1 flex flex-row overflow-hidden">
+        <!-- Translation View (shrinks when glossary panel is visible) -->
         <TranslationView />
 
-        <!-- Glossary Panel Overlay -->
-        <div v-if="isGlossaryVisible" class="absolute inset-0 bg-black/50 z-30 flex justify-end"
-          @click="closeGlossaryIfClickedOutside">
-          <!-- Glossary Panel -->
-          <div
-            class="w-80 h-full bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out"
-            @click.stop>
-            <GlossaryPanel
-              :currentChapter="currentChapter"
-              :currentSeries="currentSeries"
-            />
-          </div>
+        <!-- Glossary Side Panel (side-by-side, not overlay) -->
+        <div v-if="isGlossaryVisible" class="flex-shrink-0 w-80 border-l border-base-300">
+          <GlossaryPanel
+            :currentChapter="currentChapter"
+            :currentSeries="currentSeries"
+          />
         </div>
       </div>
     </div>
@@ -51,6 +45,7 @@ import { GlossaryPanel, useGlossaryStore } from '@/modules/glossary';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore } from '@/modules/chapters';
 import { UpgradeModal, useBillingStore } from '@/modules/billing';
+import { useTranslationStore } from '@/modules/translation';
 import { AnnouncementBannerManager } from '@/modules/announcements';
 import { useSeriesWithChapters } from '@/composables';
 import { useSettingsRouteSync } from '@/composables/useSettingsRouteSync';
@@ -66,6 +61,7 @@ const router = useRouter();
 const seriesStore = useSeriesStore();
 const chaptersStore = useChaptersStore();
 const glossaryStore = useGlossaryStore();
+const translationStore = useTranslationStore();
 const billingStore = useBillingStore();
 const errorStore = useErrorStore();
 
@@ -81,18 +77,29 @@ onMounted(async () => {
   await billingStore.loadPlans();
 });
 
-const closeGlossaryIfClickedOutside = (event: Event) => {
-  if (event.target === event.currentTarget) {
-    glossaryStore.toggleVisibility();
-  }
-};
-
 // Watch for chapter changes and reload glossary
 watch(() => currentChapter.value?.id, () => {
   if (currentChapter.value) {
     glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id);
   }
 });
+
+// Watch for extraction completion on current chapter → auto-reload glossary + open panel
+// Uses targeted path watch instead of deep-watching all chapter states.
+watch(
+  () => {
+    const chapterId = currentChapter.value?.id;
+    return chapterId ? translationStore.chapterStates[chapterId]?.hasFreshExtraction : undefined;
+  },
+  (fresh) => {
+    if (fresh) {
+      glossaryStore.loadTerms(currentSeries.value?.id, currentChapter.value?.id, { bypassCache: true });
+      if (!glossaryStore.isGlossaryVisible) {
+        glossaryStore.toggleVisibility();
+      }
+    }
+  },
+);
 
 // Watch for route prop changes and sync store (as backup to route guard)
 watch(() => props.seriesId, (newSeriesId) => {

@@ -1,68 +1,120 @@
 <template>
-  <div class="h-full bg-white flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
+  <div class="h-full bg-base-100 flex flex-col overflow-y-auto" ref="glossaryScrollContainer">
     <!-- Header -->
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-3 border-b border-base-300 space-y-2">
+      <!-- Title row -->
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-gray-900">Glossary</h2>
-        <button
-          @click="toggleGlossaryVisibility"
-          class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-          title="Close glossary"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <p class="text-sm text-gray-500 mt-1">{{ glossaryTerms.length }} terms defined</p>
-      <p v-if="currentSeries && currentChapter" class="text-xs text-blue-600 mt-1">
-        {{ currentSeries.name }}
-        <br/>
-        Chapter: {{ currentChapter.title }}
-      </p>
-      <p v-else-if="currentSeries" class="text-xs text-green-600 mt-1">
-        Series: {{ currentSeries.name }} (series-level terms)
-      </p>
-      
-      <!-- Highlight Terms Toggle -->
-      <div class="mt-3">
-        <button
-          @click="toggleHighlight"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-          :class="isHighlightEnabled ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
-          </svg>
-          <span>{{ isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms' }}</span>
-        </button>
-      </div>
-      
-      <!-- Add Term Button -->
-      <div class="mt-3 flex justify-center items-center space-x-2">
-        <button
-          v-if="!showAddForm"
-          @click="showAddForm = true"
-          :disabled="!currentSeries"
-          class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          :class="{ 'opacity-50 cursor-not-allowed': !currentSeries }"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          <span>{{ currentSeries ? 'Add New Term' : 'Select Series First' }}</span>
-        </button>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content">Glossary</h2>
+          <p class="text-sm text-base-content/50">{{ displayTermCount }}</p>
+        </div>
 
-        <div class="p-2">
-          <GlossaryImportButton
-            :series-id="currentSeries?.id"
-            :chapter-id="currentChapter?.id"
-            :disabled="!currentSeries"
-            button-class="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-            button-title="Import glossary terms from CSV"
-          />
+        <!-- Action icon strip -->
+        <div class="flex items-center gap-1">
+
+          <!-- Add Term -->
+          <div class="tooltip tooltip-bottom" data-tip="Add Term">
+            <button
+              v-if="!showAddForm"
+              @click="showAddForm = true"
+              :disabled="!currentSeries"
+              class="btn btn-primary btn-square btn-xs"
+              :class="{ 'btn-disabled': !currentSeries }"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Import -->
+          <div class="tooltip tooltip-bottom" data-tip="Import from CSV">
+            <GlossaryImportButton
+              :series-id="currentSeries?.id"
+              :chapter-id="currentChapter?.id"
+              :disabled="!currentSeries"
+              button-class="btn btn-ghost btn-square btn-sm text-base-content/40"
+              button-title="Import glossary terms from CSV"
+            />
+          </div>
+
+          <div class="w-px h-4 bg-base-300 mx-0.5"></div>
+
+          <!-- Highlight Toggle -->
+          <div class="tooltip tooltip-bottom" :data-tip="isHighlightEnabled ? 'Hide Highlights' : 'Highlight Terms'">
+            <button
+              @click="toggleHighlight"
+              class="btn btn-ghost btn-square btn-sm"
+              :class="isHighlightEnabled ? 'text-primary' : 'text-base-content/40'"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Series Terms Toggle -->
+          <div class="tooltip tooltip-bottom" :data-tip="showSeriesLevelTerms ? 'Hide Series Terms' : 'Show Series Terms'">
+            <button
+              @click="toggleSeriesLevelTerms"
+              :disabled="!currentSeries"
+              class="btn btn-ghost btn-square btn-sm"
+              :class="showSeriesLevelTerms ? 'text-primary' : 'text-base-content/40'"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="w-px h-4 bg-base-300 mx-0.5"></div>
+
+          <!-- Close -->
+          <button
+            @click="toggleGlossaryVisibility"
+            class="btn btn-ghost btn-square btn-sm text-base-content/40"
+            title="Close glossary"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
       </div>
+
+      <!-- Search -->
+      <div class="mt-2">
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search terms, translations..."
+            class="w-full pl-9 pr-3 py-1.5 text-sm bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
+          />
+          <svg class="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-base-content/40 hover:text-base-content"
+            title="Clear search"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Context breadcrumb -->
+      <p v-if="currentSeries && currentChapter" class="text-xs text-base-content/40 truncate">
+        {{ currentSeries.name }} › {{ currentChapter.title }}
+      </p>
+      <p v-else-if="currentSeries" class="text-xs text-base-content/40 truncate">
+        {{ currentSeries.name }}
+        <span class="text-primary/60"> · {{ showSeriesLevelTerms ? 'series-level' : 'chapter-level' }}</span>
+      </p>
     </div>
 
     <!-- Add Term Form -->
@@ -76,57 +128,56 @@
     />
 
     <!-- Terms List -->
-    <div class="flex-1 ">
+    <div class="flex-1">
       <div v-if="isLoading" class="p-8 text-center">
         <div class="text-4xl mb-3">⏳</div>
-        <p class="text-sm text-gray-500">Loading glossary terms...</p>
+        <p class="text-sm text-base-content/60">Loading glossary terms...</p>
       </div>
 
       <div v-else-if="!currentChapter" class="p-8 text-center">
         <div class="text-4xl mb-3">📖</div>
-        <p class="text-sm text-gray-500">
-          {{ currentSeries ? 'Viewing all glossary terms for this series' : 'Select a series to view its glossary' }}
+        <p class="text-sm text-base-content/60">
+          {{ currentSeries ? (showSeriesLevelTerms ? 'Viewing all glossary terms for this series' : 'Viewing chapter-level terms only') : 'Select a series to view its glossary' }}
         </p>
-        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-gray-400 mt-2">
-          Showing {{ glossaryTerms.length }} terms across all chapters
+        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-base-content/40 mt-2">
+          Showing {{ glossaryTerms.length }} {{ showSeriesLevelTerms ? 'terms across all chapters' : 'chapter-level terms across all chapters' }}
         </p>
-        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-blue-600 mt-1">
+        <p v-if="currentSeries && glossaryTerms.length > 0" class="text-xs text-primary/70 mt-1">
           Select a chapter to focus on chapter-specific context
         </p>
       </div>
 
       <div v-if="!glossaryTerms || glossaryTerms.length === 0" class="p-8 text-center">
         <div class="text-4xl mb-3">📚</div>
-        <p class="text-sm text-gray-500">No glossary terms yet</p>
-        <p v-if="currentChapter" class="text-xs text-gray-400 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
+        <p class="text-sm text-base-content/60">No glossary terms yet</p>
+        <p v-if="currentChapter" class="text-xs text-base-content/40 mt-1">Add terms to improve translations for "{{ currentChapter.title }}"</p>
+      </div>
+
+      <div v-else-if="filteredTerms.length === 0" class="p-8 text-center">
+        <div class="text-4xl mb-3">🔍</div>
+        <p class="text-sm text-base-content/60">No matching terms</p>
+        <p class="text-xs text-base-content/40 mt-1">Try a different search term</p>
       </div>
 
       <div v-else class="p-4 space-y-4">
-        <!-- Terms List -->
-          <VirtualScrollingList
-            :items="termsByCategoryFlat"
-            :visible-count="60"
-            :buffer="10"
-            :scroll-container="scrollContainerProp"
-            item-key="id"
-            class="space-y-2"
-          >
-            <template #item="{ item }">
-              <!-- Header -->
-              <div
-                v-if="item.type === 'header'"
-                class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-              >
-                {{ item.category }} ({{ item.count }})
-              </div>
-
-              <!-- Term -->
-              <GlossaryTermItem
-                v-else
-                :term="item"
-              />
-            </template>
-          </VirtualScrollingList>
+        <VirtualScrollingList
+          :items="filteredTermsByCategoryFlat"
+          :visible-count="60"
+          :buffer="10"
+          :scroll-container="scrollContainerProp"
+          item-key="id"
+          class="space-y-2"
+        >
+          <template #item="{ item }">
+            <div
+              v-if="item.type === 'header'"
+              class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
+            >
+              {{ item.category }} ({{ item.count }})
+            </div>
+            <GlossaryTermItem v-else :term="item" />
+          </template>
+        </VirtualScrollingList>
       </div>
     </div>
 
@@ -153,7 +204,7 @@ import GlossaryTermItem from './GlossaryTermItem.vue';
 import GlossarySuggestions from './GlossarySuggestions.vue';
 
 import type { Chapter, Series } from '@/types';
-import type { GlossaryItem } from '../types';
+import type { GlossaryItem, GlossaryTerm } from '../types';
 
 interface Props {
   currentChapter?: Chapter | null;
@@ -169,6 +220,7 @@ const {
   termsByCurrentChapter: glossaryTerms,
   isLoading,
   isHighlightEnabled,
+  showSeriesLevelTerms,
   termsByCategory,
   termsByCategoryFlat,
 } = state;
@@ -177,18 +229,76 @@ const {
   loadTerms: loadGlossaryTerms,
   suggestTermsFromText,
   toggleVisibility: toggleGlossaryVisibility,
-  toggleHighlight
+  toggleHighlight,
+  toggleSeriesLevelTerms
 } = store;
 
 const suggestions = ref<string[]>([]);
 const isGeneratingSuggestions = ref(false);
 const showAddForm = ref(false);
 const initialTerm = ref('');
+const searchQuery = ref('');
 
 const addSuggestedTerm = (suggestion: string) => {
   initialTerm.value = suggestion;
   showAddForm.value = true;
 };
+
+// Search functionality
+const filteredTerms = computed(() => {
+  if (!searchQuery.value.trim()) return glossaryTerms.value;
+  const query = searchQuery.value.toLowerCase().trim();
+  return glossaryTerms.value.filter(term =>
+    term.term.toLowerCase().includes(query) ||
+    term.translation.toLowerCase().includes(query)
+  );
+});
+
+const filteredTermsByCategoryFlat = computed(() => {
+  if (!searchQuery.value.trim()) return termsByCategoryFlat.value;
+  
+  const grouped: Record<string, GlossaryTerm[]> = {};
+  filteredTerms.value.forEach(term => {
+    if (!grouped[term.category]) {
+      grouped[term.category] = [];
+    }
+    grouped[term.category].push(term);
+});
+
+// Clear search when context changes
+watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
+  searchQuery.value = '';
+});
+
+  
+  const items: GlossaryItem[] = [];
+  for (const [category, flatTerms] of Object.entries(grouped)) {
+    items.push({
+      type: 'header',
+      id: `header-${category}`,
+      category,
+      count: flatTerms.length,
+    } as GlossaryItem);
+    
+    for (const term of flatTerms) {
+      items.push({
+        type: 'term',
+        ...term,
+        category,
+      } as GlossaryItem);
+    }
+  }
+  return items;
+});
+
+const displayTermCount = computed(() => {
+  const total = glossaryTerms.value.length;
+  const filtered = filteredTerms.value.length;
+  if (!searchQuery.value.trim() || filtered === total) {
+    return `${total} terms`;
+  }
+  return `${filtered} of ${total} terms`;
+});
 
 const generateSuggestions = () => {
   if (!props.currentChapter || !props.currentSeries) return;

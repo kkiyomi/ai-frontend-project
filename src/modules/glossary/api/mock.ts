@@ -8,7 +8,7 @@
  * NOT in Core infrastructure.
  */
 
-import type { APIResponse } from '@/modules/core';
+import type { APIResponse, CacheOptions } from '@/modules/core';
 import type { GlossaryTerm, GlossaryImportResponse } from '../types';
 import mockData from '@/mock';
 
@@ -20,7 +20,11 @@ const simulateDelay = (min = 200, max = 500): Promise<void> => {
 };
 
 export class GlossaryMockAPI {
-  async getGlossaryTerms(seriesId?: string, chapterId?: string): Promise<APIResponse<GlossaryTerm[]>> {
+  invalidateCache(): void {
+    // No-op — mock API has no cache
+  }
+
+  async getGlossaryTerms(seriesId?: string, chapterId?: string, _cacheOptions?: CacheOptions): Promise<APIResponse<GlossaryTerm[]>> {
     await simulateDelay();
 
     let filteredTerms = [...mockGlossaryTerms];

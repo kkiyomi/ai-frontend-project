@@ -9,16 +9,18 @@
   - Auto-save functionality triggered by editor store state changes
 -->
 <template>
-  <div class="flex-1 flex flex-col bg-white overflow-hidden">
+  <div class="flex-1 flex flex-col bg-base-100 overflow-hidden">
     <TranslationHeader />
 
     <ChapterEditor
       :chapter="currentChapter"
       :chapterId="currentChapterId"
       :highlightTermsInText="glossary.highlightTermsInText"
+      :highlightTermsInTexts="glossary.highlightTermsInTexts"
       :isHighlightEnabled="glossary.isHighlightEnabled"
       :isTranslating="translation.isTranslating"
       :translationProgress="translation.translationProgress"
+      :streamingText="currentStreamingText"
     />
   </div>
 
@@ -30,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { debounce } from 'perfect-debounce';
 import { ChapterEditor, useEditorStore } from '@/modules/editor';
 import {
@@ -48,6 +50,12 @@ const currentChapterId = computed(() => chaptersStore.currentChapterId);
 const editor = useEditorStore();
 const translation = useTranslationStore();
 const glossary = useGlossaryStore();
+
+/** Per-chapter streaming text — looks up the current chapter's accumulated tokens. */
+const currentStreamingText = computed(() => {
+  const id = currentChapterId.value;
+  return id ? (translation.streamingTranslatedContent[id] ?? '') : '';
+});
 
 const {
   showPopup: showGlossaryPopup,
@@ -94,18 +102,18 @@ watch(
   }
 );
 
-// Watch for translation completion and refresh chapter
+// When streaming translation completes (or chapter is already translated),
+// refetch the chapter from the backend and reload the editor.
 watch(
-  () => translation.currentJobData?.status,
-  async (status, previousStatus) => {
-    // When translation completes successfully
-    if (previousStatus === 'processing' && status === 'completed') {
+  () => translation.streamJobData,
+  async (data) => {
+    if (!data) return;
+
+    if (data.status === 'completed') {
       const chapterId = translation.currentChapterId;
       if (chapterId) {
-        // Refetch updated chapter from backend
         await chaptersStore.refresh(undefined, [chapterId]);
 
-        // Update editor store if same chapter is loaded
         if (editor.currentChapterId === chapterId) {
           const updatedChapter = chaptersStore.chapters.find(ch => ch.id === chapterId);
           if (updatedChapter) {
@@ -114,11 +122,6 @@ watch(
         }
       }
     }
-    // Handle failed translations
-    if (previousStatus === 'processing' && status === 'failed') {
-      console.error('Translation failed:', translation.currentJobData?.errorMessage);
-    }
-  }
+  },
 );
-
 </script>

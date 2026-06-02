@@ -15,7 +15,7 @@ import { shouldUseMockAPI, apiBaseURL } from '@/modules/core';
 import { SeriesMockAPI } from './mock';
 import { SeriesRealAPI } from './real';
 import type { APIResponse } from '@/modules/core';
-import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
+import type { Series, CreateSeriesRequest, UpdateSeriesRequest, Language } from '../types';
 
 class SeriesAPIService {
   private static instance: SeriesAPIService | null = null;
@@ -76,6 +76,11 @@ class SeriesAPIService {
   async deleteSeries(seriesId: string): Promise<APIResponse<void>> {
     const api = await this.getAPI();
     return api.deleteSeries(seriesId);
+  }
+
+  async getLanguages(): Promise<APIResponse<Language[]>> {
+    const api = await this.getAPI();
+    return api.getLanguages();
   }
 }
 

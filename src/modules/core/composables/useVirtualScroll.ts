@@ -279,6 +279,39 @@ export function useVirtualScroll<T>(
     stopItemRefsWatch?.();
   });
 
+  // Scroll to a specific item by index, placing it at the top of the container
+  function scrollToIndex(index: number, behavior: ScrollBehavior = 'instant') {
+    const el = containerRef.value;
+    if (!el) return;
+
+    const totalItems = (itemsRef.value as T[]).length;
+    if (index < 0 || index >= totalItems) return;
+
+    // Shift the virtual window so the target is the first visible item
+    const targetStart = Math.min(index, Math.max(0, totalItems - visibleCount));
+    startIndex.value = targetStart;
+
+    // After DOM update, measure the actual DOM position for pixel-perfect scroll
+    nextTick(() => {
+      const listEl = el.querySelector('.virtual-scrolling-list');
+      if (listEl) {
+        // The target's relative position within the rendered items
+        const targetRelativeIndex = index - startIndex.value;
+        // children: [0]=topSpacer, [1..N]=item wrappers
+        const targetEl = listEl.children[targetRelativeIndex + 1] as HTMLElement | undefined;
+        if (targetEl) {
+          const targetRect = targetEl.getBoundingClientRect();
+          const containerRect = el.getBoundingClientRect();
+          el.scrollTop += targetRect.top - containerRect.top;
+          return;
+        }
+      }
+
+      // Fallback: estimated position
+      el.scrollTo({ top: index * avgHeight.value, behavior });
+    });
+  }
+
   // Reset height cache when items length changes significantly
   watch(
     () => (itemsRef.value as T[]).length,
@@ -302,5 +335,6 @@ export function useVirtualScroll<T>(
     handleScroll,
     updateHeight,
     resetHeights,
+    scrollToIndex,
   };
 }

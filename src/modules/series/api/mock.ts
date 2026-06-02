@@ -1,8 +1,23 @@
 import type { APIResponse } from '@/modules/core/types';
-import type { Series, CreateSeriesRequest, UpdateSeriesRequest } from '../types';
+import type { Series, CreateSeriesRequest, UpdateSeriesRequest, Language } from '../types';
 import mockData from '@/mock';
 
 let mockSeries = mockData.mockSeries;
+
+const MOCK_LANGUAGES: Language[] = [
+  { code: 'en_US', name: 'English', isoCode: 'en' },
+  { code: 'zh_CN', name: 'Chinese (Simplified)', isoCode: 'zh' },
+  { code: 'zh_TW', name: 'Chinese (Traditional)', isoCode: 'zh' },
+  { code: 'ja_JP', name: 'Japanese', isoCode: 'ja' },
+  { code: 'ko_KR', name: 'Korean', isoCode: 'ko' },
+  { code: 'es_ES', name: 'Spanish', isoCode: 'es' },
+  { code: 'fr_FR', name: 'French', isoCode: 'fr' },
+  { code: 'de_DE', name: 'German', isoCode: 'de' },
+  { code: 'pt_BR', name: 'Portuguese (Brazil)', isoCode: 'pt' },
+  { code: 'ru_RU', name: 'Russian', isoCode: 'ru' },
+  { code: 'th_TH', name: 'Thai', isoCode: 'th' },
+  { code: 'vi_VN', name: 'Vietnamese', isoCode: 'vi' },
+];
 
 export class SeriesMockAPI {
   private series: Series[] = mockSeries;
@@ -39,6 +54,8 @@ export class SeriesMockAPI {
       id: `s${Date.now()}`,
       name: request.name,
       description: request.description,
+      sourceLanguage: request.sourceLanguage,
+      targetLanguage: request.targetLanguage,
       createdAt: new Date(),
       chapterIds: []
     };
@@ -90,6 +107,14 @@ export class SeriesMockAPI {
 
     return {
       success: true
+    };
+  }
+
+  async getLanguages(): Promise<APIResponse<Language[]>> {
+    await this.simulateDelay();
+    return {
+      success: true,
+      data: [...MOCK_LANGUAGES]
     };
   }
 

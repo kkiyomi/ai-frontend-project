@@ -71,6 +71,7 @@ const {
   containerRef,
   setItemRef,
   handleScroll: handleVirtualScroll,
+  scrollToIndex,
 } = useVirtualScroll({
   items: computed(() => props.items),
   visibleCount: props.visibleCount,
@@ -102,6 +103,9 @@ function handleScroll(event: Event) {
   handleVirtualScroll();
   emit('scroll', event);
 }
+
+// Expose scrollToIndex for parent components
+defineExpose({ scrollToIndex });
 </script>
 
 <style scoped>

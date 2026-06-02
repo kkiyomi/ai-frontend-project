@@ -50,6 +50,13 @@ export const useEditorStore = defineStore('editor', () => {
   const shouldInitiateChapterSave = ref(false);
   const isSaving = ref(false);
 
+  /** Transient save status for the save indicator badge in the header. */
+  const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const saveError = ref<string | null>(null);
+
+  let savedTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let errorTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   // View preferences (persisted to localStorage)
   const layoutMode = ref<LayoutMode>('split');
   const contentMode = ref<ContentMode>('all');
@@ -195,13 +202,30 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  /** Update chapter in local state only (no API call). */
+  /** Update chapter in local state only (no API call).
+   *
+   *  Mutates properties in-place rather than replacing the whole object ref,
+   *  avoiding an unnecessary reactive-proxy cascade on unrelated properties.
+   */
   function updateLocalChapter(updates: Partial<Chapter>) {
     const ch = currentChapter.value;
     if (!ch) return;
-    currentChapter.value = { ...ch, ...updates };
-    if (updates.content !== undefined) dirtyFields.value.add('content');
-    if (updates.translatedContent !== undefined) dirtyFields.value.add('translatedContent');
+
+    if (updates.content !== undefined) {
+      ch.content = updates.content;
+      dirtyFields.value.add('content');
+    }
+
+    if (updates.translatedContent !== undefined) {
+      ch.translatedContent = updates.translatedContent;
+      dirtyFields.value.add('translatedContent');
+    }
+
+    if (updates.title !== undefined) ch.title = updates.title;
+    if (updates.originalParagraphs !== undefined) ch.originalParagraphs = updates.originalParagraphs;
+    if (updates.translatedParagraphs !== undefined) ch.translatedParagraphs = updates.translatedParagraphs;
+    if (updates.seriesId !== undefined) ch.seriesId = updates.seriesId;
+    if (updates.isTranslated !== undefined) ch.isTranslated = updates.isTranslated;
   }
 
   /** Signal that a chapter save should be initiated. */
@@ -343,23 +367,58 @@ export const useEditorStore = defineStore('editor', () => {
     history.value = [];
     historyIndex.value = -1;
     isSaving.value = false;
+    saveStatus.value = 'idle';
+    saveError.value = null;
+    if (savedTimeoutId !== null) { clearTimeout(savedTimeoutId); savedTimeoutId = null; }
+    if (errorTimeoutId !== null) { clearTimeout(errorTimeoutId); errorTimeoutId = null; }
   }
 
   function markFieldsSaved(fields: Array<'content' | 'translatedContent'>) {
     fields.forEach(field => dirtyFields.value.delete(field));
     shouldInitiateChapterSave.value = false;
+    saveStatus.value = 'saved';
+    saveError.value = null;
+    if (savedTimeoutId !== null) clearTimeout(savedTimeoutId);
+    savedTimeoutId = setTimeout(() => {
+      if (saveStatus.value === 'saved') {
+        saveStatus.value = 'idle';
+      }
+      savedTimeoutId = null;
+    }, 2500);
   }
 
   function markSaveFailed() {
     shouldInitiateChapterSave.value = false;
+    saveStatus.value = 'error';
+    saveError.value = 'Failed to save';
+    if (errorTimeoutId !== null) clearTimeout(errorTimeoutId);
+    errorTimeoutId = setTimeout(() => {
+      if (saveStatus.value === 'error') {
+        saveStatus.value = 'idle';
+        saveError.value = null;
+      }
+      errorTimeoutId = null;
+    }, 5000);
   }
 
   function cancelPendingSave() {
     isSaving.value = false;
+    if (saveStatus.value === 'saving') {
+      saveStatus.value = 'idle';
+    }
   }
 
   function setSaving(value: boolean) {
     isSaving.value = value;
+    if (value === true) {
+      // Clear any stale timeouts when a new save cycle begins
+      if (savedTimeoutId !== null) { clearTimeout(savedTimeoutId); savedTimeoutId = null; }
+      if (errorTimeoutId !== null) { clearTimeout(errorTimeoutId); errorTimeoutId = null; }
+      saveStatus.value = 'saving';
+    } else if (saveStatus.value === 'saving') {
+      // Only flip back if no downstream call (markFieldsSaved / markSaveFailed) already changed it
+      saveStatus.value = 'idle';
+    }
   }
 
   // Initialize view preferences
@@ -376,6 +435,8 @@ export const useEditorStore = defineStore('editor', () => {
     hasUnsavedChanges,
     dirtyFields: dirtyFields_,
     isSaving,
+    saveStatus,
+    saveError,
     shouldInitiateChapterSave,
     isLoading,
     error,

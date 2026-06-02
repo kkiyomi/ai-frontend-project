@@ -9,25 +9,21 @@
  */
 
 import { apiClient, type APIResponse } from '@/modules/core';
-import type { TranslationJobResponse } from '../types';
+import type { StreamJobResponse } from '../types';
 
 export class TranslationRealAPI {
 
-  async translateChapter(
-    chapterId: string
-  ): Promise<APIResponse<{ jobId: string }>> {
-    return apiClient.post<{ jobId: string }>('/translate-chapter', {
-      chapterId
+  async translateChapterStream(
+    chapterId: string,
+    mode: string = 'full'
+  ): Promise<APIResponse<StreamJobResponse>> {
+    return apiClient.post<StreamJobResponse>('/translate-chapter-stream', {
+      chapterId,
+      mode,
     });
   }
 
   async suggestGlossaryTerms(text: string): Promise<APIResponse<string[]>> {
     return apiClient.post<string[]>('/suggest-terms', { text });
-  }
-
-  async getTranslationJobStatus(
-    jobId: string
-  ): Promise<APIResponse<TranslationJobResponse>> {
-    return apiClient.get<TranslationJobResponse>(`/translation-job/${jobId}`, { bypassCache: true });
   }
 }

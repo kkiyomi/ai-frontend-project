@@ -1,10 +1,10 @@
 <template>
-  <div class="p-4 border-b border-gray-200 bg-gray-50">
+  <div class="p-4 border-b border-base-300 bg-base-200">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-900">Add New Term</h3>
+      <h3 class="text-sm font-semibold text-base-content">Add New Term</h3>
       <button
         @click="cancel"
-        class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        class="text-sm text-base-content/60 hover:text-base-content/80 transition-colors"
       >
         Cancel
       </button>
@@ -16,7 +16,7 @@
           v-model="newTerm.term"
           type="text"
           placeholder="Term (e.g., character name)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
           required
         />
         <p v-if="termExistsError" class="text-xs text-red-600 mt-1">{{ termExistsError }}</p>
@@ -26,7 +26,7 @@
           v-model="newTerm.translation"
           type="text"
           placeholder="Translation"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
           required
         />
       </div>
@@ -35,13 +35,13 @@
           v-model="newTerm.definition"
           placeholder="Definition or context"
           rows="2"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm resize-none"
         ></textarea>
       </div>
       <div>
         <select
           v-model="newTerm.category"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm"
         >
           <option value="">Select category...</option>
           <option value="Character">Character</option>
@@ -54,14 +54,14 @@
           v-model="newTerm.category"
           type="text"
           placeholder="Enter custom category"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary/50 text-sm mt-2"
         />
       </div>
       
       <button
         type="submit"
         :disabled="!newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError"
-        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        class="w-full px-4 py-2 btn btn-primary transition-colors text-sm font-medium"
         :class="{ 'opacity-50 cursor-not-allowed': !newTerm.term.trim() || !newTerm.translation.trim() || !!termExistsError }"
       >
         Add Term

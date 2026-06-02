@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col h-full">
         <!-- Header -->
-        <div class="p-4 border-b border-gray-200 flex-shrink-0">
-            <h1 class="text-xl font-bold text-gray-900 mb-2">Absolute Mystery</h1>
-            <p class="text-sm text-gray-600">Upload and manage your novel chapters</p>
+        <div class="p-4 border-b border-base-300 flex-shrink-0">
+            <h1 class="text-xl font-bold text-base-content mb-2">Absolute Mystery</h1>
+            <p class="text-sm text-base-content/60">Upload and manage your novel chapters</p>
         </div>
 
         <!-- Scrollable Content Area -->
@@ -13,8 +13,8 @@
             <div class="p-4">
               <div v-if="series.length === 0" class="text-center py-8">
                 <div class="text-4xl mb-3">📚</div>
-                <p class="text-sm text-gray-500">No series created yet</p>
-                <p class="text-xs text-gray-400 mt-1">Create a series to organize your chapters</p>
+                <p class="text-sm text-base-content/60">No series created yet</p>
+                <p class="text-xs text-base-content/40 mt-1">Create a series to organize your chapters</p>
               </div>
 
               <div v-else class="space-y-4">
@@ -27,7 +27,7 @@
                     @delete="() => deleteSeries(seriesItem)"
                   />
                 </div>
-                <div v-else-if="currentSeries" class="border border-gray-200 rounded-lg overflow-hidden">
+                <div v-else-if="currentSeries" class="border border-base-300 rounded-lg overflow-hidden">
                   <SelectedSeriesView
                     :key="currentSeries.id"
                     :series="currentSeries"
@@ -38,26 +38,27 @@
                   <!-- Chapters List -->
                   <div>
                     <div v-if="currentSeries.chapters.length === 0" class="p-4 text-center">
-                      <p class="text-xs text-gray-500">No chapters in this series</p>
-                      <p class="text-xs text-gray-400 mt-1">Upload files to add chapters</p>
+                      <p class="text-xs text-base-content/60">No chapters in this series</p>
+                      <p class="text-xs text-base-content/40 mt-1">Upload files to add chapters</p>
                     </div>
 
                     <div v-else class="h-full">
                       <!-- Chapter count indicator for large lists -->
-                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-yellow-50 border-b border-yellow-200">
-                        <p class="text-xs text-yellow-700 text-center">
+                      <div v-if="currentSeries.chapters.length > 50" class="p-2 bg-warning/10 border-b border-warning/20">
+                        <p class="text-xs text-warning text-center">
                           📚 {{ currentSeries.chapters.length }} chapters in this series
                         </p>
                       </div>
 
                       <!-- Chapters list -->
                       <VirtualScrollingList
+                        ref="virtualListRef"
                         :items="currentSeries.chapters"
                         :visible-count="30"
                         :buffer="5"
                         :scroll-container="scrollContainerProp"
                         item-key="id"
-                        class="divide-y divide-gray-100 flex-1"
+                         class="divide-y divide-base-300 flex-1"
                       >
                         <template #item="{ item }">
                           <ChapterItem
@@ -88,9 +89,9 @@
         />
 
         <!-- Footer Actions -->
-        <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
+        <div class="p-4 border-t border-base-300 flex-shrink-0 bg-base-100">
             <a v-if="!profileStore.isLoggedIn" href="https://absolutemystery.com/web/login?redirect=/r/app" target="_self" aria-label="Login"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium mb-3">
+                class="w-full flex items-center justify-center space-x-2 px-4 py-2 btn btn-primary transition-colors text-sm font-medium mb-3">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -99,7 +100,7 @@
             </a>
 
             <button v-if="currentSeries" @click="glossaryStore.toggleVisibility"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                class="w-full flex btn btn-neutral space-x-2 px-4 py-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -108,14 +109,14 @@
             </button>
 
             <div class="mt-3 text-center">
-                <p class="text-xs text-gray-500">{{ getTotalStats() }}</p>
+                <p class="text-xs text-base-content/60">{{ getTotalStats() }}</p>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { VirtualScrollingList } from '@/modules/core';
 import {
@@ -158,11 +159,16 @@ const closeEditModal = () => {
   editingSeries.value = null;
 };
 
-const handleSeriesEdit = async (name: string, description?: string) => {
+const handleSeriesEdit = async (data: { name: string; description?: string; sourceLanguage?: string; targetLanguage?: string }) => {
   if (!editingSeries.value) return;
 
   try {
-    await seriesStore.updateSeries(editingSeries.value.id, { name, description });
+    await seriesStore.updateSeries(editingSeries.value.id, { 
+      name: data.name, 
+      description: data.description,
+      sourceLanguage: data.sourceLanguage,
+      targetLanguage: data.targetLanguage
+    });
     closeEditModal();
   } catch (error) {
     console.error('Error updating series:', error);
@@ -208,4 +214,24 @@ const deleteChapter = (chapter: Chapter | null) => {
 
 const chaptersScrollContainer = ref<HTMLElement | null>(null);
 const scrollContainerProp = computed(() => chaptersScrollContainer);
+
+// Ref to the VirtualScrollingList instance for scroll-to-chapter
+const virtualListRef = ref<{ scrollToIndex: (index: number, behavior?: ScrollBehavior) => void } | null>(null);
+
+// Tracks which series we've already auto-scrolled for (prevents re-scroll on chapter click)
+const lastScrolledSeriesId = ref<string | null>(null);
+
+// Auto-scroll to current chapter when sidebar first opens or series switches
+watchEffect(() => {
+  const series = currentSeries.value;
+  const list = virtualListRef.value;
+  if (!series || !chaptersStore.currentChapterId || !list?.scrollToIndex) return;
+  if (lastScrolledSeriesId.value === series.id) return;
+
+  const idx = series.chapters.findIndex(ch => ch.id === chaptersStore.currentChapterId);
+  if (idx >= 0) {
+    lastScrolledSeriesId.value = series.id;
+    nextTick(() => list.scrollToIndex(idx));
+  }
+});
 </script>
