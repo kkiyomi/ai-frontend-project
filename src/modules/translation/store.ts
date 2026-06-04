@@ -274,6 +274,9 @@ export const useTranslationStore = defineStore('translation', () => {
           },
           onChunkComplete: (data) => {
             console.log('[StreamTx] chunk_complete: seq=%s', data.chunk_sequence);
+            // Separate chunks with a line break so the last line of one chunk
+            // doesn't run directly into the first line of the next.
+            state.streamingContent += '\n';
           },
           onProgress: (data) => {
             const pct = typeof data.progress === 'number'
