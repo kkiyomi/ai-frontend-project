@@ -230,6 +230,9 @@ export const useTranslationStore = defineStore('translation', () => {
         console.error('[StreamTx] POST /translate-chapter-stream failed:', response.error);
         state.isTranslating = false;
         state.translationProgress = 0;
+        if (response.error) {
+          useErrorStore().openErrorModal(response.error, 'Translation request failed');
+        }
         return null;
       }
 

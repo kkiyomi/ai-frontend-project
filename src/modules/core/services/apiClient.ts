@@ -234,8 +234,8 @@ export class APIClient {
         const data = await response.json();
         const errorDetail = data.detail || `Endpoint: ${endpoint}`;
 
-        const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorMessage = data.detail || `HTTP ${response.status}: ${response.statusText}`;
+        const error = new Error(errorMessage);
 
         const shouldShowModal = errorOptions?.showModal ?? this.errorModalEnabled;
         if (shouldShowModal) {
