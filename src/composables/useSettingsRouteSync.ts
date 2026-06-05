@@ -21,7 +21,7 @@ export function useSettingsRouteSync() {
   const isUpdating = ref(false);
 
   // Helper to skip sync on Share route (modal not rendered)
-  const isShareRoute = () => route.name === 'Share';
+  const isShareRoute = () => route.meta.isShare === true;
 
   // Route → Store
   watch(() => route.query.settings, (newSectionIdRaw) => {

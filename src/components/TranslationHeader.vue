@@ -75,6 +75,29 @@
           v-if="currentSeries"
         />
 
+        <!-- Share Chapter -->
+        <ShareButton
+          v-if="currentChapter"
+          contentType="chapter"
+          :contentId="currentChapterId!"
+          :contentTitle="currentChapter.title"
+        />
+
+        <!-- Publish toggle -->
+        <button
+          v-if="currentChapter"
+          @click="togglePublish"
+          class="btn btn-sm"
+          :class="isPublished ? 'btn-success' : 'btn-ghost'"
+          :title="isPublished ? 'Unpublish — hide from public ToC' : 'Publish — show in public ToC'"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path v-if="isPublished" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          {{ isPublished ? 'Published' : 'Publish' }}
+        </button>
+
         <!-- Layout Toggle (disabled during streaming — only full mode works) -->
         <label
           v-if="currentChapter"
@@ -152,6 +175,8 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from 'vue-router';
 
 import ExportButton from './ExportButton.vue';
+import { ShareButton } from '@/modules/share';
+import { shareAPI } from '@/modules/share';
 import { AvatarMenu, useProfileStore } from "@/modules/profile";
 import { useChaptersStore } from "@/modules/chapters";
 import { useSeriesStore } from "@/modules/series";
@@ -231,6 +256,23 @@ const hasExistingTerms = computed(() => {
     t => t.chapterId === chapterId || t.chapterIds?.includes(chapterId),
   );
 });
+
+// --- Publish toggle ---
+const isPublished = ref(false);
+
+watch(currentChapter, (ch) => {
+  isPublished.value = !!(ch as any)?.isPublished;
+}, { immediate: true });
+
+async function togglePublish() {
+  const chapterId = currentChapterId.value;
+  if (!chapterId) return;
+  const newState = !isPublished.value;
+  const resp = await shareAPI.toggleChapterPublished(chapterId, newState);
+  if (resp.success) {
+    isPublished.value = newState;
+  }
+}
 
 // Keep the translation store's currentChapterId in sync with navigation
 // so backward-compat getters (isTranslating, translationProgress, etc.)

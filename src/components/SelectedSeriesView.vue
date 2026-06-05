@@ -42,6 +42,13 @@
         <!-- Bulk Upload -->
         <BulkChapterUpload :seriesId="series.id" />
 
+        <!-- Share -->
+        <ShareButton
+          contentType="series"
+          :contentId="series.id"
+          :contentTitle="series.name"
+        />
+
         <!-- Delete -->
         <button
           @click="$emit('delete', series.id)"
@@ -93,6 +100,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSeriesStore } from '@/modules/series';
 import { useChaptersStore, BulkChapterUpload } from '@/modules/chapters';
+import { ShareButton } from '@/modules/share';
 import { getSeriesTranslationProgress } from '../utils/chapterUtils';
 import type { SeriesWithChapters as Series, Chapter } from '../types';
 

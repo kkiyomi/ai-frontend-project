@@ -2,7 +2,7 @@
 
 Essential information for AI agents working in this Vue 3 + TypeScript project.
 
-**NOTE:** This file was revised on 2026-05-22. Previous version listed only 5 modules — 10 now exist.
+**NOTE:** This file was revised on 2026-06-05. Previous version listed only 10 modules — 11 now exist.
 
 ## Project Overview
 
@@ -81,6 +81,7 @@ src/
 │   ├── editor/       # Chapter editing (directives/, utils.ts)
 │   ├── glossary/     # Glossary terms management
 │   ├── announcements/# Announcements display
+│   ├── share/        # Public share/publish link reader views + translator UI
 │   └── translation/  # Translation interface (sseClient.ts)
 ├── components/       # Global/reusable components
 ├── composables/      # Global composables
@@ -204,7 +205,7 @@ Each module follows this pattern (+ deviations noted):
 - **Styling**: Tailwind CSS + scoped CSS
 - **Path alias**: `@/` for `src/`
 - **Module structure**: Feature-based organization
-- **Modules**: 10 total (core, billing, series, profile, theme, chapters, editor, glossary, announcements, translation)
+- **Modules**: 11 total (core, billing, series, profile, theme, chapters, editor, glossary, announcements, share, translation)
 
 ## MANDATORY: AGENTS.md Auto-Update Rule
 

@@ -1,5 +1,5 @@
 <template>
-  <router-view v-if="$route.name === 'Share'" />
+  <router-view v-if="$route.meta.isShare" />
   <div v-else class="h-screen flex flex-col bg-base-100">
     <!-- Announcement Banner at the very top -->
     <AnnouncementBannerManager />

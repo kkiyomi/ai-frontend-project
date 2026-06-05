@@ -25,7 +25,25 @@ const routes = [
       seriesId: route.params.seriesId,
       chapterId: route.params.chapterId 
     })
-  }
+  },
+  {
+    path: '/s/:uuid',
+    name: 'ShareChapter',
+    component: () => import('@/modules/share/components/ShareChapterView.vue'),
+    meta: { isShare: true },
+  },
+  {
+    path: '/s/:uuid/series',
+    name: 'ShareSeries',
+    component: () => import('@/modules/share/components/ShareSeriesView.vue'),
+    meta: { isShare: true },
+  },
+  {
+    path: '/s/:uuid/chapters/:chapterUuid',
+    name: 'ShareChapterInSeries',
+    component: () => import('@/modules/share/components/ShareChapterView.vue'),
+    meta: { isShare: true },
+  },
 ];
 
 const router = createRouter({

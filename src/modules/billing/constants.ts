@@ -44,16 +44,6 @@ export const LIMIT_DEFINITIONS = {
     icon: 'translate',
     category: 'translation'
   },
-  share_views_limit: {
-    key: 'share_views_limit',
-    type: 'recurring' as const,
-    resetPeriod: 'monthly' as const,
-    name: 'Monthly Share Views',
-    description: 'Maximum number of share views per month',
-    unit: 'views',
-    icon: 'eye',
-    category: 'sharing'
-  },
   
   // Topups (one-time purchases)
   translation_tokens_topup: {

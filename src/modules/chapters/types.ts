@@ -7,6 +7,7 @@ export interface Chapter {
   translatedParagraphs: string[];
   seriesId: string;
   isTranslated?: boolean;
+  isPublished?: boolean;
 }
 
 export interface ChapterCreateInput {
