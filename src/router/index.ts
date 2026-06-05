@@ -27,19 +27,19 @@ const routes = [
     })
   },
   {
-    path: '/s/:uuid',
+    path: '/s/chapter/:chapterUuid',
     name: 'ShareChapter',
     component: () => import('@/modules/share/components/ShareChapterView.vue'),
     meta: { isShare: true },
   },
   {
-    path: '/s/:uuid/series',
+    path: '/s/:seriesUuid',
     name: 'ShareSeries',
     component: () => import('@/modules/share/components/ShareSeriesView.vue'),
     meta: { isShare: true },
   },
   {
-    path: '/s/:uuid/chapters/:chapterUuid',
+    path: '/s/:seriesUuid/:chapterUuid',
     name: 'ShareChapterInSeries',
     component: () => import('@/modules/share/components/ShareChapterView.vue'),
     meta: { isShare: true },

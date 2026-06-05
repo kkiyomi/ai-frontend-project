@@ -93,10 +93,11 @@ const copied = ref(false);
 
 const shareUrl = computed(() => {
   const origin = window.location.origin;
-  const path = props.contentType === 'chapter'
-    ? `/s/${store.links[0]?.uuid || ''}`
-    : `/s/${store.links[0]?.uuid || ''}/series`;
-  return origin + path;
+  const uuid = store.links[0]?.uuid || '';
+  if (props.contentType === 'chapter') {
+    return `${origin}/s/chapter/${uuid}`;
+  }
+  return `${origin}/s/${uuid}`;
 });
 
 async function createLink() {
@@ -111,10 +112,9 @@ async function createLink() {
 
     if (link) {
       const origin = window.location.origin;
-      generatedUrl.value =
-        props.contentType === 'chapter'
-          ? `${origin}/s/${link.uuid}`
-          : `${origin}/s/${link.uuid}/series`;
+      generatedUrl.value = props.contentType === 'chapter'
+        ? `${origin}/s/chapter/${link.uuid}`
+        : `${origin}/s/${link.uuid}`;
       emit('created', link.uuid);
     }
   } finally {

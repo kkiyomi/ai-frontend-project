@@ -40,6 +40,7 @@ export interface SharedSeriesChapterItem {
   name: string;
   sequence: number;
   hasPublishedContent: boolean;
+  isPublished: boolean;
 }
 
 export interface GlossaryTermPublic {

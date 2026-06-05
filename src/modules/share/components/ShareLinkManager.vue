@@ -137,10 +137,9 @@ async function revoke(uuid: string) {
 
 async function copyShareUrl(uuid: string, publishType: string) {
   const origin = window.location.origin;
-  const url =
-    publishType === 'chapter'
-      ? `${origin}/s/${uuid}`
-      : `${origin}/s/${uuid}/series`;
+  const url = publishType === 'chapter'
+    ? `${origin}/s/chapter/${uuid}`
+    : `${origin}/s/${uuid}`;
   try {
     await navigator.clipboard.writeText(url);
   } catch {

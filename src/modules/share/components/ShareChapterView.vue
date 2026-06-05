@@ -18,8 +18,30 @@
     <div v-else-if="chapterData" class="max-w-3xl mx-auto px-4 py-12">
       <!-- Header -->
       <header class="mb-8 text-center">
-        <p class="text-sm text-base-content/50 mb-2">{{ chapterData.seriesName }}</p>
+        <!-- Series breadcrumb -->
+        <p class="text-sm text-base-content/50 mb-2">
+          <router-link
+            v-if="isPartOfSeries"
+            :to="`/s/${seriesUuid}`"
+            class="hover:text-primary transition-colors no-underline"
+          >
+            ← {{ chapterData.seriesName }}
+          </router-link>
+          <span v-else>{{ chapterData.seriesName }}</span>
+        </p>
         <h1 class="text-3xl font-bold font-serif">{{ chapterData.title }}</h1>
+
+        <!-- Owner actions -->
+        <div v-if="store.isOwner" class="mt-3 flex justify-center gap-2">
+          <button
+            v-if="chapterId"
+            @click="togglePublish"
+            class="btn btn-xs"
+            :class="isPublished ? 'btn-success' : 'btn-ghost'"
+          >
+            {{ isPublished ? 'Published ✓' : 'Publish' }}
+          </button>
+        </div>
       </header>
 
       <!-- Translated content -->
@@ -64,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
 
@@ -74,18 +96,29 @@ const store = useShareStore();
 const chapterData = computed(() => store.chapterData);
 const error = computed(() => store.error);
 const loading = computed(() => store.loading);
+const isPartOfSeries = computed(() => !!route.params.seriesUuid);
+const seriesUuid = computed(() => route.params.seriesUuid as string);
+const chapterId = computed(() => route.params.chapterUuid as string);
+
+// Owner publish state
+const isPublished = ref(true);
+
+async function togglePublish() {
+  const cid = chapterId.value;
+  if (!cid) return;
+  const newState = !isPublished.value;
+  await store.toggleChapterPublish(cid, newState);
+  isPublished.value = newState;
+}
 
 onMounted(async () => {
-  const uuid = route.params.uuid as string;
   const chapterUuid = route.params.chapterUuid as string | undefined;
-  if (!uuid) return;
+  const seriesUid = route.params.seriesUuid as string | undefined;
 
-  if (chapterUuid) {
-    // Chapter viewed via series share: /s/:uuid/chapters/:chapterUuid
-    await store.loadSharedChapterInSeries(uuid, chapterUuid);
-  } else {
-    // Standalone chapter share: /s/:uuid
-    await store.loadSharedChapter(uuid);
+  if (seriesUid) {
+    await store.loadSharedChapterInSeries(seriesUid, chapterUuid!);
+  } else if (chapterUuid) {
+    await store.loadSharedChapter(chapterUuid);
   }
 });
 </script>
