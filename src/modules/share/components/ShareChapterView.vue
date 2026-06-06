@@ -67,7 +67,7 @@
           class="prose prose-lg max-w-none leading-relaxed"
           :class="fontClass"
           :style="articleStyle"
-          v-html="chapterData.content"
+          v-html="htmlContent"
         ></article>
 
         <!-- Raw content (optional) -->
@@ -75,7 +75,7 @@
           <h2 class="text-lg font-semibold text-base-content/50 mb-4">Original Text</h2>
           <article
             class="prose prose-base max-w-none text-base-content/60"
-            v-html="chapterData.rawContent"
+            v-html="htmlRawContent"
           ></article>
         </section>
 
@@ -101,6 +101,31 @@
             </div>
           </dl>
         </section>
+
+        <!-- Prev/Next navigation (series context only) -->
+        <nav v-if="isPartOfSeries" class="mt-12 flex justify-between items-center">
+          <button
+            v-if="prevChapter"
+            @click="goPrev"
+            class="btn btn-ghost btn-sm gap-1"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            {{ prevChapter.name }}
+          </button>
+          <span v-else class="btn btn-ghost btn-sm btn-disabled">—</span>
+
+          <span class="text-sm text-base-content/30">{{ currentIndex + 1 }} / {{ allChapters.length }}</span>
+
+          <button
+            v-if="nextChapter"
+            @click="goNext"
+            class="btn btn-ghost btn-sm gap-1"
+          >
+            {{ nextChapter.name }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <span v-else class="btn btn-ghost btn-sm btn-disabled">—</span>
+        </nav>
       </div>
 
       <!-- Reader Settings Modal -->
@@ -111,8 +136,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useShareStore } from '../store';
+import { shareAPI } from '../api';
 import {
   font,
   fontSize,
@@ -120,10 +146,26 @@ import {
   paragraphSpacing,
   pageWidth,
   autoScroll,
+  offlineEnabled,
+  chaptersAhead,
+  cacheChapter,
+  getCachedChapter,
 } from '../composables/useReaderSettings';
 import ReaderSettings from './ReaderSettings.vue';
 
+/** Convert plain text with \n to HTML paragraphs */
+function nl2p(text: string): string {
+  if (!text) return text;
+  // Already contains HTML tags — return as-is
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+  return text
+    .split(/\n\n+/)
+    .map((block) => `<p>${block.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
 const route = useRoute();
+const router = useRouter();
 const store = useShareStore();
 
 const chapterData = computed(() => store.chapterData);
@@ -132,9 +174,48 @@ const loading = computed(() => store.loading);
 const isPartOfSeries = computed(() => !!route.params.seriesUuid);
 const seriesUuid = computed(() => route.params.seriesUuid as string);
 const chapterId = computed(() => route.params.chapterUuid as string);
-const isPublished = ref(true);
+const isPublished = computed(() => chapterData.value?.isPublished ?? false);
+
+// Navigation (only in series context)
+const allChapters = computed(() => store.seriesData?.chapters ?? []);
+const currentIndex = computed(() => allChapters.value.findIndex((c) => c.uuid === chapterId.value));
+const prevChapter = computed(() => currentIndex.value > 0 ? allChapters.value[currentIndex.value - 1] : null);
+const nextChapter = computed(() => currentIndex.value < allChapters.value.length - 1 ? allChapters.value[currentIndex.value + 1] : null);
+
+function goPrev() {
+  if (prevChapter.value) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    store.loadSharedChapterInSeries(seriesUuid.value, prevChapter.value.uuid);
+    router.replace(`/s/${seriesUuid.value}/${prevChapter.value.uuid}`);
+  }
+}
+
+function goNext() {
+  if (nextChapter.value) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    store.loadSharedChapterInSeries(seriesUuid.value, nextChapter.value.uuid);
+    router.replace(`/s/${seriesUuid.value}/${nextChapter.value.uuid}`);
+  }
+}
+
+// Arrow key navigation
+function onKeydown(e: KeyboardEvent) {
+  const tag = (e.target as HTMLElement)?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'ArrowRight') goNext();
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown);
+  stopAutoScroll();
+});
 
 const showSettings = ref(false);
+
+const htmlContent = computed(() => nl2p(chapterData.value?.content ?? ''));
+const htmlRawContent = computed(() => nl2p(chapterData.value?.rawContent ?? ''));
 
 // Font class mapping
 const fontClass = computed(() => {
@@ -194,7 +275,6 @@ async function togglePublish() {
   if (!cid) return;
   const newState = !isPublished.value;
   await store.toggleChapterPublish(cid, newState);
-  isPublished.value = newState;
 }
 
 onMounted(async () => {
@@ -207,10 +287,37 @@ onMounted(async () => {
     await store.loadSharedChapter(chapterUuid);
   }
 
-  if (store.currentLink) {
-    isPublished.value = store.currentLink.active;
+  // Cache chapter for offline reading
+  if (chapterData.value) {
+    const uid = chapterId.value || chapterUuid;
+    if (uid) {
+      cacheChapter(uid, chapterData.value.title, chapterData.value.content);
+    }
+  }
+
+  // Pre-fetch chapters ahead for offline reading
+  if (offlineEnabled.value && isPartOfSeries.value && chapterData.value) {
+    prefetchAhead(chapterUuid || chapterId.value);
   }
 });
+
+/** Pre-fetch next N chapters ahead of current position */
+async function prefetchAhead(currentUuid: string) {
+  const chapters = allChapters.value;
+  if (!chapters.length || !seriesUuid.value) return;
+
+  const idx = chapters.findIndex((c) => c.uuid === currentUuid);
+  if (idx < 0) return;
+
+  const ahead = chapters.slice(idx + 1, idx + 1 + chaptersAhead.value);
+  for (const ch of ahead) {
+    if (getCachedChapter(ch.uuid)) continue;
+    try {
+      const data = await shareAPI.getSharedChapterInSeries(seriesUuid.value, ch.uuid);
+      cacheChapter(ch.uuid, data.title, data.content);
+    } catch { /* skip */ }
+  }
+}
 </script>
 
 <style scoped>

@@ -26,6 +26,7 @@ export interface SharedChapterData {
   seriesName: string;
   content: string;
   rawContent?: string;
+  isPublished: boolean;
   glossary: GlossaryTermPublic[];
 }
 

@@ -63,12 +63,17 @@ export const useShareStore = defineStore('share', () => {
     loading.value = true;
     error.value = null;
     try {
-      chapterData.value = await shareAPI.getSharedChapterInSeries(seriesUuid, chapterUuid);
-      seriesData.value = null;
+      const [chapter, series] = await Promise.all([
+        shareAPI.getSharedChapterInSeries(seriesUuid, chapterUuid),
+        shareAPI.getSharedSeries(seriesUuid),
+      ]);
+      chapterData.value = chapter;
+      seriesData.value = series;
       await checkOwnership(seriesUuid);
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load shared content';
       chapterData.value = null;
+      seriesData.value = null;
     } finally {
       loading.value = false;
     }
@@ -151,12 +156,19 @@ export const useShareStore = defineStore('share', () => {
   async function toggleChapterPublish(chapterUuid: string, publish: boolean) {
     try {
       const resp = await shareAPI.toggleChapterPublished(chapterUuid, publish);
-      if (resp.success) {
-        // Refresh series data if on a ToC page
+      if (resp.success && resp.data) {
+        const newState = resp.data.is_published;
+        // Update chapter view data
+        if (chapterData.value) {
+          chapterData.value = { ...chapterData.value, isPublished: newState };
+        }
+        // Update the chapter in seriesData (ToC)
         if (seriesData.value) {
-          const link = currentLink.value;
-          if (link && link.novelId) {
-            await loadSharedSeries(link.uuid);
+          const idx = seriesData.value.chapters.findIndex((c) => c.uuid === chapterUuid);
+          if (idx >= 0) {
+            const updated = [...seriesData.value.chapters];
+            updated[idx] = { ...updated[idx], isPublished: newState };
+            seriesData.value = { ...seriesData.value, chapters: updated };
           }
         }
       }

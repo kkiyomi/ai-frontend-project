@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import {
   font,
   fontSize,
@@ -166,10 +166,11 @@ import {
 defineEmits<{ close: [] }>();
 
 const activeTab = ref<'visual' | 'cache'>('visual');
-const cachedCount = ref(getCachedCount());
+const cachedCount = ref(0);
+watchEffect(() => { cachedCount.value = getCachedCount(); });
 
 function doClearCache() {
   clearCache();
-  cachedCount.value = 0;
+  cachedCount.value = getCachedCount();
 }
 </script>
