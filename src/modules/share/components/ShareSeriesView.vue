@@ -41,11 +41,11 @@
           <!-- Inline settings panel -->
           <div v-if="showSettings" class="mt-2 p-3 bg-base-200 rounded-lg text-left text-sm max-w-xs mx-auto space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="includeGlossary" type="checkbox" class="checkbox checkbox-xs" />
+              <input v-model="includeGlossary" @change="saveSettings" type="checkbox" class="checkbox checkbox-xs" />
               Include glossary
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="includeRaw" type="checkbox" class="checkbox checkbox-xs" />
+              <input v-model="includeRaw" @change="saveSettings" type="checkbox" class="checkbox checkbox-xs" />
               Include raw content
             </label>
           </div>
@@ -108,6 +108,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
+import { shareAPI } from '../api';
 
 const route = useRoute();
 const store = useShareStore();
@@ -136,6 +137,14 @@ const filteredChapters = computed(() => {
     (c) => c.isPublished === wantPublished,
   );
 });
+
+async function saveSettings() {
+  if (!store.currentLink) return;
+  await shareAPI.updateShareLink(store.currentLink.uuid, {
+    includeGlossary: includeGlossary.value,
+    includeRaw: includeRaw.value,
+  });
+}
 
 onMounted(async () => {
   const uuid = route.params.seriesUuid as string;

@@ -62,6 +62,10 @@ class ShareAPIService {
   async toggleChapterPublished(chapterUuid: string, isPublished: boolean): Promise<APIResponse<{ is_published: boolean }>> {
     return publish.toggleChapterPublished(chapterUuid, isPublished);
   }
+
+  async updateShareLink(uuid: string, data: { includeGlossary?: boolean; includeRaw?: boolean; name?: string }): Promise<APIResponse<ShareLink>> {
+    return publish.updateShareLink(uuid, data);
+  }
 }
 
 export const shareAPI = ShareAPIService.getInstance();
