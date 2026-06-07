@@ -1,7 +1,7 @@
 /**
  * Share Module - API Layer
- * All endpoints are real (no mock). Public reader uses raw fetch,
- * publisher CRUD uses the authenticated apiClient.
+ * All endpoints are real (no mock). Both public reader and publisher
+ * CRUD use the same apiClient transport — the backend enforces auth.
  */
 import {
   fetchSharedChapter,
@@ -34,15 +34,27 @@ class ShareAPIService {
   // --- Public reader endpoints ---
 
   async getSharedChapter(uuid: string): Promise<SharedChapterData> {
-    return fetchSharedChapter(uuid);
+    const resp = await fetchSharedChapter(uuid);
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.error || 'Share link not found or has been revoked.');
+    }
+    return resp.data;
   }
 
   async getSharedSeries(uuid: string): Promise<SharedSeriesData> {
-    return fetchSharedSeries(uuid);
+    const resp = await fetchSharedSeries(uuid);
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.error || 'Share link not found or has been revoked.');
+    }
+    return resp.data;
   }
 
   async getSharedChapterInSeries(seriesUuid: string, chapterUuid: string): Promise<SharedChapterData> {
-    return fetchSharedChapterInSeries(seriesUuid, chapterUuid);
+    const resp = await fetchSharedChapterInSeries(seriesUuid, chapterUuid);
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.error || 'Share link not found or has been revoked.');
+    }
+    return resp.data;
   }
 
   // --- Translator publisher endpoints ---
