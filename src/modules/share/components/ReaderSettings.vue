@@ -3,26 +3,7 @@
     <div class="modal-box max-w-sm">
       <h3 class="text-lg font-bold mb-4">Reader Settings</h3>
 
-      <!-- Tabs -->
-      <div class="tabs tabs-box mb-4">
-        <button
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'visual' }"
-          @click="activeTab = 'visual'"
-        >
-          Visual
-        </button>
-        <button
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'cache' }"
-          @click="activeTab = 'cache'"
-        >
-          Cache
-        </button>
-      </div>
-
-      <!-- Visual tab -->
-      <div v-if="activeTab === 'visual'" class="space-y-4">
+      <div class="space-y-4">
         <!-- Font -->
         <div>
           <label class="text-sm font-medium">Font</label>
@@ -112,42 +93,6 @@
         </div>
       </div>
 
-      <!-- Cache tab -->
-      <div v-else class="space-y-4">
-        <!-- Offline reading -->
-        <div class="flex items-center justify-between">
-          <label class="text-sm font-medium">Offline Reading</label>
-          <input type="checkbox" v-model="offlineEnabled" class="toggle toggle-sm toggle-primary" />
-        </div>
-
-        <!-- Chapters ahead -->
-        <div>
-          <div class="flex justify-between text-sm">
-            <label class="font-medium">Chapters Ahead</label>
-            <span class="text-base-content/50">{{ chaptersAhead }}</span>
-          </div>
-          <input
-            type="range"
-            v-model.number="chaptersAhead"
-            min="1"
-            max="20"
-            step="1"
-            class="range range-xs range-primary mt-1"
-          />
-        </div>
-
-        <!-- Cache status -->
-        <div class="flex items-center justify-between text-sm">
-          <span class="font-medium">Cached Chapters</span>
-          <span class="badge badge-sm">{{ cachedCount }}</span>
-        </div>
-
-        <!-- Clear cache -->
-        <button @click="doClearCache" class="btn btn-sm btn-outline btn-error w-full">
-          Clear Cache
-        </button>
-      </div>
-
       <div class="modal-action">
         <button class="btn btn-ghost btn-sm" @click="$emit('close')">Close</button>
       </div>
@@ -156,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
 import {
   font,
   fontSize,
@@ -164,23 +108,10 @@ import {
   paragraphSpacing,
   pageWidth,
   autoScroll,
-  offlineEnabled,
-  chaptersAhead,
-  getCachedCount,
-  clearCache,
   resetToDefaults,
 } from '../composables/useReaderSettings';
 
 defineEmits<{ close: [] }>();
-
-const activeTab = ref<'visual' | 'cache'>('visual');
-const cachedCount = ref(0);
-watchEffect(() => { cachedCount.value = getCachedCount(); });
-
-function doClearCache() {
-  clearCache();
-  cachedCount.value = getCachedCount();
-}
 
 function doReset() {
   resetToDefaults();
