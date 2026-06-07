@@ -16,23 +16,25 @@
 
     <!-- Chapter content -->
     <div v-else-if="chapterData">
-      <!-- Top bar: gear icon -->
-      <div class="sticky top-0 z-10 flex justify-end px-4 py-2 bg-base-100/80 backdrop-blur border-b border-base-200">
-        <button
-          @click="showSettings = true"
-          class="btn btn-ghost btn-sm btn-circle"
-          :class="{ 'btn-active': autoScrollActive }"
-          title="Reader Settings"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-        <!-- Auto-scroll indicator -->
-        <span v-if="autoScrollActive" class="text-xs text-primary font-medium ml-1">⏵</span>
-      </div>
+      <!-- Top bar: brand + gear icon -->
+      <ShareBrandBar>
+        <div class="flex items-center gap-1">
+          <button
+            @click="showSettings = true"
+            class="btn btn-ghost btn-sm btn-circle"
+            :class="{ 'btn-active': autoScrollActive }"
+            title="Reader Settings"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <!-- Auto-scroll indicator -->
+          <span v-if="autoScrollActive" class="text-xs text-primary font-medium">⏵</span>
+        </div>
+      </ShareBrandBar>
 
       <div class="mx-auto px-4 py-12" :style="{ maxWidth: pageWidth + 'px' }">
         <!-- Header -->
@@ -128,6 +130,9 @@
         </nav>
       </div>
 
+      <!-- Brand footer -->
+      <ShareBrandFooter />
+
       <!-- Reader Settings Modal -->
       <ReaderSettings v-if="showSettings" @close="showSettings = false" />
     </div>
@@ -152,6 +157,8 @@ import {
   getCachedChapter,
 } from '../composables/useReaderSettings';
 import ReaderSettings from './ReaderSettings.vue';
+import ShareBrandBar from './ShareBrandBar.vue';
+import ShareBrandFooter from './ShareBrandFooter.vue';
 
 /** Convert plain text with \n to HTML paragraphs */
 function nl2p(text: string): string {

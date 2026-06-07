@@ -15,7 +15,11 @@
     </div>
 
     <!-- Series Table of Contents -->
-    <div v-else-if="seriesData" class="max-w-3xl mx-auto px-4 py-12">
+    <div v-else-if="seriesData">
+      <!-- Top bar: brand -->
+      <ShareBrandBar />
+
+      <div class="max-w-3xl mx-auto px-4 py-12">
       <!-- Header -->
       <header class="mb-10 text-center">
         <h1 class="text-3xl font-bold font-serif mb-3">{{ seriesData.seriesName }}</h1>
@@ -148,6 +152,10 @@
       >
         No chapters published yet.
       </div>
+
+      <!-- Brand footer -->
+      <ShareBrandFooter />
+    </div>
     </div>
   </div>
 </template>
@@ -157,6 +165,8 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
+import ShareBrandBar from './ShareBrandBar.vue';
+import ShareBrandFooter from './ShareBrandFooter.vue';
 
 const route = useRoute();
 const store = useShareStore();
