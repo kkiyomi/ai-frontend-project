@@ -278,30 +278,63 @@ async function togglePublish() {
 }
 
 onMounted(async () => {
-  const chapterUuid = route.params.chapterUuid as string | undefined;
-  const seriesUid = route.params.seriesUuid as string | undefined;
+    const chapterUuid = route.params.chapterUuid as string | undefined;
+    const seriesUid = route.params.seriesUuid as string | undefined;
 
-  if (seriesUid) {
-    await store.loadSharedChapterInSeries(seriesUid, chapterUuid!);
-  } else if (chapterUuid) {
-    await store.loadSharedChapter(chapterUuid);
-  }
-
-  // Cache chapter for offline reading
-  if (chapterData.value) {
-    const uid = chapterId.value || chapterUuid;
-    if (uid) {
-      cacheChapter(uid, chapterData.value.title, chapterData.value.content);
+    if (seriesUid) {
+      await store.loadSharedChapterInSeries(seriesUid, chapterUuid!);
+    } else if (chapterUuid) {
+      await store.loadSharedChapter(chapterUuid);
     }
-  }
 
-  // Pre-fetch chapters ahead for offline reading
-  if (offlineEnabled.value && isPartOfSeries.value && chapterData.value) {
-    prefetchAhead(chapterUuid || chapterId.value);
+    const uid = chapterId.value || chapterUuid;
+
+    // Offline fallback: if the API call failed but we have a cached copy, use it
+    if (uid && store.error && !store.chapterData) {
+      const cached = getCachedChapter(uid);
+      if (cached) {
+        store.chapterData = {
+          title: cached.title,
+          seriesName: '',
+          content: cached.content,
+          rawContent: undefined,
+          isPublished: true,
+          glossary: [],
+        };
+        store.clearError();
+      }
+    }
+
+    // Cache chapter for offline reading
+    if (store.chapterData) {
+      if (uid) {
+        cacheChapter(uid, store.chapterData.title, store.chapterData.content);
+      }
+    }
+
+    // Pre-fetch chapters ahead for offline reading
+    triggerPrefetch(chapterUuid || chapterId.value);
+  });
+
+// React to offline toggle being enabled after page load
+watch(offlineEnabled, (on) => {
+  if (on) triggerPrefetch(chapterId.value);
+});
+
+// Cache + prefetch whenever chapter data changes (navigation)
+watch(chapterData, (data) => {
+  if (data && chapterId.value) {
+    cacheChapter(chapterId.value, data.title, data.content);
+    triggerPrefetch(chapterId.value);
   }
 });
 
 /** Pre-fetch next N chapters ahead of current position */
+async function triggerPrefetch(currentUuid: string | undefined) {
+  if (!currentUuid || !offlineEnabled.value || !isPartOfSeries.value || !store.seriesData) return;
+  prefetchAhead(currentUuid);
+}
+
 async function prefetchAhead(currentUuid: string) {
   const chapters = allChapters.value;
   if (!chapters.length || !seriesUuid.value) return;

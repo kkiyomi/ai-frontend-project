@@ -38,7 +38,7 @@ import { useGlossaryStore } from '../store';
 import { glossaryAPI } from '../api';
 import type { GlossaryTerm } from '../types';
 
-type GlossaryCSVField = keyof Omit<GlossaryTerm, 'id' | 'frequency' | 'seriesId' | 'chapterId' | 'chapterIds' | 'isUserDefined'>;
+type GlossaryCSVField = keyof Omit<GlossaryTerm, 'id' | 'seriesId' | 'chapterId' | 'chapterIds' | 'isUserDefined'>;
 
 /**
  * Glossary import configuration
@@ -61,7 +61,7 @@ export interface GlossaryImporterConfig {
    * Default mapping includes common variations: Term/term, Definition/definition, Translation/translation, Category/category/type/tag
    * @default { 'Term': 'term', 'term': 'term', 'Definition': 'definition', 'definition': 'definition', 'Translation': 'translation', 'translation': 'translation', 'Category': 'category', 'category': 'category', 'type': 'category', 'Type': 'category', 'tag': 'category', 'Tag': 'category', 'meaning': 'definition', 'Meaning': 'definition' }
    */
-  columnMapping?: Record<string, keyof Omit<GlossaryTerm, 'id' | 'frequency' | 'seriesId' | 'chapterId' | 'chapterIds' | 'isUserDefined'>>;
+  columnMapping?: Record<string, keyof Omit<GlossaryTerm, 'id' | 'seriesId' | 'chapterId' | 'chapterIds' | 'isUserDefined'>>;
   
   /**
    * Default category for terms without category column
@@ -117,7 +117,6 @@ const getDefaultValues = (config: GlossaryImporterConfig): Partial<GlossaryTerm>
   chapterId: config.chapterId,
   chapterIds: config.chapterId ? [config.chapterId] : undefined,
   isUserDefined: config.markAsUserDefined !== false,
-  frequency: 0,
   category: config.defaultCategory || 'General',
 });
 
@@ -156,7 +155,7 @@ const validateGlossaryRow = (
 const transformGlossaryRow = (
   row: Record<string, string>,
   config: GlossaryImporterConfig
-): Omit<GlossaryTerm, 'id' | 'frequency'> => {
+): Omit<GlossaryTerm, 'id'> => {
   const defaultValues = getDefaultValues(config);
   
   return {
@@ -221,7 +220,7 @@ const mapCSVRow = (
  * Import a glossary term using the store
  */
 const importGlossaryTerm = async (
-  term: Omit<GlossaryTerm, 'id' | 'frequency'>,
+  term: Omit<GlossaryTerm, 'id'>,
   store: ReturnType<typeof useGlossaryStore>
 ): Promise<boolean | string> => {
   try {
@@ -245,7 +244,7 @@ export function useGlossaryImporter(config: GlossaryImporterConfig) {
   };
   
   // Create importer configuration (without importRow since we handle bulk import separately)
-  const importerConfig: ImporterConfig<Record<string, string>, Omit<GlossaryTerm, 'id' | 'frequency'>> = {
+  const importerConfig: ImporterConfig<Record<string, string>, Omit<GlossaryTerm, 'id'>> = {
     columnMapping,
     defaultValues: getDefaultValues(config),
     validateRow: (row) => validateGlossaryRow(row, config, store),
@@ -289,7 +288,7 @@ export function useGlossaryImporter(config: GlossaryImporterConfig) {
       }
       
       const results: ImportRowResult[] = [];
-      const validTerms: Omit<GlossaryTerm, 'id' | 'frequency'>[] = [];
+      const validTerms: Omit<GlossaryTerm, 'id'>[] = [];
       
       // Process each row
       for (let i = 0; i < rows.length; i++) {

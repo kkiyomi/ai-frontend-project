@@ -63,12 +63,12 @@ class GlossaryAPIService {
     return api.getGlossaryTerms(seriesId, chapterId, cacheOptions);
   }
 
-  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
+  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id'>): Promise<APIResponse<GlossaryTerm>> {
     const api = await this.getAPI();
     return api.createGlossaryTerm(term);
   }
 
-  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id'>[]): Promise<APIResponse<GlossaryImportResponse>> {
     const api = await this.getAPI();
     return api.importGlossaryTerms(terms);
   }

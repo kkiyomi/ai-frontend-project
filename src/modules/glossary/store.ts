@@ -29,7 +29,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { glossaryAPI } from './api';
 import type { GlossaryTerm, GlossaryItem } from './types';
 import type { CacheOptions } from '@/modules/core';
@@ -44,6 +44,91 @@ export const useGlossaryStore = defineStore('glossary', () => {
   const showSeriesLevelTerms = ref(true);
   const currentSeriesId = ref<string | undefined>();
   const currentChapterId = ref<string | undefined>();
+
+  /** Tracks which paired occurrence index we last scrolled to per term. */
+  const termOccurrenceIndex = ref<Record<string, number>>({});
+
+  /** Group highlighted spans by their scrollable text column. */
+  function groupSpansByColumn(
+    termId: string
+  ): { orig: HTMLElement[]; trans: HTMLElement[] } {
+    const all = document.querySelectorAll<HTMLElement>(
+      `.glossary-highlight[data-term-id="${termId}"]`
+    );
+    const orig: HTMLElement[] = [];
+    const trans: HTMLElement[] = [];
+
+    for (const span of all) {
+      const col = span.closest('.overflow-y-auto') as HTMLElement | null;
+      if (!col) continue;
+      // The first overflow-y-auto column in DOM order is the original
+      if (orig.length === 0 || col === orig[0].closest('.overflow-y-auto')) {
+        orig.push(span);
+      } else {
+        trans.push(span);
+      }
+    }
+
+    return { orig, trans };
+  }
+
+  /** Flash a span to draw attention — distinct ring+glow so it stands out from regular highlights. */
+  function flashSpan(el: HTMLElement) {
+    el.style.transition = 'box-shadow 0.15s ease, background-color 0.15s ease';
+    el.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.6), 0 0 12px rgba(245, 158, 11, 0.35)';
+    el.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+    el.style.borderRadius = '3px';
+    setTimeout(() => {
+      el.style.boxShadow = '';
+      el.style.backgroundColor = '';
+      el.style.borderRadius = '';
+    }, 1800);
+  }
+
+  /**
+   * Scroll to a glossary term's next paired occurrence in both text columns.
+   *
+   * Groups highlighted spans by column (original / translated), then cycles
+   * through them as pairs on repeated clicks. The first call scrolls to the
+   * first occurrence in *both* columns simultaneously; subsequent calls
+   * advance to the next pair.
+   *
+   * Returns per-column counts and the current paired index so the caller can
+   * show progress (e.g. "Occurrence 3 / 5 in original, 3 / 3 in translated").
+   */
+  function scrollToTermOccurrence(termId: string): {
+    origCount: number;
+    transCount: number;
+    currentPair: number;
+    totalPairs: number;
+  } | null {
+    const { orig, trans } = groupSpansByColumn(termId);
+    const totalPairs = Math.max(orig.length, trans.length);
+
+    if (totalPairs === 0) return null;
+
+    const prevIdx = termOccurrenceIndex.value[termId] ?? -1;
+    const nextIdx = (prevIdx + 1) % totalPairs;
+
+    // Scroll to the nth occurrence in each column (if it exists)
+    if (nextIdx < orig.length) {
+      orig[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      flashSpan(orig[nextIdx]);
+    }
+    if (nextIdx < trans.length) {
+      trans[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      flashSpan(trans[nextIdx]);
+    }
+
+    termOccurrenceIndex.value = { ...termOccurrenceIndex.value, [termId]: nextIdx };
+
+    return {
+      origCount: orig.length,
+      transCount: trans.length,
+      currentPair: nextIdx + 1,
+      totalPairs,
+    };
+  }
 
   // Computed
   const termsByCategory = computed(() => {
@@ -154,7 +239,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     }
   }
 
-  async function addTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>) {
+  async function addTerm(term: Omit<GlossaryTerm, 'id'>) {
     isLoading.value = true;
     error.value = null;
     
@@ -435,6 +520,11 @@ export const useGlossaryStore = defineStore('glossary', () => {
   // Initialize preferences
   loadPreferences()
 
+  // Reset occurrence tracking when chapter changes (DOM is rebuilt)
+  watch(currentChapterId, () => {
+    termOccurrenceIndex.value = {};
+  });
+
   return {
     // State
     terms,
@@ -445,6 +535,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     showSeriesLevelTerms,
     currentSeriesId,
     currentChapterId,
+    termOccurrenceIndex,
     
     // Computed
     termsByCategory,
@@ -467,5 +558,6 @@ export const useGlossaryStore = defineStore('glossary', () => {
     toggleHighlight,
     toggleSeriesLevelTerms,
     clearError,
+    scrollToTermOccurrence,
   };
 });

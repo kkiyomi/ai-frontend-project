@@ -16,6 +16,11 @@ const pinia = createPinia();
 
 app.use(pinia).use(router);
 
+// Wait for initial navigation to complete before mounting.
+// Prevents the START_LOCATION (empty meta) from flashing the wrong layout
+// (e.g., the translator workspace on share page URLs).
+await router.isReady();
+
 // Load settings BEFORE mount to ensure sections are registered for route sync
 loadSettings();
 

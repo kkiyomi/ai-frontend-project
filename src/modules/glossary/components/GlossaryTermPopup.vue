@@ -34,8 +34,8 @@
       </div>
       
       <div class="flex items-center justify-between text-xs text-base-content/40 pt-2 border-t border-base-300">
-        <span>Used {{ term.frequency }} times</span>
         <span v-if="term.isUserDefined" class="badge badge-outline badge-sm">Custom</span>
+        <span v-else></span>
       </div>
     </div>
 

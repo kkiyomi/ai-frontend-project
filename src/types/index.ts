@@ -30,7 +30,6 @@ export interface GlossaryTerm {
   definition: string;
   translation: string;
   category: string;
-  frequency: number;
   isUserDefined: boolean;
   seriesId: string;
   chapterId?: string; // Optional - if null, it's a series-level term

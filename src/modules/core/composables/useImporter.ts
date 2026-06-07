@@ -27,7 +27,6 @@
  *     definition: row.definition,
  *     translation: row.translation || '',
  *     category: row.category || 'General',
- *     frequency: 0,
  *     isUserDefined: true,
  *     seriesId: 'current-series-id'
  *   }),

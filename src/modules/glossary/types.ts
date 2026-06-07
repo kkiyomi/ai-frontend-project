@@ -4,7 +4,6 @@ export interface GlossaryTerm {
   definition: string;
   translation: string;
   category: string;
-  frequency: number;
   isUserDefined: boolean;
   seriesId: string;
   chapterId?: string;
@@ -25,7 +24,6 @@ export interface GlossaryTermItem {
   definition: string;
   translation: string;
   category: string;
-  frequency: number;
   isUserDefined: boolean;
   seriesId: string;
   chapterId?: string;

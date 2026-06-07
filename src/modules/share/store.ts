@@ -177,6 +177,18 @@ export const useShareStore = defineStore('share', () => {
     }
   }
 
+  async function toggleChaptersPublish(uuids: string[], publish: boolean) {
+    const resp = await shareAPI.batchToggleChaptersPublished(uuids, publish);
+    if (resp.success && resp.data && seriesData.value) {
+      const uuidSet = new Set(uuids);
+      const updated = seriesData.value.chapters.map((c) =>
+        uuidSet.has(c.uuid) ? { ...c, isPublished: publish } : c,
+      );
+      seriesData.value = { ...seriesData.value, chapters: updated };
+    }
+    return resp;
+  }
+
   function clearError() {
     error.value = null;
   }
@@ -199,6 +211,7 @@ export const useShareStore = defineStore('share', () => {
     fetchLinks,
     revokeLink,
     toggleChapterPublish,
+    toggleChaptersPublish,
     // Utilities
     clearError,
   };

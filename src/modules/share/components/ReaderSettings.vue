@@ -103,6 +103,13 @@
           <label class="text-sm font-medium">Auto Scroll</label>
           <input type="checkbox" v-model="autoScroll" class="toggle toggle-sm toggle-primary" />
         </div>
+
+        <!-- Reset to Defaults -->
+        <div class="pt-2">
+          <button @click="doReset" class="btn btn-sm btn-outline w-full">
+            Reset to Defaults
+          </button>
+        </div>
       </div>
 
       <!-- Cache tab -->
@@ -161,6 +168,7 @@ import {
   chaptersAhead,
   getCachedCount,
   clearCache,
+  resetToDefaults,
 } from '../composables/useReaderSettings';
 
 defineEmits<{ close: [] }>();
@@ -172,5 +180,9 @@ watchEffect(() => { cachedCount.value = getCachedCount(); });
 function doClearCache() {
   clearCache();
   cachedCount.value = getCachedCount();
+}
+
+function doReset() {
+  resetToDefaults();
 }
 </script>

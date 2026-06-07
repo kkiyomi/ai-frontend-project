@@ -44,7 +44,7 @@ export class GlossaryMockAPI {
     };
   }
 
-  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
+  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id'>): Promise<APIResponse<GlossaryTerm>> {
     await simulateDelay(400, 800);
 
     const existingTerm = mockGlossaryTerms.find(
@@ -61,7 +61,6 @@ export class GlossaryMockAPI {
     const newTerm: GlossaryTerm = {
       ...term,
       id: `term${Date.now()}`,
-      frequency: 1,
     };
 
     mockGlossaryTerms.push(newTerm);
@@ -72,7 +71,7 @@ export class GlossaryMockAPI {
     };
   }
 
-  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id'>[]): Promise<APIResponse<GlossaryImportResponse>> {
     await simulateDelay(500, 1000);
 
     const results: GlossaryTerm[] = [];
@@ -106,7 +105,6 @@ export class GlossaryMockAPI {
       const newTerm: GlossaryTerm = {
         ...term,
         id: `term${Date.now()}-${index}`,
-        frequency: 1,
       };
 
       mockGlossaryTerms.push(newTerm);

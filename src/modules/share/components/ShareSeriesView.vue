@@ -65,6 +65,46 @@
         </button>
       </div>
 
+      <!-- Owner: select-all checkbox -->
+      <div v-if="store.isOwner && seriesData.chapters.length > 0" class="flex items-center gap-2 mb-2 px-4">
+        <input
+          type="checkbox"
+          class="checkbox checkbox-sm"
+          :checked="allFilteredSelected"
+          @change="toggleSelectAll"
+        />
+        <span class="text-sm text-base-content/50">Select All ({{ filteredChapters.length }})</span>
+      </div>
+
+      <!-- Owner: mass action bar -->
+      <div v-if="store.isOwner && selection.size > 0" class="bg-base-200 rounded-lg p-3 mb-4 flex items-center gap-3 flex-wrap">
+        <span class="text-sm font-medium">{{ selection.size }} selected</span>
+        <button
+          class="btn btn-sm btn-success"
+          :disabled="massActionPending"
+          @click="doMassPublish"
+        >
+          <span v-if="massActionPending" class="loading loading-spinner loading-xs"></span>
+          Publish Selected
+        </button>
+        <button
+          class="btn btn-sm btn-error"
+          :disabled="massActionPending"
+          @click="doMassUnpublish"
+        >
+          <span v-if="massActionPending" class="loading loading-spinner loading-xs"></span>
+          Unpublish Selected
+        </button>
+        <button class="btn btn-sm btn-ghost" @click="selection = new Set()">
+          Deselect All
+        </button>
+      </div>
+
+      <!-- Flash message -->
+      <div v-if="flashMessage" class="alert alert-success mb-4">
+        {{ flashMessage }}
+      </div>
+
       <!-- Chapter list -->
       <div class="space-y-1">
         <div
@@ -72,6 +112,14 @@
           :key="chapter.uuid"
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors group"
         >
+          <!-- Owner: selection checkbox -->
+          <input
+            v-if="store.isOwner"
+            type="checkbox"
+            class="checkbox checkbox-sm shrink-0"
+            :checked="isSelected(chapter.uuid)"
+            @change="toggleSelection(chapter.uuid)"
+          />
           <router-link
             :to="`/s/${seriesUuid}/${chapter.uuid}`"
             class="flex-1 font-serif no-underline text-base-content"
@@ -105,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
@@ -138,6 +186,92 @@ const filteredChapters = computed(() => {
   );
 });
 
+// Chapter selection for mass publish/unpublish
+const selection = ref<Set<string>>(new Set());
+
+function isSelected(uuid: string): boolean {
+  return selection.value.has(uuid);
+}
+
+function toggleSelection(uuid: string) {
+  const next = new Set(selection.value);
+  if (next.has(uuid)) {
+    next.delete(uuid);
+  } else {
+    next.add(uuid);
+  }
+  selection.value = next;
+}
+
+const allFilteredSelected = computed(() => {
+  const filtered = filteredChapters.value;
+  if (filtered.length === 0) return false;
+  return filtered.every((c) => selection.value.has(c.uuid));
+});
+
+function toggleSelectAll() {
+  if (allFilteredSelected.value) {
+    // Deselect all filtered
+    const filteredUuids = new Set(filteredChapters.value.map((c) => c.uuid));
+    const next = new Set(selection.value);
+    for (const uuid of filteredUuids) next.delete(uuid);
+    selection.value = next;
+  } else {
+    // Select all filtered
+    const next = new Set(selection.value);
+    for (const c of filteredChapters.value) next.add(c.uuid);
+    selection.value = next;
+  }
+}
+
+// Clear selection when filter changes or on mount
+watch(activeFilter, () => { selection.value = new Set(); });
+
+// Mass action state
+const massActionPending = ref(false);
+const flashMessage = ref<string | null>(null);
+let flashTimer: ReturnType<typeof setTimeout> | null = null;
+
+function showFlash(msg: string) {
+  flashMessage.value = msg;
+  if (flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { flashMessage.value = null; }, 3000);
+}
+
+async function doMassPublish() {
+  massActionPending.value = true;
+  try {
+    const resp = await store.toggleChaptersPublish([...selection.value], true);
+    if (resp.success && resp.data) {
+      showFlash(`Published ${resp.data.updated} chapters`);
+    } else {
+      showFlash('Failed to publish chapters');
+    }
+    selection.value = new Set();
+  } catch {
+    showFlash('Failed to publish chapters');
+  } finally {
+    massActionPending.value = false;
+  }
+}
+
+async function doMassUnpublish() {
+  massActionPending.value = true;
+  try {
+    const resp = await store.toggleChaptersPublish([...selection.value], false);
+    if (resp.success && resp.data) {
+      showFlash(`Unpublished ${resp.data.updated} chapters`);
+    } else {
+      showFlash('Failed to unpublish chapters');
+    }
+    selection.value = new Set();
+  } catch {
+    showFlash('Failed to unpublish chapters');
+  } finally {
+    massActionPending.value = false;
+  }
+}
+
 async function saveSettings() {
   if (!store.currentLink) return;
   await shareAPI.updateShareLink(store.currentLink.uuid, {
@@ -147,6 +281,7 @@ async function saveSettings() {
 }
 
 onMounted(async () => {
+  selection.value = new Set();
   const uuid = route.params.seriesUuid as string;
   if (uuid) {
     await store.loadSharedSeries(uuid);

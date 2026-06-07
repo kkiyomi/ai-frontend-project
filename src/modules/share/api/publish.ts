@@ -25,4 +25,8 @@ export class PublishRealAPI {
   async toggleChapterPublished(chapterUuid: string, isPublished: boolean): Promise<APIResponse<{ is_published: boolean }>> {
     return apiClient.patch<{ is_published: boolean }>(`/publish/chapters/${chapterUuid}`, { isPublished });
   }
+
+  async batchToggleChaptersPublished(uuids: string[], isPublished: boolean): Promise<APIResponse<{ updated: number }>> {
+    return apiClient.patch<{ updated: number }>('/publish/chapters', { uuids, isPublished });
+  }
 }

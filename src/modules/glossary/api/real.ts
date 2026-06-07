@@ -36,11 +36,11 @@ export class GlossaryRealAPI {
     return apiClient.get<GlossaryTerm[]>(`/glossary-terms${query}`, cacheOptions);
   }
 
-  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id' | 'frequency'>): Promise<APIResponse<GlossaryTerm>> {
+  async createGlossaryTerm(term: Omit<GlossaryTerm, 'id'>): Promise<APIResponse<GlossaryTerm>> {
     return apiClient.post<GlossaryTerm>('/glossary-terms', term, {showModal: true});
   }
 
-  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id' | 'frequency'>[]): Promise<APIResponse<GlossaryImportResponse>> {
+  async importGlossaryTerms(terms: Omit<GlossaryTerm, 'id'>[]): Promise<APIResponse<GlossaryImportResponse>> {
     apiClient.invalidate('/glossary-terms')
     return apiClient.post<GlossaryImportResponse>('/glossary-terms/import', terms);
   }

@@ -175,7 +175,7 @@
             >
               {{ item.category }} ({{ item.count }})
             </div>
-            <GlossaryTermItem v-else :term="item" />
+            <GlossaryTermItem v-else :term="item" :orig-frequency="termFrequencies[item.id]?.orig ?? 0" :tl-frequency="termFrequencies[item.id]?.tl ?? 0" />
           </template>
         </VirtualScrollingList>
       </div>
@@ -298,6 +298,44 @@ const displayTermCount = computed(() => {
     return `${total} terms`;
   }
   return `${filtered} of ${total} terms`;
+});
+
+/**
+ * Count occurrences of a term (case-insensitive) in a text string.
+ * Uses simple regex matching — no word boundaries since Chinese/Japanese
+ * terms don't use whitespace word separation.
+ */
+function countInText(text: string, search: string): number {
+  if (!text || !search) return 0;
+  const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(escaped, 'gi');
+  const matches = text.match(regex);
+  return matches ? matches.length : 0;
+}
+
+/** Map from term ID to occurrence counts in the current chapter, split by column. */
+interface TermFrequencyPair {
+  orig: number;
+  tl: number;
+}
+
+const termFrequencies = computed<Record<string, TermFrequencyPair>>(() => {
+  const result: Record<string, TermFrequencyPair> = {};
+  if (!props.currentChapter) return result;
+
+  const original = props.currentChapter.content || '';
+  const translated = props.currentChapter.translatedContent || '';
+
+  for (const term of glossaryTerms.value) {
+    let orig = 0;
+    let tl = 0;
+    if (term.term) orig = countInText(original, term.term);
+    if (term.translation && term.translation !== term.term) {
+      tl = countInText(translated, term.translation);
+    }
+    result[term.id] = { orig, tl };
+  }
+  return result;
 });
 
 const generateSuggestions = () => {

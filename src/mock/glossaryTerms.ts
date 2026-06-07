@@ -7,7 +7,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Nine Emperors",
     "category": "Title",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1",
     "chapterId": 'ch1'
@@ -18,7 +17,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Practitioner Faction",
     "category": "Faction",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1",
     "chapterId": 'ch1'
@@ -29,7 +27,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Yuan",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1",
     "chapterId": 'ch1'
@@ -40,7 +37,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Split Consciousness",
     "category": "Concept,Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1",
     "chapterId": 'ch1'
@@ -51,7 +47,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Cataclysm",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1",
     "chapterId": 'ch1'
@@ -62,7 +57,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Thousand-Eyed Progenitor",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -72,7 +66,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Life Core",
     "category": "Concept,Body_part",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -82,7 +75,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Curse Killing Cataclysm Formation",
     "category": "Technique,Formation",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -92,7 +84,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Nightmare Progenitor",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -102,7 +93,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Innate Primal Chaos Faction",
     "category": "Faction",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -112,7 +102,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Progenitor",
     "category": "Title",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -122,7 +111,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Silent Extinction Progenitor",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -132,7 +120,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Momann",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -142,7 +129,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Lord Momann",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -152,7 +138,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Sever Life",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -162,7 +147,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Xing Mang",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -172,7 +156,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Lord Xingmang",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -182,7 +165,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Mother of Time and Space",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -192,7 +174,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Time-Space Devour",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -202,7 +183,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Mogus",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -212,7 +192,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Destruction World Force",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -222,7 +201,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Destruction Abyss",
     "category": "Concept,Realm",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -232,7 +210,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Shazhou",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -242,7 +219,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Wave Kill",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -252,7 +228,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Primal Chaos Wave Dao",
     "category": "Cultivation_realm,Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -262,7 +237,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Primal Chaos Space",
     "category": "Realm",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -272,7 +246,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Primal Chaos Rule Operation Dao",
     "category": "Concept,Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -282,7 +255,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Luo Feng",
     "category": "Character,Protagonist",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -292,7 +264,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Blood Shadow Blade",
     "category": "Artifact",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -302,7 +273,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Jin",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -312,7 +282,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Lord Jin",
     "category": "Character",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -322,7 +291,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Defense Battle Formation",
     "category": "Formation",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -332,7 +300,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Soul Technique",
     "category": "Technique",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   },
@@ -342,7 +309,6 @@ const mockGlossaryTerms: GlossaryTerm[] = [
     "definition": "",
     "translation": "Lord",
     "category": "Title",
-    "frequency": 0,
     "isUserDefined": false,
     "seriesId": "s1"
   }
