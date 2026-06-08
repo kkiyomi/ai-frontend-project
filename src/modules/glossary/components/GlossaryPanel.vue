@@ -228,6 +228,7 @@ const {
 const {
   loadTerms: loadGlossaryTerms,
   suggestTermsFromText,
+  setChapterContent,
   toggleVisibility: toggleGlossaryVisibility,
   toggleHighlight,
   toggleSeriesLevelTerms
@@ -353,6 +354,7 @@ const generateSuggestions = () => {
 // Load glossary terms when component mounts or chapter changes
 onMounted(() => {
   if (props.currentSeries) {
+    setChapterContent(props.currentChapter?.content || '');
     loadGlossaryTerms(props.currentSeries.id, props.currentChapter?.id);
   }
   if (props.currentChapter && props.currentSeries) {
@@ -363,6 +365,7 @@ onMounted(() => {
 // Watch for chapter or series changes and reload glossary
 watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
   if (props.currentSeries) {
+    setChapterContent(props.currentChapter?.content || '');
     loadGlossaryTerms(props.currentSeries.id, props.currentChapter?.id);
   }
   if (props.currentChapter && props.currentSeries) {

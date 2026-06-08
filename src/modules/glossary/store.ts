@@ -44,6 +44,15 @@ export const useGlossaryStore = defineStore('glossary', () => {
   const showSeriesLevelTerms = ref(true);
   const currentSeriesId = ref<string | undefined>();
   const currentChapterId = ref<string | undefined>();
+  /** Raw content of the currently selected chapter, used for client-side
+   *  content matching when ``chapter_ids`` hasn't been populated yet by
+   *  the extraction pipeline. */
+  const chapterContent = ref<string>('');
+
+  /** Set the current chapter content for glossary term content matching. */
+  function setChapterContent(content: string) {
+    chapterContent.value = content || '';
+  }
 
   /** Tracks which paired occurrence index we last scrolled to per term. */
   const termOccurrenceIndex = ref<Record<string, number>>({});
@@ -166,11 +175,56 @@ export const useGlossaryStore = defineStore('glossary', () => {
   })
 
   const termsByCurrentChapter = computed(() => {
-    return getFilteredTerms(terms.value, currentSeriesId.value, currentChapterId.value, showSeriesLevelTerms.value);
+    return getFilteredTerms(
+      terms.value,
+      currentSeriesId.value,
+      currentChapterId.value,
+      showSeriesLevelTerms.value,
+      chapterContent.value,
+    );
   });
 
+  // ── Filtering helpers ───────────────────────────────────────────────────────
+
+  /** Returns true when a term from *another* chapter (not series-level, not
+   *  already linked to *chapterId* via ``chapterIds``) has its ``term`` text
+   *  present in the raw chapter content.  Used as a fallback before the
+   *  extraction pipeline has populated ``chapter_ids`` for this chapter. */
+  function _termMatchesContent(
+    term: GlossaryTerm,
+    chapterId: string,
+    content: string,
+  ): boolean {
+    // Only for chapter-specific terms not yet linked to this chapter
+    if (!term.chapterId) return false;
+    if (term.chapterId === chapterId) return false;
+    if (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId)) return false;
+    return content.toLowerCase().includes(term.term.toLowerCase());
+  }
+
+  /** Predicate that a term should be visible for a given chapter, optionally
+   *  falling back to content-based matching. */
+  function _termMatchesChapter(
+    term: GlossaryTerm,
+    chapterId: string,
+    content?: string,
+  ): boolean {
+    return (
+      !term.chapterId ||
+      term.chapterId === chapterId ||
+      (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId)) ||
+      (content ? _termMatchesContent(term, chapterId, content) : false)
+    );
+  }
+
   // Helper function
-  function getFilteredTerms(termsList: GlossaryTerm[], seriesId?: string, chapterId?: string, includeSeriesLevel = true) {
+  function getFilteredTerms(
+    termsList: GlossaryTerm[],
+    seriesId?: string,
+    chapterId?: string,
+    includeSeriesLevel = true,
+    chapterContent?: string,
+  ) {
     if (!seriesId) return [];
 
     const seriesTermsList = termsList.filter(term => term.seriesId === seriesId);
@@ -179,15 +233,14 @@ export const useGlossaryStore = defineStore('glossary', () => {
     }
 
     const filteredTerms = seriesTermsList.filter(term =>
-      (!term.chapterId) ||
-      (term.chapterId && term.chapterId === chapterId) ||
-      (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
+      _termMatchesChapter(term, chapterId, chapterContent)
     );
 
     if (!includeSeriesLevel) {
       return filteredTerms.filter(term =>
         (term.chapterId && term.chapterId === chapterId) ||
-        (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId))
+        (Array.isArray(term.chapterIds) && term.chapterIds.includes(chapterId)) ||
+        (chapterContent ? _termMatchesContent(term, chapterId, chapterContent) : false)
       );
     }
 
@@ -218,7 +271,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     try {
       const response = await glossaryAPI.getGlossaryTerms(seriesId, chapterId, cacheOptions);
       if (response.success && response.data) {
-        const filteredTerms = getFilteredTerms(response.data, seriesId, chapterId);
+        const filteredTerms = getFilteredTerms(response.data, seriesId, chapterId, true, chapterContent.value);
         filteredTerms.forEach(newTerm => {
           const index = terms.value.findIndex(t => t.id === newTerm.id);
 
@@ -228,6 +281,31 @@ export const useGlossaryStore = defineStore('glossary', () => {
             terms.value.push(newTerm); // add new
           }
         });
+
+        // If a chapter is selected and we have its content, check whether
+        // the chapter has been extracted yet.  When no chapter-specific
+        // terms were returned, the chapter hasn't been through extraction
+        // and ``chapter_ids`` is empty — fetch all series terms so the
+        // client-side content-matching fallback can find terms from other
+        // chapters whose text appears in the current chapter content.
+        if (chapterId && chapterContent.value) {
+          const hasExtracted = filteredTerms.some(
+            t =>
+              t.chapterId === chapterId ||
+              (Array.isArray(t.chapterIds) && t.chapterIds.includes(chapterId)),
+          );
+          if (!hasExtracted) {
+            const allResponse = await glossaryAPI.getGlossaryTerms(seriesId, undefined, cacheOptions);
+            if (allResponse.success && allResponse.data) {
+              const allFiltered = getFilteredTerms(allResponse.data, seriesId, chapterId, true, chapterContent.value);
+              allFiltered.forEach(ct => {
+                if (!terms.value.find(t => t.id === ct.id)) {
+                  terms.value.push(ct);
+                }
+              });
+            }
+          }
+        }
       } else {
         error.value = response.error || 'Failed to load glossary terms';
       }
@@ -535,6 +613,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     showSeriesLevelTerms,
     currentSeriesId,
     currentChapterId,
+    chapterContent,
     termOccurrenceIndex,
     
     // Computed
@@ -543,6 +622,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     termsByCategoryFlat,
     
     // Actions
+    setChapterContent,
     getTermsByContext,
     invalidateCache,
     loadTerms,
