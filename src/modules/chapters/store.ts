@@ -130,7 +130,10 @@ export const useChaptersStore = defineStore('chapters', () => {
       error.value = null;
 
       const response = await chapterAPI.getChapters(seriesId, chapterIds);
-      if (!response.success || !response.data) return;
+      if (!response.success || !response.data) {
+        error.value = response.error || 'Failed to load chapters';
+        return;
+      }
 
       const enriched = response.data.map((chapter) => ({
         ...chapter,

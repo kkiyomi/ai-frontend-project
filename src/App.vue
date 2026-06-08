@@ -71,8 +71,12 @@ const { selectedSeriesWithChapters: currentSeries } = useSeriesWithChapters();
 useSettingsRouteSync();
 
 onMounted(async () => {
-  await seriesStore.fetchSeries();
-  await chaptersStore.loadChapters();
+  // Route guard loads series/chapters data for series routes;
+  // only fetch from scratch when no series is in context (e.g. "/" route).
+  if (!props.seriesId) {
+    await seriesStore.fetchSeries();
+    await chaptersStore.loadChapters();
+  }
   await billingStore.fetchSubscription();
   await billingStore.loadPlans();
 });

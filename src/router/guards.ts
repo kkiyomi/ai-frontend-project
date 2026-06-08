@@ -35,15 +35,21 @@ export function setupRouteGuards(router: Router): void {
     }
     seriesStore.selectSeries(seriesId);
     
-    // Ensure all chapters are loaded (sidebar needs full list)
-    await chaptersStore.loadChapters();
+    // Load chapters scoped to this series first (efficient, avoids loading ALL chapters)
+    await chaptersStore.loadChapters(seriesId);
+
+    if (chaptersStore.error) {
+      // API failed — let the page render so the error is visible
+      next();
+      return;
+    }
     
     if (chapterId) {
       // Ensure chapter exists in store
       let chapter = chaptersStore.chapters.find(c => c.id === chapterId);
       if (!chapter) {
-        // Chapter not found, try to load specifically for this series
-        await chaptersStore.loadChapters(seriesId);
+        // Chapter not in scoped results — try loading all chapters as fallback
+        await chaptersStore.loadChapters();
         chapter = chaptersStore.chapters.find(c => c.id === chapterId);
         if (!chapter) {
           // Chapter not found, redirect to series detail
