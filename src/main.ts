@@ -16,10 +16,13 @@ const pinia = createPinia();
 
 app.use(pinia).use(router);
 
-// Wait for initial navigation to complete before mounting.
-// Prevents the START_LOCATION (empty meta) from flashing the wrong layout
-// (e.g., the translator workspace on share page URLs).
-await router.isReady();
+// For share routes (/s/...), wait for the route to resolve before mounting.
+// Without this, the translator workspace flashes briefly on direct share-page loads
+// because $route.meta.isShare is still undefined during the initial render.
+const path = window.location.pathname;
+if (path.startsWith('/s/')) {
+  await router.isReady();
+}
 
 // Load settings BEFORE mount to ensure sections are registered for route sync
 loadSettings();
