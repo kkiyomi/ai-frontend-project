@@ -18,7 +18,7 @@ export class PublishRealAPI {
     return apiClient.delete<void>(`/publish/links/${uuid}`);
   }
 
-  async updateShareLink(uuid: string, data: { includeGlossary?: boolean; includeRaw?: boolean; name?: string }): Promise<APIResponse<ShareLink>> {
+  async updateShareLink(uuid: string, data: { includeGlossary?: boolean; includeRaw?: boolean; name?: string; customName?: string }): Promise<APIResponse<ShareLink>> {
     return apiClient.patch<ShareLink>(`/publish/links/${uuid}`, data);
   }
 

@@ -79,7 +79,7 @@ class ShareAPIService {
     return publish.batchToggleChaptersPublished(uuids, isPublished);
   }
 
-  async updateShareLink(uuid: string, data: { includeGlossary?: boolean; includeRaw?: boolean; name?: string }): Promise<APIResponse<ShareLink>> {
+  async updateShareLink(uuid: string, data: { includeGlossary?: boolean; includeRaw?: boolean; name?: string; customName?: string }): Promise<APIResponse<ShareLink>> {
     return publish.updateShareLink(uuid, data);
   }
 }

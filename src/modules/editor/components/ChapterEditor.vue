@@ -117,9 +117,12 @@ const {
 const highlightFn = computed(() => props.highlightTermsInText);
 const highlightFnBatch = computed(() => props.highlightTermsInTexts);
 
-watch(() => props.chapterId, (newChapterId: string | null) => {
-  if (props.chapter) {
-    editor.loadChapter(props.chapter);
+// Watch the chapter object itself — not just the ID.
+// Watching only chapterId misses the case where the ID is set first
+// (from route params) but the full chapter object arrives later via the store.
+watch(() => props.chapter, (newChapter) => {
+  if (newChapter) {
+    editor.loadChapter(newChapter);
   } else {
     editor.clearChapter()
   }

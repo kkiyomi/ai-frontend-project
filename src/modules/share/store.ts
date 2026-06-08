@@ -155,6 +155,31 @@ export const useShareStore = defineStore('share', () => {
     }
   }
 
+  async function updateLink(
+    uuid: string,
+    data: { customName?: string },
+  ): Promise<ShareLink | null> {
+    try {
+      const response = await shareAPI.updateShareLink(uuid, data);
+      if (response.success && response.data) {
+        const idx = links.value.findIndex((l) => l.uuid === uuid);
+        if (idx >= 0) {
+          links.value[idx] = response.data;
+        }
+        // Also update currentLink if it's the same one
+        if (currentLink.value?.uuid === uuid) {
+          currentLink.value = response.data;
+        }
+        return response.data;
+      }
+      error.value = response.error || 'Failed to update share link';
+      return null;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update share link';
+      return null;
+    }
+  }
+
   async function toggleChapterPublish(chapterUuid: string, publish: boolean) {
     try {
       const resp = await shareAPI.toggleChapterPublished(chapterUuid, publish);
@@ -212,6 +237,7 @@ export const useShareStore = defineStore('share', () => {
     createShareLink,
     fetchLinks,
     revokeLink,
+    updateLink,
     toggleChapterPublish,
     toggleChaptersPublish,
     // Utilities
