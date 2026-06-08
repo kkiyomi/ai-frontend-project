@@ -9,6 +9,24 @@
         "{{ contentTitle }}"
       </p>
 
+      <!-- Custom name -->
+      <div class="mb-4">
+        <label class="text-xs font-medium text-base-content/60 block mb-1">
+          Custom Link Name (optional)
+        </label>
+        <input
+          v-model="customName"
+          type="text"
+          placeholder="e.g. my-story"
+          class="input input-bordered input-sm w-full text-xs font-mono"
+          :disabled="!!generatedUrl"
+          @input="sanitizeCustomName"
+        />
+        <p class="text-xs text-base-content/30 mt-1">
+          Letters, numbers, and hyphens only. Leave empty to use auto-generated ID.
+        </p>
+      </div>
+
       <!-- Options -->
       <div class="space-y-3 mb-6">
         <label class="flex items-center gap-3 cursor-pointer">
@@ -87,17 +105,26 @@ const store = useShareStore();
 
 const includeGlossary = ref(false);
 const includeRaw = ref(false);
+const customName = ref('');
 const creating = ref(false);
 const generatedUrl = ref('');
 const copied = ref(false);
 
+function sanitizeCustomName() {
+  customName.value = customName.value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 const shareUrl = computed(() => {
   const origin = window.location.origin;
-  const uuid = store.links[0]?.uuid || '';
+  const identifier = store.links[0]?.customName || store.links[0]?.uuid || '';
   if (props.contentType === 'chapter') {
-    return `${origin}/s/chapter/${uuid}`;
+    return `${origin}/s/chapter/${identifier}`;
   }
-  return `${origin}/s/${uuid}`;
+  return `${origin}/s/${identifier}`;
 });
 
 async function createLink() {
@@ -108,13 +135,15 @@ async function createLink() {
       contentId: props.contentId,
       includeGlossary: includeGlossary.value,
       includeRaw: includeRaw.value,
+      customName: customName.value || undefined,
     });
 
     if (link) {
       const origin = window.location.origin;
+      const identifier = link.customName || link.uuid;
       generatedUrl.value = props.contentType === 'chapter'
-        ? `${origin}/s/chapter/${link.uuid}`
-        : `${origin}/s/${link.uuid}`;
+        ? `${origin}/s/chapter/${identifier}`
+        : `${origin}/s/${identifier}`;
       emit('created', link.uuid);
     }
   } finally {

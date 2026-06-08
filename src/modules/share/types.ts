@@ -1,5 +1,6 @@
 export interface ShareLink {
   uuid: string;
+  customName?: string;
   name?: string;
   publishType: 'chapter' | 'series';
   chapterId?: string;
@@ -15,6 +16,7 @@ export interface ShareLink {
 
 export interface CreateShareLinkRequest {
   name?: string;
+  customName?: string;
   publishType: 'chapter' | 'series';
   contentId: string;
   includeGlossary?: boolean;

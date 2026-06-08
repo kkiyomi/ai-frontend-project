@@ -37,7 +37,9 @@ export const useShareStore = defineStore('share', () => {
       linksLoaded.value = true;
     }
 
-    const found = links.value.find((l) => l.uuid === uuid);
+    const found = links.value.find(
+      (l) => l.uuid === uuid || l.customName === uuid,
+    );
     isOwner.value = !!found;
     currentLink.value = found || null;
   }

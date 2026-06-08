@@ -45,7 +45,15 @@
 
         <!-- Target name -->
         <span class="flex-1 truncate font-medium">
-          {{ link.name || link.chapterName || link.novelName || 'Untitled' }}
+          <template v-if="link.customName">
+            <span class="text-primary">/{{ link.customName }}</span>
+            <span class="text-base-content/30 ml-1">
+              ({{ link.chapterName || link.novelName || 'Untitled' }})
+            </span>
+          </template>
+          <template v-else>
+            {{ link.name || link.chapterName || link.novelName || 'Untitled' }}
+          </template>
         </span>
 
         <!-- Views -->
@@ -58,7 +66,7 @@
           <!-- Copy link -->
           <button
             v-if="link.active"
-            @click.stop="copyShareUrl(link.uuid, link.publishType)"
+            @click.stop="copyShareUrl(link.uuid, link.publishType, link.customName)"
             class="btn btn-ghost btn-xs btn-circle p-0.5"
             title="Copy link"
           >
@@ -135,11 +143,12 @@ async function revoke(uuid: string) {
   await store.revokeLink(uuid);
 }
 
-async function copyShareUrl(uuid: string, publishType: string) {
+async function copyShareUrl(uuid: string, publishType: string, customName?: string) {
   const origin = window.location.origin;
+  const identifier = customName || uuid;
   const url = publishType === 'chapter'
-    ? `${origin}/s/chapter/${uuid}`
-    : `${origin}/s/${uuid}`;
+    ? `${origin}/s/chapter/${identifier}`
+    : `${origin}/s/${identifier}`;
   try {
     await navigator.clipboard.writeText(url);
   } catch {
