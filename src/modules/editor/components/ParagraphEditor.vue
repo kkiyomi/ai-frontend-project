@@ -1,10 +1,10 @@
 <template>
   <div class="paragraph-hover border border-transparent rounded-lg p-4 transition-colors group" 
        :class="{ 'border-primary/20 bg-primary/10': isDragging }"
-       draggable="true"
+       :draggable="!isEditing"
        @dragstart="handleDragStart"
        @dragend="handleDragEnd"
-       @dragover.prevent
+       @dragover.prevent="!isEditing"
        @drop="handleDrop">
     <div class="flex items-start justify-between mb-2">
       <div class="flex items-center space-x-2">
@@ -47,6 +47,14 @@
             ↷ Redo
           </button>
         </div>
+         <button
+          v-if="isEditing"
+          @click="handleCancel"
+          class="btn btn-ghost btn-xs text-xs transition-colors text-base-content/60 hover:text-base-content"
+          title="Cancel"
+        >
+          Cancel
+        </button>
          <button
           v-if="showEditButton"
           @click="toggleEditing"
@@ -173,6 +181,7 @@ const handleBackwards = () => {
 
 // Drag and drop handlers
 const handleDragStart = (event: DragEvent) => {
+  if (props.isEditing) return;
   isDragging.value = true;
   if (event.dataTransfer) {
     event.dataTransfer.setData('text/plain', props.index.toString());
@@ -189,11 +198,11 @@ const handleDrop = (event: DragEvent) => {
   event.preventDefault();
   draggedOver.value = false;
   
-  if (event.dataTransfer) {
-    const fromIndex = parseInt(event.dataTransfer.getData('text/plain'));
-    if (fromIndex !== props.index) {
-      editor.moveParagraph(fromIndex, props.index, props.type);
-    }
+  if (props.isEditing || !event.dataTransfer) return;
+  
+  const fromIndex = parseInt(event.dataTransfer.getData('text/plain'));
+  if (fromIndex !== props.index) {
+    editor.moveParagraph(fromIndex, props.index, props.type);
   }
 };
 </script>
