@@ -161,6 +161,7 @@
 
       <div v-else class="p-4 space-y-4">
         <VirtualScrollingList
+          ref="virtualListRef"
           :items="filteredTermsByCategoryFlat"
           :visible-count="60"
           :buffer="10"
@@ -223,6 +224,7 @@ const {
   showSeriesLevelTerms,
   termsByCategory,
   termsByCategoryFlat,
+  pendingScrollTermId,
 } = state;
 
 const {
@@ -239,6 +241,7 @@ const isGeneratingSuggestions = ref(false);
 const showAddForm = ref(false);
 const initialTerm = ref('');
 const searchQuery = ref('');
+const virtualListRef = ref<{ scrollToIndex: (index: number, behavior?: ScrollBehavior) => void } | null>(null);
 
 const addSuggestedTerm = (suggestion: string) => {
   initialTerm.value = suggestion;
@@ -370,6 +373,20 @@ watch([() => props.currentChapter?.id, () => props.currentSeries?.id], () => {
   }
   if (props.currentChapter && props.currentSeries) {
     generateSuggestions();
+  }
+});
+
+// Scroll to a term in the glossary panel (triggered by popup "find in glossary")
+watch(pendingScrollTermId, async (termId) => {
+  if (!termId) return;
+  // Clear search so the term is visible
+  if (searchQuery.value) searchQuery.value = '';
+  await nextTick();
+  const idx = filteredTermsByCategoryFlat.value.findIndex(
+    item => item.type === 'term' && item.id === termId
+  );
+  if (idx >= 0 && virtualListRef.value) {
+    virtualListRef.value.scrollToIndex(idx, 'smooth');
   }
 });
 

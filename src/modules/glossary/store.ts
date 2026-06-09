@@ -57,6 +57,9 @@ export const useGlossaryStore = defineStore('glossary', () => {
   /** Tracks which paired occurrence index we last scrolled to per term. */
   const termOccurrenceIndex = ref<Record<string, number>>({});
 
+  /** Set by `scrollToTermInGlossary` — consumed by the panel to scroll to a term. */
+  const pendingScrollTermId = ref<string | null>(null);
+
   /** Group highlighted spans by their scrollable text column. */
   function groupSpansByColumn(
     termId: string
@@ -583,6 +586,18 @@ export const useGlossaryStore = defineStore('glossary', () => {
     error.value = null;
   }
 
+  /** Open the glossary panel and signal it to scroll to the given term. */
+  function scrollToTermInGlossary(termId: string) {
+    if (!isGlossaryVisible.value) {
+      toggleVisibility();
+    }
+    // Re-assign to trigger the watcher even for the same termId
+    pendingScrollTermId.value = null;
+    requestAnimationFrame(() => {
+      pendingScrollTermId.value = termId;
+    });
+  }
+
   function loadPreferences() {
     const savedIisHighlight = localStorage.getItem('glossary:isHighlightEnabled');
     const savedShowSeriesLevel = localStorage.getItem('glossary:showSeriesLevelTerms');
@@ -615,6 +630,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     currentChapterId,
     chapterContent,
     termOccurrenceIndex,
+    pendingScrollTermId,
     
     // Computed
     termsByCategory,
@@ -639,5 +655,6 @@ export const useGlossaryStore = defineStore('glossary', () => {
     toggleSeriesLevelTerms,
     clearError,
     scrollToTermOccurrence,
+    scrollToTermInGlossary,
   };
 });

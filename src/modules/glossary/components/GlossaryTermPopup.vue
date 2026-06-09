@@ -21,16 +21,27 @@
           <p class="text-sm text-green-600 font-medium mt-1">{{ term.translation }}</p>
           <p v-if="term.definition" class="text-xs text-base-content/60 mt-1">{{ term.definition }}</p>
         </div>
-        <button
-          @click="startEditing"
-          class="btn btn-ghost btn-square btn-sm ml-2"
-          title="Edit term"
-        >
+        <div class="flex items-center space-x-1">
+          <button
+            @click="findInGlossary"
+            class="btn btn-ghost btn-square btn-sm ml-2"
+            title="Find in glossary panel"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          <button
+            @click="startEditing"
+            class="btn btn-ghost btn-square btn-sm"
+            title="Edit term"
+          >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-        </button>
+          </button>
+        </div>
       </div>
       
       <div class="flex items-center justify-between text-xs text-base-content/40 pt-2 border-t border-base-300">
@@ -102,7 +113,8 @@ import { useGlossaryPopup } from '../composables/useGlossaryPopup';
 import type { GlossaryTerm } from '../types';
 
 const {
-  updateTerm
+  updateTerm,
+  scrollToTermInGlossary
 } = useGlossaryStore();
 
 const {
@@ -165,6 +177,11 @@ watch(() => props.position, (newPos) => {
 
 const startEditing = () => {
   isEditing.value = true;
+};
+
+const findInGlossary = () => {
+  scrollToTermInGlossary(props.term.id);
+  closePopup();
 };
 
 const cancelEdit = () => {

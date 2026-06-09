@@ -302,7 +302,7 @@ export function useVirtualScroll<T>(
         if (targetEl) {
           const targetRect = targetEl.getBoundingClientRect();
           const containerRect = el.getBoundingClientRect();
-          el.scrollTop += targetRect.top - containerRect.top;
+          el.scrollTo({ top: el.scrollTop + targetRect.top - containerRect.top, behavior });
           return;
         }
       }
