@@ -8,25 +8,6 @@
        @drop="handleDrop">
     <div class="flex items-start justify-between mb-2">
       <div class="flex items-center space-x-2">
-        <span class="text-xs text-base-content/60 font-medium">{{ label }} {{ index + 1 }}</span>
-        <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-           <button
-            @click="editor.addParagraph(index, type)"
-            class="btn btn-success btn-ghost btn-xs"
-            title="Add paragraph above"
-          >
-            + Add
-          </button>
-           <button
-            @click="editor.deleteParagraph(index, type)"
-            class="btn btn-error btn-ghost btn-xs"
-            title="Delete paragraph"
-          >
-            × Delete
-          </button>
-        </div>
-      </div>
-      <div class="flex space-x-2">
         <div v-if="isEditing" class="flex space-x-1">
            <button
             @click="editor.undo"
@@ -47,6 +28,25 @@
             ↷ Redo
           </button>
         </div>
+        <span class="text-xs text-base-content/60 font-medium">{{ label }} {{ index + 1 }}</span>
+        <div v-if="!isEditing" class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+           <button
+            @click="editor.addParagraph(index, type)"
+            class="btn btn-success btn-ghost btn-xs"
+            title="Add paragraph above"
+          >
+            + Add
+          </button>
+           <button
+            @click="editor.deleteParagraph(index, type)"
+            class="btn btn-error btn-ghost btn-xs"
+            title="Delete paragraph"
+          >
+            × Delete
+          </button>
+        </div>
+      </div>
+      <div class="flex space-x-2">
          <button
           v-if="isEditing"
           @click="handleCancel"
