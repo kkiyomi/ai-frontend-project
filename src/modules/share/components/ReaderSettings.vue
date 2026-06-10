@@ -8,7 +8,8 @@
         <div>
           <label class="text-sm font-medium">Font</label>
           <select v-model="font" class="select select-bordered select-sm w-full mt-1">
-            <option value="default">Default (Serif)</option>
+            <option value="inter">Inter</option>
+            <option value="default">Serif</option>
             <option value="dyslexic">Dyslexic-friendly</option>
             <option value="roboto">Roboto</option>
             <option value="lora">Lora</option>

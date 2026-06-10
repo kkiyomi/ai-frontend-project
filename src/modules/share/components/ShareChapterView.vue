@@ -244,10 +244,11 @@ const htmlRawContent = computed(() => nl2p(chapterData.value?.rawContent ?? ''))
 // Font class mapping
 const fontClass = computed(() => {
   switch (font.value) {
+    case 'inter': return 'font-inter';
     case 'roboto': return 'font-roboto';
     case 'lora': return 'font-lora';
     case 'dyslexic': return 'font-dyslexic';
-    default: return 'font-serif';
+    default: return 'font-inter';
   }
 });
 
@@ -378,8 +379,11 @@ async function prefetchAhead(currentUuid: string) {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Roboto:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Roboto:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
 
+.font-inter {
+  font-family: 'Inter', system-ui, sans-serif;
+}
 .font-serif {
   font-family: 'Merriweather', Georgia, serif;
 }

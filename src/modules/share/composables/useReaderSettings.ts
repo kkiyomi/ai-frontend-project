@@ -5,7 +5,7 @@ const MAX_CACHE_AGE_MS = 3600000; // 1 hour
 const MAX_CACHE_SIZE_BYTES = 4.5 * 1024 * 1024; // 4.5 MB
 
 const DEFAULTS = {
-  font: 'default',
+  font: 'inter',
   fontSize: 16,
   lineSpacing: 1.6,
   paragraphSpacing: 1.5,
