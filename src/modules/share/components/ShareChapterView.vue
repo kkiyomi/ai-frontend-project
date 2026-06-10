@@ -77,6 +77,8 @@
           <h2 class="text-lg font-semibold text-base-content/50 mb-4">Original Text</h2>
           <article
             class="prose prose-base max-w-none text-base-content/60"
+            :class="fontClass"
+            :style="articleStyle"
             v-html="htmlRawContent"
           ></article>
         </section>
@@ -97,7 +99,7 @@
                 {{ term.term }}
                 <span class="text-base-content/50 font-normal">→ {{ term.translation }}</span>
               </dt>
-              <dd v-if="term.definition" class="text-sm text-base-content/60 mt-1">
+              <dd v-if="term.definition" class="text-sm text-base-content/60 mt-1" :class="fontClass">
                 {{ term.definition }}
               </dd>
             </div>
