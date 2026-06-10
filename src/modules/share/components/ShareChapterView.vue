@@ -144,6 +144,7 @@ import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
+import { usePageMeta } from '@/composables';
 import {
   font,
   fontSize,
@@ -174,6 +175,22 @@ function nl2p(text: string): string {
 const route = useRoute();
 const router = useRouter();
 const store = useShareStore();
+
+// Page meta — sets document.title and og: meta tags for social sharing
+const pageMeta = computed(() => {
+  const d = store.chapterData;
+  if (!d) return null;
+  const APP = 'Absolute Mystery';
+  const title = d.seriesName
+    ? `${d.title} — ${d.seriesName} — ${APP}`
+    : `${d.title} — ${APP}`;
+  return {
+    title,
+    description: d.seriesName || undefined,
+    ogType: 'article' as const,
+  };
+});
+usePageMeta(pageMeta);
 
 const chapterData = computed(() => store.chapterData);
 const error = computed(() => store.error);

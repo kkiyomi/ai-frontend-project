@@ -167,6 +167,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
+import { usePageMeta } from '@/composables';
 import ShareBrandBar from './ShareBrandBar.vue';
 import ShareBrandFooter from './ShareBrandFooter.vue';
 
@@ -177,6 +178,19 @@ const seriesData = computed(() => store.seriesData);
 const error = computed(() => store.error);
 const loading = computed(() => store.loading);
 const seriesUuid = computed(() => route.params.seriesUuid as string);
+
+// Page meta — sets document.title and og: meta tags for social sharing
+const pageMeta = computed(() => {
+  const d = seriesData.value;
+  if (!d) return null;
+  const APP = 'Absolute Mystery';
+  return {
+    title: `${d.seriesName} — ${APP}`,
+    description: d.seriesDescription,
+    ogType: 'website' as const,
+  };
+});
+usePageMeta(pageMeta);
 
 // Owner settings
 const showSettings = ref(false);
