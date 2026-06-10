@@ -99,7 +99,7 @@
           <span v-if="massActionPending" class="loading loading-spinner loading-xs"></span>
           Unpublish Selected
         </button>
-        <button class="btn btn-sm btn-ghost" @click="selection = new Set()">
+        <button class="btn btn-sm btn-ghost" @click="selection = new Set(); lastClickedIndex = null">
           Deselect All
         </button>
       </div>
@@ -112,9 +112,10 @@
       <!-- Chapter list -->
       <div class="space-y-1">
         <div
-          v-for="chapter in filteredChapters"
+          v-for="(chapter, index) in filteredChapters"
           :key="chapter.uuid"
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors group"
+          @mousedown.capture="onRowMouseDown"
         >
           <!-- Owner: selection checkbox -->
           <input
@@ -122,11 +123,12 @@
             type="checkbox"
             class="checkbox checkbox-sm shrink-0"
             :checked="isSelected(chapter.uuid)"
-            @change="toggleSelection(chapter.uuid)"
+            @click="handleCheckboxClick(chapter.uuid, index, $event)"
           />
           <router-link
             :to="`/s/${seriesUuid}/${chapter.uuid}`"
             class="flex-1 font-serif no-underline text-base-content"
+            @click.prevent.shift="handleLinkShiftClick(chapter.uuid, index)"
           >
             {{ chapter.name || 'Untitled Chapter' }}
           </router-link>
@@ -198,6 +200,7 @@ const filteredChapters = computed(() => {
 
 // Chapter selection for mass publish/unpublish
 const selection = ref<Set<string>>(new Set());
+const lastClickedIndex = ref<number | null>(null);
 
 function isSelected(uuid: string): boolean {
   return selection.value.has(uuid);
@@ -211,6 +214,52 @@ function toggleSelection(uuid: string) {
     next.add(uuid);
   }
   selection.value = next;
+}
+
+function handleCheckboxClick(uuid: string, index: number, event: MouseEvent) {
+  if (event.shiftKey) {
+    handleShiftRangeSelect(uuid, index);
+  } else {
+    toggleSelection(uuid);
+    lastClickedIndex.value = index;
+  }
+}
+
+// Fires when the user shift+clicks the chapter name link.
+// The .prevent modifier stops router navigation on shift+click.
+function handleLinkShiftClick(uuid: string, index: number) {
+  handleShiftRangeSelect(uuid, index);
+}
+
+// Capture-phase mousedown on the row div prevents browser
+// text selection when the user shift+clicks anywhere on the row.
+function onRowMouseDown(event: MouseEvent) {
+  if (store.isOwner && event.shiftKey) {
+    event.preventDefault();
+  }
+}
+
+function handleShiftRangeSelect(uuid: string, index: number) {
+  if (lastClickedIndex.value === null || lastClickedIndex.value >= filteredChapters.value.length) {
+    // No valid anchor (e.g. cleared by filter change): make clicked item
+    // selected and set it as the new anchor. Use add (not toggle) because
+    // the browser already toggled the native checkbox state.
+    const next = new Set(selection.value);
+    next.add(uuid);
+    selection.value = next;
+    lastClickedIndex.value = index;
+    return;
+  }
+
+  const start = Math.min(lastClickedIndex.value, index);
+  const end = Math.max(lastClickedIndex.value, index);
+  const chapters = filteredChapters.value;
+  const next = new Set(selection.value);
+  for (let i = start; i <= end; i++) {
+    next.add(chapters[i].uuid);
+  }
+  selection.value = next;
+  // Anchor stays at the original position for subsequent shift+clicks
 }
 
 const allFilteredSelected = computed(() => {
@@ -232,10 +281,11 @@ function toggleSelectAll() {
     for (const c of filteredChapters.value) next.add(c.uuid);
     selection.value = next;
   }
+  lastClickedIndex.value = null;
 }
 
-// Clear selection when filter changes or on mount
-watch(activeFilter, () => { selection.value = new Set(); });
+// Clear selection and anchor when filter changes or on mount
+watch(activeFilter, () => { selection.value = new Set(); lastClickedIndex.value = null; });
 
 // Mass action state
 const massActionPending = ref(false);
@@ -258,6 +308,7 @@ async function doMassPublish() {
       showFlash('Failed to publish chapters');
     }
     selection.value = new Set();
+    lastClickedIndex.value = null;
   } catch {
     showFlash('Failed to publish chapters');
   } finally {
@@ -275,6 +326,7 @@ async function doMassUnpublish() {
       showFlash('Failed to unpublish chapters');
     }
     selection.value = new Set();
+    lastClickedIndex.value = null;
   } catch {
     showFlash('Failed to unpublish chapters');
   } finally {
@@ -292,6 +344,7 @@ async function saveSettings() {
 
 onMounted(async () => {
   selection.value = new Set();
+  lastClickedIndex.value = null;
   const uuid = route.params.seriesUuid as string;
   if (uuid) {
     await store.loadSharedSeries(uuid);
