@@ -207,11 +207,12 @@ const filters = [
   { key: 'unpublished' as const, label: 'Unpublished' },
 ];
 const filteredChapters = computed(() => {
-  if (!store.isOwner || activeFilter.value === 'all') return seriesData.value?.chapters ?? [];
-  const wantPublished = activeFilter.value === 'published';
-  return (seriesData.value?.chapters ?? []).filter(
-    (c) => c.isPublished === wantPublished,
-  );
+  const chapters = seriesData.value?.chapters ?? [];
+  const base = (!store.isOwner || activeFilter.value === 'all')
+    ? chapters
+    : chapters.filter((c) => c.isPublished === (activeFilter.value === 'published'));
+  // Latest first (reverse sequence order)
+  return [...base].reverse();
 });
 
 // Chapter selection for mass publish/unpublish
