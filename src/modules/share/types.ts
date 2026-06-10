@@ -41,9 +41,12 @@ export interface SharedSeriesData {
 export interface SharedSeriesChapterItem {
   uuid: string;
   name: string;
-  sequence: number;
-  hasPublishedContent: boolean;
-  isPublished: boolean;
+  /** Owner-only: omitted from public API responses */
+  sequence?: number;
+  /** Owner-only: omitted from public API responses */
+  hasPublishedContent?: boolean;
+  /** Owner-only: omitted from public API responses */
+  isPublished?: boolean;
 }
 
 export interface GlossaryTermPublic {
