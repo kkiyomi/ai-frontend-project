@@ -17,7 +17,7 @@
     <!-- Chapter content -->
     <div v-else-if="chapterData">
       <!-- Top bar: brand + gear icon -->
-      <ShareBrandBar>
+      <ShareBrandBar :title="chapterData?.title">
         <div class="flex items-center gap-1">
           <button
             @click="showSettings = true"
@@ -144,7 +144,7 @@ import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
-import { usePageMeta } from '@/composables';
+import { usePageMeta, useScrollRestore } from '@/composables';
 import {
   font,
   fontSize,
@@ -195,6 +195,8 @@ usePageMeta(pageMeta);
 const chapterData = computed(() => store.chapterData);
 const error = computed(() => store.error);
 const loading = computed(() => store.loading);
+const contentReady = computed(() => !loading.value && !!chapterData.value);
+useScrollRestore(contentReady);
 const isPartOfSeries = computed(() => !!route.params.seriesUuid);
 const seriesUuid = computed(() => route.params.seriesUuid as string);
 const chapterId = computed(() => route.params.chapterUuid as string);

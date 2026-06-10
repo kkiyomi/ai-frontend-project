@@ -17,7 +17,7 @@
     <!-- Series Table of Contents -->
     <div v-else-if="seriesData">
       <!-- Top bar: brand -->
-      <ShareBrandBar />
+      <ShareBrandBar :title="seriesData?.seriesName" />
 
       <div class="max-w-3xl mx-auto px-4 py-12">
       <!-- Header -->
@@ -167,7 +167,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useShareStore } from '../store';
 import { shareAPI } from '../api';
-import { usePageMeta } from '@/composables';
+import { usePageMeta, useScrollRestore } from '@/composables';
 import ShareBrandBar from './ShareBrandBar.vue';
 import ShareBrandFooter from './ShareBrandFooter.vue';
 
@@ -177,6 +177,8 @@ const store = useShareStore();
 const seriesData = computed(() => store.seriesData);
 const error = computed(() => store.error);
 const loading = computed(() => store.loading);
+const contentReady = computed(() => !loading.value && !!seriesData.value);
+useScrollRestore(contentReady);
 const seriesUuid = computed(() => route.params.seriesUuid as string);
 
 // Page meta — sets document.title and og: meta tags for social sharing
