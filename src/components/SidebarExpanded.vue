@@ -216,7 +216,7 @@ const chaptersScrollContainer = ref<HTMLElement | null>(null);
 const scrollContainerProp = computed(() => chaptersScrollContainer);
 
 // Ref to the VirtualScrollingList instance for scroll-to-chapter
-const virtualListRef = ref<{ scrollToIndex: (index: number, behavior?: ScrollBehavior) => void } | null>(null);
+const virtualListRef = ref<{ scrollToIndex: (index: number, behaviorOrOptions?: ScrollBehavior | { behavior?: ScrollBehavior; align?: 'start' | 'center' }) => void } | null>(null);
 
 // Tracks which series we've already auto-scrolled for (prevents re-scroll on chapter click)
 const lastScrolledSeriesId = ref<string | null>(null);
@@ -231,7 +231,7 @@ watchEffect(() => {
   const idx = series.chapters.findIndex(ch => ch.id === chaptersStore.currentChapterId);
   if (idx >= 0) {
     lastScrolledSeriesId.value = series.id;
-    nextTick(() => list.scrollToIndex(idx));
+    nextTick(() => list.scrollToIndex(idx, { align: 'center' }));
   }
 });
 </script>

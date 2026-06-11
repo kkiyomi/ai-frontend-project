@@ -98,12 +98,29 @@ export interface VirtualScrollApi<T> {
   resetHeights: () => void;
 
   /**
+   * Options for the `scrollToIndex` method.
+   */
+  scrollToIndexOptions?: {
+    /**
+     * Scroll behavior ('instant' | 'smooth', default 'instant').
+     */
+    behavior?: ScrollBehavior;
+    /**
+     * Where to position the item in the container.
+     * - 'start': top of container (default)
+     * - 'center': middle of container
+     */
+    align?: 'start' | 'center';
+  };
+
+  /**
    * Scroll to the item at the given index.
    * Shifts the virtual window and scrolls the container so the item is visible.
+   * Skips scrolling if the item is already fully visible in the viewport.
    * @param index - The index of the item to scroll to
-   * @param behavior - Scroll behavior ('instant' | 'smooth', default 'instant')
+   * @param behaviorOrOptions - ScrollBehavior string or options object
    */
-  scrollToIndex: (index: number, behavior?: ScrollBehavior) => void;
+  scrollToIndex: (index: number, behaviorOrOptions?: ScrollBehavior | VirtualScrollApi<T>['scrollToIndexOptions']) => void;
 }
 
 /**

@@ -5,9 +5,9 @@
     :class="isExpanded ? 'w-80' : 'w-12'" 
     @mouseenter="handleMouseEnter"
   >
-    <SidebarCollapsed v-if="!isExpanded" :chapters-count="chapters.length"/>
+    <SidebarCollapsed v-show="!isExpanded" :chapters-count="chapters.length"/>
 
-    <SidebarExpanded v-if="isExpanded"/>
+    <SidebarExpanded v-show="isExpanded"/>
   </div>
 </template>
 

@@ -86,6 +86,18 @@
           <input type="checkbox" v-model="autoScroll" class="toggle toggle-sm toggle-primary" />
         </div>
 
+        <!-- Show Glossary -->
+        <div v-if="hasGlossary" class="flex items-center justify-between">
+          <label class="text-sm font-medium">Show Glossary</label>
+          <input type="checkbox" v-model="showGlossary" class="toggle toggle-sm toggle-primary" />
+        </div>
+
+        <!-- Show Raw Content -->
+        <div v-if="hasRawContent" class="flex items-center justify-between">
+          <label class="text-sm font-medium">Show Original Text</label>
+          <input type="checkbox" v-model="showRawContent" class="toggle toggle-sm toggle-primary" />
+        </div>
+
         <!-- Reset to Defaults -->
         <div class="pt-2">
           <button @click="doReset" class="btn btn-sm btn-outline w-full">
@@ -109,9 +121,15 @@ import {
   paragraphSpacing,
   pageWidth,
   autoScroll,
+  showGlossary,
+  showRawContent,
   resetToDefaults,
 } from '../composables/useReaderSettings';
 
+defineProps<{
+  hasGlossary?: boolean;
+  hasRawContent?: boolean;
+}>();
 defineEmits<{ close: [] }>();
 
 function doReset() {

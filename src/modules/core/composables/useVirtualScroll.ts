@@ -279,30 +279,76 @@ export function useVirtualScroll<T>(
     stopItemRefsWatch?.();
   });
 
-  // Scroll to a specific item by index, placing it at the top of the container
-  function scrollToIndex(index: number, behavior: ScrollBehavior = 'instant') {
+  // Scroll to a specific item by index
+  interface ScrollToIndexOptions {
+    behavior?: ScrollBehavior;
+    /** Where to position the item: 'start' (top) or 'center' (middle). Default 'start'. */
+    align?: 'start' | 'center';
+  }
+
+  /** Check if the item at `index` is currently in the DOM and fully visible. Must be called when the item is expected to be in the current virtual window. */
+  function isItemFullyVisible(index: number, el: HTMLElement): boolean {
+    const listEl = el.querySelector('.virtual-scrolling-list');
+    if (!listEl) return false;
+
+    const targetRelativeIndex = index - startIndex.value;
+    const targetEl = listEl.children[targetRelativeIndex + 1] as HTMLElement | undefined;
+    if (!targetEl) return false;
+
+    const targetRect = targetEl.getBoundingClientRect();
+    const containerRect = el.getBoundingClientRect();
+    return targetRect.top >= containerRect.top - 1 && targetRect.bottom <= containerRect.bottom + 1;
+  }
+
+  function scrollToIndex(index: number, behaviorOrOptions?: ScrollBehavior | ScrollToIndexOptions) {
+    const behavior =
+      typeof behaviorOrOptions === 'object' && behaviorOrOptions !== null
+        ? (behaviorOrOptions.behavior ?? 'instant')
+        : (behaviorOrOptions ?? 'instant');
+    const align =
+      typeof behaviorOrOptions === 'object' && behaviorOrOptions !== null
+        ? (behaviorOrOptions.align ?? 'start')
+        : 'start';
+
     const el = containerRef.value;
     if (!el) return;
 
     const totalItems = (itemsRef.value as T[]).length;
     if (index < 0 || index >= totalItems) return;
 
-    // Shift the virtual window so the target is the first visible item
-    const targetStart = Math.min(index, Math.max(0, totalItems - visibleCount));
+    // Bail out if the item is already rendered and fully visible — avoids
+    // disturbing the viewport when the sidebar is re-opened etc.
+    if (index >= startIndex.value && index < startIndex.value + visibleCount) {
+      if (isItemFullyVisible(index, el)) return;
+    }
+
+    // Shift the virtual window so the target is positioned for desired alignment
+    let targetStart: number;
+    if (align === 'center') {
+      targetStart = Math.max(0, Math.min(index - Math.floor(visibleCount / 2), Math.max(0, totalItems - visibleCount)));
+    } else {
+      targetStart = Math.min(index, Math.max(0, totalItems - visibleCount));
+    }
     startIndex.value = targetStart;
 
-    // After DOM update, measure the actual DOM position for pixel-perfect scroll
+    // After DOM update, do pixel-perfect scroll
     nextTick(() => {
       const listEl = el.querySelector('.virtual-scrolling-list');
       if (listEl) {
-        // The target's relative position within the rendered items
         const targetRelativeIndex = index - startIndex.value;
         // children: [0]=topSpacer, [1..N]=item wrappers
         const targetEl = listEl.children[targetRelativeIndex + 1] as HTMLElement | undefined;
         if (targetEl) {
           const targetRect = targetEl.getBoundingClientRect();
           const containerRect = el.getBoundingClientRect();
-          el.scrollTo({ top: el.scrollTop + targetRect.top - containerRect.top, behavior });
+
+          let scrollOffset: number;
+          if (align === 'center') {
+            scrollOffset = targetRect.top - containerRect.top - (containerRect.height - targetRect.height) / 2;
+          } else {
+            scrollOffset = targetRect.top - containerRect.top;
+          }
+          el.scrollTo({ top: el.scrollTop + scrollOffset, behavior });
           return;
         }
       }

@@ -73,7 +73,7 @@
         ></article>
 
         <!-- Raw content (optional) -->
-        <section v-if="chapterData.rawContent" class="mt-12 pt-8 border-t border-base-300">
+        <section v-if="chapterData.rawContent && showRawContent" class="mt-12 pt-8 border-t border-base-300">
           <h2 class="text-lg font-semibold text-base-content/50 mb-4">Original Text</h2>
           <article
             class="prose prose-base max-w-none text-base-content/60"
@@ -85,7 +85,7 @@
 
         <!-- Glossary (optional) -->
         <section
-          v-if="chapterData.glossary && chapterData.glossary.length > 0"
+          v-if="chapterData.glossary && chapterData.glossary.length > 0 && showGlossary"
           class="mt-12 pt-8 border-t border-base-300"
         >
           <h2 class="text-lg font-semibold text-base-content/50 mb-4">Glossary</h2>
@@ -136,7 +136,12 @@
       <ShareBrandFooter />
 
       <!-- Reader Settings Modal -->
-      <ReaderSettings v-if="showSettings" @close="showSettings = false" />
+      <ReaderSettings
+        v-if="showSettings"
+        :has-glossary="!!(chapterData?.glossary && chapterData.glossary.length > 0)"
+        :has-raw-content="!!chapterData?.rawContent"
+        @close="showSettings = false"
+      />
     </div>
   </div>
 </template>
@@ -156,6 +161,8 @@ import {
   autoScroll,
   offlineEnabled,
   chaptersAhead,
+  showGlossary,
+  showRawContent,
   cacheChapter,
   getCachedChapter,
 } from '../composables/useReaderSettings';

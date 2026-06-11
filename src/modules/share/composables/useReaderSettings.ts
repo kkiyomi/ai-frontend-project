@@ -13,6 +13,8 @@ const DEFAULTS = {
   autoScroll: false,
   offlineEnabled: false,
   chaptersAhead: 3,
+  showGlossary: true,
+  showRawContent: true,
 };
 
 function load(): typeof DEFAULTS {
@@ -40,6 +42,8 @@ export const pageWidth = ref<number>(p.pageWidth);
 export const autoScroll = ref<boolean>(p.autoScroll);
 export const offlineEnabled = ref<boolean>(p.offlineEnabled);
 export const chaptersAhead = ref<number>(p.chaptersAhead);
+export const showGlossary = ref<boolean>(p.showGlossary);
+export const showRawContent = ref<boolean>(p.showRawContent);
 
 export function resetToDefaults() {
   font.value = DEFAULTS.font;
@@ -50,6 +54,8 @@ export function resetToDefaults() {
   autoScroll.value = DEFAULTS.autoScroll;
   offlineEnabled.value = DEFAULTS.offlineEnabled;
   chaptersAhead.value = DEFAULTS.chaptersAhead;
+  showGlossary.value = DEFAULTS.showGlossary;
+  showRawContent.value = DEFAULTS.showRawContent;
   save(DEFAULTS);
 }
 
@@ -159,7 +165,7 @@ export function getCachedChapter(uuid: string): CachedChapter | null {
 }
 
 // Auto-save on any change
-watch([font, fontSize, lineSpacing, paragraphSpacing, pageWidth, autoScroll, offlineEnabled, chaptersAhead], () => {
+watch([font, fontSize, lineSpacing, paragraphSpacing, pageWidth, autoScroll, offlineEnabled, chaptersAhead, showGlossary, showRawContent], () => {
   save({
     font: font.value,
     fontSize: fontSize.value,
@@ -169,5 +175,7 @@ watch([font, fontSize, lineSpacing, paragraphSpacing, pageWidth, autoScroll, off
     autoScroll: autoScroll.value,
     offlineEnabled: offlineEnabled.value,
     chaptersAhead: chaptersAhead.value,
+    showGlossary: showGlossary.value,
+    showRawContent: showRawContent.value,
   });
 }, { deep: false });
