@@ -7,6 +7,21 @@
       Absolute Mystery
     </a>
     <span v-if="title" class="flex-1 text-center text-sm font-medium text-base-content/70 truncate px-2">{{ title }}</span>
+    <span v-else class="flex-1" />
+    <button
+      @click="toggleTheme"
+      class="btn btn-ghost btn-sm btn-circle shrink-0 mr-1"
+      :title="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+    >
+      <!-- Sun icon (shown in dark mode → switch to light) -->
+      <svg v-if="isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <!-- Moon icon (shown in light mode → switch to dark) -->
+      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
     <div class="shrink-0">
       <slot />
     </div>
@@ -14,5 +29,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useThemeStore } from '@/modules/theme';
+
 defineProps<{ title?: string }>();
+
+const themeStore = useThemeStore();
+const isDark = computed(() => themeStore.currentTheme === 'am-dark');
+
+function toggleTheme() {
+  themeStore.setTheme(isDark.value ? 'am-light' : 'am-dark');
+}
 </script>
