@@ -44,7 +44,7 @@ export const useChaptersStore = defineStore('chapters', () => {
   );
 
   const getChaptersBySeriesId = computed(() => {
-    return (seriesId: string) => chapters.value.filter(ch => ch.seriesId === seriesId);
+    return (seriesId: string) => chapters.value.filter(ch => ch.seriesId === seriesId).reverse();
   });
 
   function buildOriginalParagraphs(content: string): string[] {
