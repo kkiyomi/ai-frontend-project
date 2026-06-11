@@ -143,6 +143,11 @@
         @close="showSettings = false"
       />
     </div>
+
+    <!-- Fallback: initial render before data loads -->
+    <div v-else class="flex items-center justify-center min-h-screen">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
   </div>
 </template>
 
@@ -220,16 +225,14 @@ const nextChapter = computed(() => currentIndex.value < allChapters.value.length
 function goPrev() {
   if (prevChapter.value) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    store.loadSharedChapterInSeries(seriesUuid.value, prevChapter.value.uuid);
-    router.replace(`/s/${seriesUuid.value}/${prevChapter.value.uuid}`);
+    router.push(`/s/${seriesUuid.value}/${prevChapter.value.uuid}`);
   }
 }
 
 function goNext() {
   if (nextChapter.value) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    store.loadSharedChapterInSeries(seriesUuid.value, nextChapter.value.uuid);
-    router.replace(`/s/${seriesUuid.value}/${nextChapter.value.uuid}`);
+    router.push(`/s/${seriesUuid.value}/${nextChapter.value.uuid}`);
   }
 }
 
@@ -351,6 +354,20 @@ onMounted(async () => {
     // Pre-fetch chapters ahead for offline reading
     triggerPrefetch(chapterUuid || chapterId.value);
   });
+
+// Reload chapter data when route params change (back/forward navigation)
+watch(
+  () => [route.params.seriesUuid, route.params.chapterUuid] as const,
+  async ([seriesUid, chapterUuid]) => {
+    const sid = seriesUid as string | undefined;
+    const cid = chapterUuid as string | undefined;
+    if (sid && cid) {
+      await store.loadSharedChapterInSeries(sid, cid);
+    } else if (cid) {
+      await store.loadSharedChapter(cid);
+    }
+  },
+);
 
 // React to offline toggle being enabled after page load
 watch(offlineEnabled, (on) => {

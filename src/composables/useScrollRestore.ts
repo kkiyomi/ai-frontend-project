@@ -56,12 +56,17 @@ export function useScrollRestore(ready: Ref<boolean>) {
   }
 
   // Restore once content is loaded
-  const stopWatch = watch(ready, (isReady) => {
-    if (isReady) {
-      restore();
-      stopWatch(); // only restore once per mount
-    }
-  }, { immediate: true });
+  if (ready.value) {
+    // Already loaded (e.g. store has cached data from previous route)
+    restore();
+  } else {
+    const stopWatch = watch(ready, (isReady) => {
+      if (isReady) {
+        restore();
+        stopWatch();
+      }
+    });
+  }
 
   onMounted(() => {
     window.addEventListener('scroll', onScroll, { passive: true });

@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router';
 import App from '../App.vue';
 import { setupRouteGuards } from './guards';
+import ShareChapterView from '@/modules/share/components/ShareChapterView.vue';
+import ShareSeriesView from '@/modules/share/components/ShareSeriesView.vue';
 
 const routes = [
   {
@@ -29,19 +31,19 @@ const routes = [
   {
     path: '/s/chapter/:chapterUuid',
     name: 'ShareChapter',
-    component: () => import('@/modules/share/components/ShareChapterView.vue'),
+    component: ShareChapterView,
     meta: { isShare: true },
   },
   {
     path: '/s/:seriesUuid',
     name: 'ShareSeries',
-    component: () => import('@/modules/share/components/ShareSeriesView.vue'),
+    component: ShareSeriesView,
     meta: { isShare: true },
   },
   {
     path: '/s/:seriesUuid/:chapterUuid',
     name: 'ShareChapterInSeries',
-    component: () => import('@/modules/share/components/ShareChapterView.vue'),
+    component: ShareChapterView,
     meta: { isShare: true },
   },
 ];

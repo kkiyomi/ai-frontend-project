@@ -159,6 +159,11 @@
       <ShareBrandFooter />
     </div>
     </div>
+
+    <!-- Fallback: initial render before data loads -->
+    <div v-else class="flex items-center justify-center min-h-screen">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
   </div>
 </template>
 
