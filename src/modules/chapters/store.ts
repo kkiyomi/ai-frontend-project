@@ -167,7 +167,7 @@ export const useChaptersStore = defineStore('chapters', () => {
           translatedParagraphs: buildTranslatedParagraphs(response.data.translatedContent || ''),
         };
 
-        chapters.value.unshift(enrichedChapter);
+        chapters.value.push(enrichedChapter);
 
         if (!currentChapterId.value) {
           currentChapterId.value = enrichedChapter.id;
