@@ -72,9 +72,9 @@
 
     <!-- Upgrade Card -->
     <UpgradeCard
-      v-if="nextPlan && currentPlan"
+      v-if="currentPlan && billingStore.plans.length > 0"
       :currentPlan="currentPlan"
-      :nextPlan="nextPlan"
+      :plans="billingStore.plans"
     />
 
   </div>
@@ -113,12 +113,6 @@ function formatFeatureName(key: string) {
 function formatLimitName(key: string) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
-
-const nextPlan = computed(() => {
-  if (!currentPlan.value || !billingStore.plans.length) return null;
-  const index = billingStore.plans.findIndex(p => p.id === currentPlan.value?.id);
-  return billingStore.plans[index + 1] || null;
-});
 
 // Helper functions
 function formatNumber(num: number): string {

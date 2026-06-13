@@ -30,7 +30,12 @@
 
         <!-- Upgrade Card -->
         <div class="px-6 pb-4">
-          <UpgradeCard v-if="currentPlan && nextPlan" :currentPlan="currentPlan" :nextPlan="nextPlan" />
+          <UpgradeCard
+            v-if="currentPlan && billingStore.plans.length > 0"
+            :currentPlan="currentPlan"
+            :plans="billingStore.plans"
+            :upgradeToTierName="upgradeToTierName ?? undefined"
+          />
            <div v-else class="text-center py-8 text-base-content/70">
             No upgrade option available...
           </div>
@@ -52,6 +57,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { Plan } from '../types';
 import { useBillingStore } from '../store';
 import UpgradeCard from './UpgradeCard.vue';
 
@@ -87,38 +93,85 @@ const descriptionText = computed(() => {
   return `To use ${humanize(featureName.value) || 'this feature'}, you need to upgrade to a plan that includes it.`;
 });
 
-const nextPlan = computed(() => {
+// --- Tier grouping (shared logic with UpgradeCard) ---
+
+/** Extract the canonical tier name by stripping the "(Monthly)" suffix if present. */
+function getTierName(plan: { name: string }): string {
+  return plan.name.replace(/\s*\(Monthly\)\s*$/i, '').trim();
+}
+
+interface TierVariants {
+  monthly: Plan | null;
+  yearly: Plan | null;
+}
+
+/** Group all plans by canonical tier name. */
+function groupPlansIntoTiers(plans: Plan[]): Record<string, TierVariants> {
+  const tiers: Record<string, TierVariants> = {};
+  for (const plan of plans) {
+    const name = getTierName(plan);
+    if (!tiers[name]) tiers[name] = { monthly: null, yearly: null };
+    if (plan.period === 'yearly') {
+      tiers[name].yearly = plan;
+    } else {
+      tiers[name].monthly = plan;
+    }
+  }
+  return tiers;
+}
+
+/** Tier names ordered by minimum price among their variants (ascending). */
+function orderedTiers(plans: Plan[]): string[] {
+  const tiers = groupPlansIntoTiers(plans);
+  return Object.entries(tiers)
+    .map(([name, variants]) => ({
+      name,
+      minPrice: Math.min(
+        variants.monthly?.price ?? Infinity,
+        variants.yearly?.price ?? Infinity,
+      ),
+    }))
+    .sort((a, b) => a.minPrice - b.minPrice)
+    .map((t) => t.name);
+}
+
+/** Compute which tier to upgrade to based on the modal context. */
+const upgradeToTierName = computed<string | null>(() => {
   if (!currentPlan.value || !billingStore.plans.length) return null;
 
-  const sorted = [...billingStore.plans].sort((a, b) => (a.price || 0) - (b.price || 0));
-  const index = sorted.findIndex(p => p.id === currentPlan.value?.id);
+  const tiers = groupPlansIntoTiers(billingStore.plans);
+  const currentTier = getTierName(currentPlan.value);
+  const sorted = orderedTiers(billingStore.plans);
+  const idx = sorted.indexOf(currentTier);
+  if (idx === -1) return null;
 
-  // For limit upgrades, find next plan with higher limit for that key
-  if (isLimit.value) {
-    const currentLimitObj = currentPlan.value.limits[limitKey.value];
-    const currentLimit = currentLimitObj?.value ?? 0;
-    for (let i = index + 1; i < sorted.length; i++) {
-      const plan = sorted[i];
-      const planLimitObj = plan.limits[limitKey.value];
-      const planLimit = planLimitObj?.value ?? 0;
-      if (planLimit > currentLimit) {
-        return plan;
-      }
+  // For limit upgrades: find the next tier with a higher limit value for that key
+  if (isLimit.value && limitKey.value) {
+    const currentVariant = tiers[currentTier]?.monthly ?? tiers[currentTier]?.yearly;
+    const currentLimit = currentVariant?.limits[limitKey.value]?.value ?? 0;
+    for (let i = idx + 1; i < sorted.length; i++) {
+      const tierVariants = tiers[sorted[i]];
+      const plan = tierVariants?.monthly ?? tierVariants?.yearly;
+      if (!plan) continue;
+      const planLimit = plan.limits[limitKey.value]?.value ?? 0;
+      if (planLimit > currentLimit) return sorted[i];
     }
     return null;
   }
 
-  // For feature upgrades, find next plan that includes the required feature
-  for (let i = index + 1; i < sorted.length; i++) {
-    const plan = sorted[i];
-    // If a specific feature is requested, only accept plans that include it
+  // For feature upgrades: find the next tier that includes the required feature
+  for (let i = idx + 1; i < sorted.length; i++) {
+    const tierVariants = tiers[sorted[i]];
+    const plan = tierVariants?.monthly ?? tierVariants?.yearly;
+    if (!plan) continue;
+
     if (featureName.value) {
       const feat = plan.features[featureName.value];
       if (!feat || !feat.enabled) continue;
     }
-    return plan;
+    return sorted[i];
   }
-  // If no later plan has the required feature, return null
+
   return null;
 });
 

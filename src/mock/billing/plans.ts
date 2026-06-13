@@ -66,8 +66,8 @@ export const mockPlanFree: Plan = {
 };
 
 export const mockPlanPro: Plan = {
-  id: "pro",
-  name: "Pro Plan",
+  id: "pro_monthly",
+  name: "Pro Plan (Monthly)",
   price: 19.99,
   period: 'monthly',
   features: {
@@ -110,9 +110,19 @@ export const mockPlanPro: Plan = {
   }
 };
 
+export const mockPlanProYearly: Plan = {
+  id: "pro_yearly",
+  name: "Pro Plan",
+  price: 199.90,
+  period: 'yearly',
+  features: mockPlanPro.features, // same features as monthly
+  limits: mockPlanPro.limits,     // same limits as monthly
+  product_page: mockPlanPro.product_page,
+};
+
 export const mockPlanTeam: Plan = {
-  id: "team",
-  name: "Team Plan",
+  id: "team_monthly",
+  name: "Team Plan (Monthly)",
   price: 49.99,
   period: 'monthly',
   features: {
@@ -165,4 +175,14 @@ export const mockPlanTeam: Plan = {
   }
 };
 
-export const mockPlans: Plan[] = [ mockPlanFree, mockPlanPro, mockPlanTeam ];
+export const mockPlanTeamYearly: Plan = {
+  id: "team_yearly",
+  name: "Team Plan",
+  price: 499.90,
+  period: 'yearly',
+  features: mockPlanTeam.features,
+  limits: mockPlanTeam.limits,
+  product_page: mockPlanTeam.product_page,
+};
+
+export const mockPlans: Plan[] = [ mockPlanFree, mockPlanPro, mockPlanProYearly, mockPlanTeam, mockPlanTeamYearly ];
