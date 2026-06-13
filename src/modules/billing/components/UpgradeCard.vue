@@ -183,9 +183,10 @@ interface Props {
   currentPlan: Plan;
   /** All available plans (used to find next tier's monthly/yearly variants) */
   plans: Plan[];
-  /** Optional: override which tier to upgrade to. When provided, only shows this
-   *  specific tier. Used by UpgradeModal for targeted upgrades. */
-  upgradeToTierName?: string;
+  /** Optional: override which tiers to show. When provided, only shows these
+   *  specific tiers instead of all tiers above the current one.
+   *  Used by UpgradeModal for targeted upgrades. */
+  upgradeToTierNames?: string[];
 }
 
 const props = defineProps<Props>();
@@ -236,9 +237,9 @@ const currentTierName = computed<string>(() => getTierName(props.currentPlan));
 
 /** All tiers above the current one. */
 const upgradeTierNames = computed<string[]>(() => {
-  // When override is set (UpgradeModal), show only that tier
-  if (props.upgradeToTierName && planTiers.value[props.upgradeToTierName]) {
-    return [props.upgradeToTierName];
+  // When override is set (UpgradeModal), show only those specific tiers
+  if (props.upgradeToTierNames && props.upgradeToTierNames.length > 0) {
+    return props.upgradeToTierNames.filter(name => planTiers.value[name]);
   }
 
   const idx = orderedTierNames.value.indexOf(currentTierName.value);

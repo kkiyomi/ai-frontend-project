@@ -34,7 +34,7 @@
             v-if="currentPlan && billingStore.plans.length > 0"
             :currentPlan="currentPlan"
             :plans="billingStore.plans"
-            :upgradeToTierName="upgradeToTierName ?? undefined"
+            :upgradeToTierNames="upgradeToTierNames.length > 0 ? upgradeToTierNames : undefined"
           />
            <div v-else class="text-center py-8 text-base-content/70">
             No upgrade option available...
@@ -135,17 +135,19 @@ function orderedTiers(plans: Plan[]): string[] {
     .map((t) => t.name);
 }
 
-/** Compute which tier to upgrade to based on the modal context. */
-const upgradeToTierName = computed<string | null>(() => {
-  if (!currentPlan.value || !billingStore.plans.length) return null;
+/** Compute ALL tiers above current that satisfy the modal context. */
+const upgradeToTierNames = computed<string[]>(() => {
+  if (!currentPlan.value || !billingStore.plans.length) return [];
 
   const tiers = groupPlansIntoTiers(billingStore.plans);
   const currentTier = getTierName(currentPlan.value);
   const sorted = orderedTiers(billingStore.plans);
   const idx = sorted.indexOf(currentTier);
-  if (idx === -1) return null;
+  if (idx === -1) return [];
 
-  // For limit upgrades: find the next tier with a higher limit value for that key
+  const eligible: string[] = [];
+
+  // For limit upgrades: find all tiers above current with a higher limit value for that key
   if (isLimit.value && limitKey.value) {
     const currentVariant = tiers[currentTier]?.monthly ?? tiers[currentTier]?.yearly;
     const currentLimit = currentVariant?.limits[limitKey.value]?.value ?? 0;
@@ -154,12 +156,12 @@ const upgradeToTierName = computed<string | null>(() => {
       const plan = tierVariants?.monthly ?? tierVariants?.yearly;
       if (!plan) continue;
       const planLimit = plan.limits[limitKey.value]?.value ?? 0;
-      if (planLimit > currentLimit) return sorted[i];
+      if (planLimit > currentLimit) eligible.push(sorted[i]);
     }
-    return null;
+    return eligible;
   }
 
-  // For feature upgrades: find the next tier that includes the required feature
+  // For feature upgrades: find all tiers above current that include the required feature
   for (let i = idx + 1; i < sorted.length; i++) {
     const tierVariants = tiers[sorted[i]];
     const plan = tierVariants?.monthly ?? tierVariants?.yearly;
@@ -169,10 +171,10 @@ const upgradeToTierName = computed<string | null>(() => {
       const feat = plan.features[featureName.value];
       if (!feat || !feat.enabled) continue;
     }
-    return sorted[i];
+    eligible.push(sorted[i]);
   }
 
-  return null;
+  return eligible;
 });
 
 const handleBackdropClick = (e: MouseEvent) => {
