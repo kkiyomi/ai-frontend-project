@@ -28,6 +28,37 @@ export interface LimitDefinition {
   expiresAt?: Date;          // For topups
 }
 
+/** A feature entry in the ordered plan items list. */
+export interface FeatureItem {
+  type: 'feature';
+  key: string;
+  enabled: boolean;
+  name: string;
+  description?: string;
+  icon?: string;
+  category?: string;
+  sequence: number;
+}
+
+/** A limit entry in the ordered plan items list. */
+export interface LimitItem {
+  type: 'limit';
+  key: string;
+  limitType: LimitType;
+  value: number;
+  name: string;
+  description?: string;
+  unit?: string;
+  icon?: string;
+  category?: string;
+  resetPeriod?: 'monthly' | 'yearly' | 'custom';
+  expiresAt?: Date;
+  sequence: number;
+}
+
+/** Discriminated union for ordered plan items. */
+export type PlanItem = FeatureItem | LimitItem;
+
 export interface Plan {
   id: string;
   name: string;
@@ -36,6 +67,7 @@ export interface Plan {
   features: Record<string, FeatureDefinition>;
   limits: Record<string, LimitDefinition>; // Now has metadata
   product_page?: string;
+  items: PlanItem[];         // Backend-controlled ordered list
 }
 
 export interface UsageRecord {

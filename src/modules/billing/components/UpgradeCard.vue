@@ -99,57 +99,29 @@
 
           <ul class="space-y-2 text-sm">
 
-            <!-- Features -->
-            <li
-              v-for="feat in Object.values(getDisplayedPlan(tierName).features)"
-              :key="feat.key"
-              class="flex items-start gap-2"
+            <!-- NEW: Ordered items from backend (interleaved features + limits) -->
+            <template
+              v-if="
+                getDisplayedPlan(tierName).items &&
+                getDisplayedPlan(tierName).items.length > 0
+              "
             >
-              <span
-                class="inline-flex items-center"
-                :class="feat.enabled ? 'text-success' : 'text-base-content/30'"
-                aria-hidden="true"
+              <li
+                v-for="item in getDisplayedPlan(tierName).items"
+                :key="item.key"
+                class="flex items-start gap-2"
               >
-                <svg
-                  v-if="feat.enabled"
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                <span
+                  class="inline-flex items-center"
+                  :class="
+                    item.type === 'feature' && !item.enabled
+                      ? 'text-base-content/30'
+                      : 'text-success'
+                  "
+                  aria-hidden="true"
                 >
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-                <svg
-                  v-else
-                  class="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </span>
-              <div class="flex-1">
-                <div class="text-base-content font-medium">{{ feat.name }}</div>
-                <div v-if="feat.description" class="text-sm text-base-content/70">{{ feat.description }}</div>
-              </div>
-            </li>
-
-            <!-- Limits -->
-            <li
-              v-for="(limit, key) in getDisplayedPlan(tierName).limits"
-              :key="key"
-              class="flex items-start justify-between"
-            >
-              <div class="flex items-start gap-2 flex-1">
-                <span class="text-success font-medium">
                   <svg
+                    v-if="item.type === 'limit' || (item.type === 'feature' && item.enabled)"
                     class="w-4 h-4"
                     viewBox="0 0 24 24"
                     fill="none"
@@ -160,13 +132,112 @@
                   >
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
                 </span>
                 <div class="flex-1">
-                  <div class="text-base-content font-medium">{{ limit.name }}</div>
-                  <div v-if="limit.description" class="text-sm text-base-content/70">{{ limit.description }}</div>
+                  <div class="text-base-content font-medium">{{ item.name }}</div>
+                  <div
+                    v-if="item.description"
+                    class="text-sm text-base-content/70"
+                  >
+                    {{ item.description }}
+                  </div>
                 </div>
-              </div>
-            </li>
+              </li>
+            </template>
+
+            <!-- OLD: Fallback when items is not available -->
+            <template v-else>
+              <!-- Features -->
+              <li
+                v-for="feat in Object.values(getDisplayedPlan(tierName).features)"
+                :key="feat.key"
+                class="flex items-start gap-2"
+              >
+                <span
+                  class="inline-flex items-center"
+                  :class="feat.enabled ? 'text-success' : 'text-base-content/30'"
+                  aria-hidden="true"
+                >
+                  <svg
+                    v-if="feat.enabled"
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </span>
+                <div class="flex-1">
+                  <div class="text-base-content font-medium">{{ feat.name }}</div>
+                  <div
+                    v-if="feat.description"
+                    class="text-sm text-base-content/70"
+                  >
+                    {{ feat.description }}
+                  </div>
+                </div>
+              </li>
+
+              <!-- Limits -->
+              <li
+                v-for="(limit, key) in getDisplayedPlan(tierName).limits"
+                :key="key"
+                class="flex items-start justify-between"
+              >
+                <div class="flex items-start gap-2 flex-1">
+                  <span class="text-success font-medium">
+                    <svg
+                      class="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </span>
+                  <div class="flex-1">
+                    <div class="text-base-content font-medium">{{ limit.name }}</div>
+                    <div
+                      v-if="limit.description"
+                      class="text-sm text-base-content/70"
+                    >
+                      {{ limit.description }}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </template>
           </ul>
         </div>
       </div>

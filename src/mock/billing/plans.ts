@@ -1,7 +1,7 @@
 // src/mock/billing/plans.ts
 // Plan definitions
 
-import type { Plan } from '@/modules/billing/types';
+import type { Plan, PlanItem, FeatureItem, LimitItem } from '@/modules/billing/types';
 import {
   customThemesFeature,
   translationFeature,
@@ -22,6 +22,94 @@ import {
   exportCountPerMonthBase,
   collaboratorsLimitBase
 } from './limitDefinitions';
+
+/**
+ * Build an ordered `items` array from features and limits dicts using an explicit
+ * sequence order.  Items not listed in the order array are silently skipped.
+ */
+function buildItems(
+  features: Plan['features'],
+  limits: Plan['limits'],
+  order: { key: string; sequence: number }[],
+): PlanItem[] {
+  const items: PlanItem[] = [];
+  for (const { key, sequence } of order) {
+    const feat = features[key];
+    if (feat) {
+      const item: FeatureItem = {
+        type: 'feature',
+        key: feat.key,
+        enabled: feat.enabled,
+        name: feat.name,
+        description: feat.description,
+        icon: feat.icon,
+        category: feat.category,
+        sequence,
+      };
+      items.push(item);
+      continue;
+    }
+    const lim = limits[key];
+    if (lim) {
+      const item: LimitItem = {
+        type: 'limit',
+        key: lim.key,
+        limitType: lim.type,
+        value: lim.value,
+        name: lim.name,
+        description: lim.description,
+        unit: lim.unit,
+        icon: lim.icon,
+        category: lim.category,
+        resetPeriod: lim.resetPeriod,
+        expiresAt: lim.expiresAt,
+        sequence,
+      };
+      items.push(item);
+    }
+  }
+  return items;
+}
+
+// ---------------------------------------------------------------------------
+// Order definitions (mixed features + limits, controlled by sequence)
+// ---------------------------------------------------------------------------
+
+/** Shared base order for all plans. */
+const baseOrder = [
+  { key: 'translation',             sequence: 10 },
+  { key: 'translation_tokens_limit', sequence: 20 },
+  { key: 'split_view',              sequence: 30 },
+  { key: 'full_view',               sequence: 40 },
+  { key: 'paragraph_editing',       sequence: 50 },
+  { key: 'series_limit',            sequence: 60 },
+  { key: 'chapter_limit',           sequence: 70 },
+  { key: 'glossary_highlighting',   sequence: 80 },
+  { key: 'glossary_categories',     sequence: 90 },
+  { key: 'glossary_popup',          sequence: 100 },
+  { key: 'glossary_limit',          sequence: 110 },
+];
+
+/** Additional items for Pro (above Free). */
+const proExtraOrder = [
+  { key: 'custom_themes',    sequence: 120 },
+  { key: 'glossary_import',  sequence: 130 },
+  { key: 'draft_mode',       sequence: 140 },
+];
+
+/** Additional items for Team (above Pro). */
+const teamExtraOrder = [
+  { key: 'export_count_per_month',  sequence: 150 },
+  { key: 'collaborators_limit',     sequence: 160 },
+];
+
+const freeOrder  = baseOrder;
+const proOrder   = [...baseOrder, ...proExtraOrder];
+const teamOrder  = [...baseOrder, ...proExtraOrder, ...teamExtraOrder];
+
+// ---------------------------------------------------------------------------
+// Plan definitions
+// ---------------------------------------------------------------------------
 
 export const mockPlanFree: Plan = {
   id: "free",
@@ -62,8 +150,10 @@ export const mockPlanFree: Plan = {
       type: 'permanent',
       value: 250
     },
-  }
+  },
+  items: [] as PlanItem[],
 };
+mockPlanFree.items = buildItems(mockPlanFree.features, mockPlanFree.limits, freeOrder);
 
 export const mockPlanPro: Plan = {
   id: "pro_monthly",
@@ -107,8 +197,10 @@ export const mockPlanPro: Plan = {
       type: 'permanent',
       value: 5000
     },
-  }
+  },
+  items: [] as PlanItem[],
 };
+mockPlanPro.items = buildItems(mockPlanPro.features, mockPlanPro.limits, proOrder);
 
 export const mockPlanProYearly: Plan = {
   id: "pro_yearly",
@@ -118,7 +210,9 @@ export const mockPlanProYearly: Plan = {
   features: mockPlanPro.features, // same features as monthly
   limits: mockPlanPro.limits,     // same limits as monthly
   product_page: mockPlanPro.product_page,
+  items: [] as PlanItem[],
 };
+mockPlanProYearly.items = buildItems(mockPlanProYearly.features, mockPlanProYearly.limits, proOrder);
 
 export const mockPlanTeam: Plan = {
   id: "team_monthly",
@@ -172,8 +266,10 @@ export const mockPlanTeam: Plan = {
       type: 'permanent',
       value: 10
     },
-  }
+  },
+  items: [] as PlanItem[],
 };
+mockPlanTeam.items = buildItems(mockPlanTeam.features, mockPlanTeam.limits, teamOrder);
 
 export const mockPlanTeamYearly: Plan = {
   id: "team_yearly",
@@ -183,6 +279,8 @@ export const mockPlanTeamYearly: Plan = {
   features: mockPlanTeam.features,
   limits: mockPlanTeam.limits,
   product_page: mockPlanTeam.product_page,
+  items: [] as PlanItem[],
 };
+mockPlanTeamYearly.items = buildItems(mockPlanTeamYearly.features, mockPlanTeamYearly.limits, teamOrder);
 
 export const mockPlans: Plan[] = [ mockPlanFree, mockPlanPro, mockPlanProYearly, mockPlanTeam, mockPlanTeamYearly ];

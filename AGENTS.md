@@ -27,10 +27,9 @@ npm run preview
 
 # Type checking only (used in build process)
 vue-tsc -b
-
-# Install dependencies
-npm install
 ```
+
+**Cross-project note**: The Odoo backend (`AsuraRealm/`) requires module updates after any change (`docker compose exec odoo odoo --stop-after-init -d Asura_001 -u <module>`). This applies only to the backend — the frontend has no Odoo modules.
 
 **Note**: No linting or testing commands configured. Type checking performed during `npm run build`.
 
